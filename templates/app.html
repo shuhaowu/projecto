@@ -1,0 +1,49 @@
+{% extends "master.html" %}
+
+{% block navbar_section %}
+<section class="top-bar-section" ng-controller="NavbarController">
+  <ul class="left" ng-show="currentProject" class="hide">
+    <li><a href="#/projects/{[ currentProject.key ]}/">{[ currentProject.name ]}</a></li>
+    <li><a href="#/projects/{[ currentProject.key ]}/feed/">Feed</a></li>
+    <li><a href="#/projects/{[ currentProject.key ]}/todos/">Todos</a></li>
+    <li ng-show="currentProject.owner"><a href="#/projects/{[ currentProject.key ]}/manage/">Manage</a></li>
+  </ul>
+  <ul class="right">
+    <li class="has-dropdown">
+      <a href="#/projects">Projects</a>
+      <ul class="dropdown" ng-controller="ProjectSwitcher">
+        <li><a href="#" ng-click="newProject()">New Project</a></li>
+        <li class="divider"></li>
+        <li><label>Projects owned by you</label></li>
+        <li ng-repeat="project in projectsOwned">
+          <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
+        </li>
+        <li><label></label></li>
+        <li class="divider"></li>
+        <li><label>Projects you're participating in</label></li>
+        <li ng-repeat="projects in projectsParticipating">
+          <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
+        </li>
+        <li><label></label></li> <!-- hack to add in some extra space -->
+      </ul>
+    </li>
+    <li><a href="#/profile/">{[ currentUser.name ]}</a></li>
+    <li><a id="login-persona" href="#">Logout</a></li>
+  </ul>
+</section>
+{% endblock %}
+
+{% block main %}
+<div ng-view>
+  <div class="row">
+
+  </div>
+</div>
+{% endblock %}
+
+{% block end %}
+<script src="/static/js/vendor/angular.min.js"></script>
+{% for script in scripts %}
+<script src="{{ script }}"></script>
+{% endfor %}
+{% endblock %}

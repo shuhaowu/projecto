@@ -1,0 +1,32 @@
+/* General modifications */
+.clear { clear: both; }
+.no-margin { margin: 0 !important; }
+.hide { display: none !important; }
+.statusmsg { font-size: 14px; }
+/* Workaround for Foundation 4 bug: https://github.com/zurb/foundation/issues/2127 */
+textarea { height: auto; }
+form { margin: 0; }
+button, .button { margin: 0; }
+body { font-size: 0.85em; }
+.red { color: red !important; }
+
+/* Topbar customizations */
+nav.top-bar li:hover { background-color: #222; }
+nav.top-bar li.name h1 a:hover { color: #DDD; }
+a#login-persona { color: orange; }
+
+/* Footer */
+footer.row { text-align: center; font-size: 11px; color: #AAA; margin-top: 1em; height: 2em; line-height: 2em; }
+footer a:hover { text-decoration: underline; }
+
+/* feed */
+.feed-character-count { margin-right: 5px; color: #AAA; font-size: 0.8em; }
+.feed-avatar { margin-right: 10px; float: left; vertical-align: bottom; }
+.feed-date { font-size: 0.85em; float: right; line-height: 1.18em; }
+.feed-post { margin-bottom: 0.75em; }
+
+/* profile */
+.profile-avatar { float: left; margin-right: 10px; }
+#profile-name { margin: 0; line-height: 80px; display: inline-block; font-size: 1.6em; }
+#profile-name-edit, #profile-name-edit-cancel { margin-left: 8px; line-height: 80px; font-size: 0.8em; }
+#profile-name-edit-cancel { display: none; }
