@@ -31,6 +31,9 @@ FEED_INDEXES = os.path.join(DATABASES_FOLDER, "feed.indexes")
 COMMENTS = os.path.join(DATABASES_FOLDER, "comments")
 COMMENTS_INDEXES = os.path.join(DATABASES_FOLDER, "comments.indexes")
 
+TODOS = os.path.join(DATABASES_FOLDER, "todos")
+TODOS_INDEXES = os.path.join(DATABASES_FOLDER, "todos.indexes")
+
 class User(Document, UserMixin):
   db = USERS
   indexdb = USERS_INDEXES
@@ -83,11 +86,26 @@ class Comment(Document, Content):
   db = COMMENTS
   indexdb = COMMENTS_INDEXES
 
+class Todo(Document, Content):
+  db = TODOS
+  indexdb = TODOS_INDEXES
+
+  parent = ReferenceProperty(Project, index=True)
+  assigned = ReferenceProperty(User, index=True)
+  due = DateTimeProperty(default=lambda: None)
+  tags = ListProperty(index=True)
+  done = BooleanProperty(default=False)
+  content = DictProperty() # markdown -> markdown, html -> html
+
+  # For this, to avoid things like spaces in the name, we use the md5 of the name.
+  milestone = StringProperty(index=True)
+
 def establish_connections():
   User.establish_connection()
   Project.establish_connection()
   FeedItem.establish_connection()
   Comment.establish_connection()
+  Todo.establish_connection()
 
 def close_connections():
   User.db = USERS
@@ -98,3 +116,5 @@ def close_connections():
   FeedItem.indexdb = FEED_INDEXES
   Comment.db = COMMENTS
   Comment.indexdb = COMMENTS_INDEXES
+  Todo.db = TODOS
+  Todo.indexdb = TODOS_INDEXES

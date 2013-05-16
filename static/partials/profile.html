@@ -1,6 +1,36 @@
 <div class="row">
   <div class="large-12 columns">
+    <div class="right">
+    </div>
     <img src="https://secure.gravatar.com/avatar/{[ user.avatar ]}" class="profile-avatar" title="To change your avatar, go to http://gravatar.com" data-tooltip />
     <div profile-name></div>
+  </div>
+</div>
+<div class="row">
+  <hr />
+</div>
+<div class="row">
+  <div class="large-6 columns">
+    <h4>Emails</h4>
+    <form>
+      <div class="row collapse" ng-repeat="email in user.emails">
+        <div class="small-11 columns">
+          <input type="text" ng-model="email" />
+        </div>
+        <div class="small-1 columns">
+          <span class="postfix"><a href="" ng-click="removeEmail(email)"><i class="icon-remove-circle"></i></a></span>
+        </div>
+      </div>
+      <div class="right">
+        <button class="small secondary" ng-click="addEmail()">Add Email</button>
+        <button type="submit" class="small" ng-click="updateEmail()">Update</button>
+      </div>
+    </form>
+  </div>
+  <div class="large-6 columns">
+    <h4>Projects</h4>
+    <ul>
+      <li>Test</li>
+    </ul>
   </div>
 </div>

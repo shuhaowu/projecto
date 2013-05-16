@@ -5,6 +5,9 @@
   projecto.filter("relativeTime", function(){
     // Python side uses seconds as timestamp. So we take seconds.
     return function(timestamp, relative_to) {
+      if (timestamp === null || timestamp === undefined)
+        return "";
+
       var delta, relative_is_future, t;
 
       if (!relative_to) {
@@ -37,5 +40,23 @@
         return t + " ago";
       }
     };
+  });
+
+  projecto.filter("absoluteTime", function() {
+    var lessthan10 = function(v) {
+      return v < 10 ? ("0" + v) : ("" + v);
+    };
+    return function(timestamp) {
+      if ($.type(timestamp) === "number") {
+        timestamp = new Date(timestamp * 1000);
+      }
+
+      var year = timestamp.getFullYear();
+      var month = lessthan10(timestamp.getMonth() + 1);
+      var date = lessthan10(timestamp.getDate());
+      var hours = lessthan10(timestamp.getHours());
+      var minutes = lessthan10(timestamp.getMinutes());
+      return year + "-" + month + "-" + date + " " + hours + ":" + minutes;
+    }
   });
 })();

@@ -10,12 +10,10 @@
     $routeProvider.when("/projects/:id/", feedPage);
     $routeProvider.when("/projects/:id/feed/", feedPage);
 
-    /*
     $routeProvider.when("/projects/:id/todos", {
       templateUrl: "/static/partials/todos.html",
       controller: "TodosController"
     });
-    */
 
     var profilePage = {
       templateUrl: "/static/partials/profile.html",
@@ -33,7 +31,7 @@
     $interpolateProvider.endSymbol("]}");
   }]);
 
-  app.run(["$rootScope", function($rootScope) {
+  app.run(["$rootScope", "ProjectsService", function($rootScope, ProjectsService) {
     $rootScope.currentUser = window.currentUser;
   }]);
 })();

@@ -78,3 +78,41 @@ def project_access_required(fn):
 
     return abort(403)
   return wrapped
+
+from flask import request
+
+def ensure_good_request(required_parameters, accepted_parameters=None):
+  """Ensure that the request is good. aborts with 400 otherwise.
+
+  accepted_parameters and required_parameters are both sets. If accepted_parameters is None,
+  it is then the same as required_parameters. len(required_parameters) <= len(accepted_parameters)
+  """
+
+  if accepted_parameters is None:
+    accepted_parameters = required_parameters
+
+  def decorator(f):
+    @wraps(f)
+    def fn(*args, **kwargs):
+      if not request.json or len(request.json) > len(accepted_parameters) or len(request.json) < len(required_parameters):
+        return abort(400)
+
+      parameters_provided = set(request.json.keys())
+      if parameters_provided < required_parameters or required_parameters > accepted_parameters:
+        return abort(400)
+
+      return f(*args, **kwargs)
+    return fn
+
+  return decorator
+
+# Helper for markdown
+
+import misaka
+MARKDOWN_EXTENSIONS = misaka.EXT_FENCED_CODE | misaka.EXT_STRIKETHROUGH
+HTML_FLAGS = misaka.HTML_ESCAPE | misaka.HTML_SMARTYPANTS | misaka.HTML_SAFELINK
+def markdown_to_html(s):
+  return misaka.html(s, MARKDOWN_EXTENSIONS, HTML_FLAGS)
+
+def markdown_to_db(s):
+  return {"markdown": s, "html": markdown_to_html(s)}

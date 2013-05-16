@@ -29,7 +29,7 @@
       if (!self._myProjects) {
         var promise = $.ajax({
           type: "GET",
-          url: projectAPIPrefix + "/mine"
+          url: projectAPIPrefix + "/"
         });
 
         self._myProjects = promise;

@@ -7,7 +7,6 @@
       var apiUrl = function(project_id, postfix) {
         return window.API_PREFIX + "/projects/" + project_id + "/feed/" + (postfix ? postfix : "");
       };
-      var feedAPIPrefix = window.API_PREFIX + "/projects/";
 
       this.new = function(project, post) {
         return $.ajax({

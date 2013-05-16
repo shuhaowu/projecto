@@ -4,12 +4,12 @@
   angular.module("projecto").directive(
     "profileName", ["ProfileService", function(ProfileService){
       return {
-        template: '<p id="profile-name">{[ user.name ]}</p> <a href="" ng-click="editName()" id="profile-name-edit">Edit</a> <a href="" ng-click="cancelEditName()" id="profile-name-edit-cancel">Cancel</a>',
+        template: '<p id="profile-name">{[ user.name ]}</p> <a href="" ng-click="editName()" id="profile-name-edit">Change</a> <a href="" ng-click="cancelEditName()" id="profile-name-edit-cancel">Cancel</a>',
         restrict: "EA",
         link: function link(scope, iElement, iAttrs, controller) {
           scope.editName = function() {
             var editLink = $("a#profile-name-edit", iElement);
-            if (editLink.text() === "Edit") {
+            if (editLink.text() === "Change") {
               // Prevent line breaks. Note that this does not prevent copy paste line breaks
               $("#profile-name", iElement).attr("contenteditable", "true").keypress(function(e) { return e.which != 13; }).focus();
               editLink.text("Save");
@@ -29,7 +29,7 @@
                     scope.user.name = newName;
                   });
                 $("#profile-name", iElement).attr("content-editable", "false").off("keypress");
-                editLink.text("Edit");
+                editLink.text("Change");
                 $("#profile-name-edit-cancel", iElement).hide();
                 }).fail(function(xhr) {
                   $("body").statusmsg("open", "Name change failed: " + xhr.status, {type: "error", closable: true});
@@ -41,7 +41,7 @@
 
           scope.cancelEditName = function() {
             $("#profile-name").text(scope.user.name).off("keypress").attr("contenteditable", "false");
-            $("#profile-name-edit").text("Edit");
+            $("#profile-name-edit").text("Change");
             $("#profile-name-edit-cancel").hide();
           };
         }
@@ -53,6 +53,10 @@
   angular.module("projecto").controller(
     "ProfileController", ["$scope", "ProfileService", "ProjectsService", function($scope, ProfileService, ProjectsService){
       $scope.user = angular.copy($scope.currentUser); // This can be changed later to view others.
+
+      $scope.addEmail = $scope.removeEmail = $scope.updateEmail = function() {
+        alert("This feature is not available yet :(");
+      };
     }]
   );
 })();

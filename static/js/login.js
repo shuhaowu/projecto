@@ -1,18 +1,23 @@
 // Persona login script.. and some other bootstrap
+
+window.notLoaded = function() {
+  $("body").statusmsg("open", "The page has not been fully loaded yet. Please wait...", {type: "warning", closable: true});
+};
+
 $(function () {
-  
+
   $("body").statusmsg();
-  
+
   var LOGIN_TEXT = "Login with Persona";
   var LOGOUT_TEXT = "Logout";
-  
+
   $.ajaxSetup({
     traditional: true,
     beforeSend: function(xhr, settings){
       xhr.setRequestHeader("X-CSRFToken", window.csrfToken);
     }
   });
-  
+
   var rebindLogin = function() {
     var loginlink = $("#login-persona");
     if (loginlink.text() === LOGIN_TEXT) {
@@ -29,9 +34,12 @@ $(function () {
   };
 
   rebindLogin();
-  
+
+  // TODO: Need to convert to enable multiemail signin
+  var currentUserEmail = window.currentUser.emails ? window.currentUser.emails[0] : null;
+
   navigator.id.watch({
-    loggedInUser: window.currentUser.email,
+    loggedInUser: currentUserEmail,
     onlogin: function (assertion) {
       if ($("#login-persona").text() === LOGIN_TEXT)
         $("#login-persona").text("Signing in...");

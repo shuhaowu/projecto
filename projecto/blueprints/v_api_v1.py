@@ -3,11 +3,12 @@ from flask.ext.login import login_required, current_user
 from flask.ext.classy import FlaskView, route
 import settings
 import os
+from functools import wraps
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem
-from ..utils import jsonify, project_access_required
+from ..models import Project, FeedItem, Todo
+from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db
 
 MODULE_NAME = "api_v1"
 TEMPLATES_FOLDER = os.path.join(settings.TEMPLATES_FOLDER, MODULE_NAME)
@@ -20,26 +21,31 @@ meta = {
   "url_prefix" : "/api/v1",
 }
 
+
 # Project APIs
 
 class ProjectsView(FlaskView):
-  decorators = [login_required]
 
+  @route("/", methods=["POST"])
+
+  @ensure_good_request({"name"})
+  @login_required
   def post(self):
-    if not request.json or len(request.json) != 1 or request.json.get("name") is None:
-      return abort(400)
-
     project = Project(data=request.json)
     project.owners.append(current_user.key)
     project.save()
     return jsonify(key=project.key)
 
-  def mine(self):
+  @route("/", methods=["GET"])
+  @login_required
+  def index(self):
     projects_owned = [project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True) for project in Project.index("owners", current_user.key)]
     projects_participating = [project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True) for project in Project.index("collaborators", current_user.key)]
 
     return jsonify(owned=projects_owned, participating=projects_participating)
 
+  @route("/<id>", methods=["GET"])
+  @login_required
   def get(self, id):
     try:
       project = Project.get(id)
@@ -58,10 +64,8 @@ class FeedView(FlaskView):
   decorators = [project_access_required]
 
   @route("/", methods=["POST"])
+  @ensure_good_request({"content"})
   def post(self, project):
-    if not request.json or len(request.json) != 1 or request.json.get("content") is None:
-      return abort(400)
-
     feeditem = FeedItem(data=request.json)
     # This is required as current_user is a werkzeug LocalProxy
     feeditem.author = current_user._get_current_object()
@@ -72,7 +76,6 @@ class FeedView(FlaskView):
   @route("/", methods=["GET"])
   def index(self, project):
     amount = max(request.args.get("amount", 20), 200)
-    i = 0
     ttype = request.args.get("type")
     feed = []
     # OPTIMIZATION: this is slow if there are lots. We need compaction and so
@@ -88,8 +91,7 @@ class FeedView(FlaskView):
 
     r = []
     for item in feed:
-      r.append(item.serialize(restricted=("title", "parent", "author"), include_key=True))
-      r[-1]["author"] = {"key": item.author.key, "name": item.author.name, "avatar": item.author.avatar}
+      r.append(item.serialize(restricted=("title", "parent", "author"), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
 
     return jsonify(feed=r)
 
@@ -112,15 +114,65 @@ class FeedView(FlaskView):
 
 FeedView.register(blueprint)
 
+class TodosView(FlaskView):
+  route_base = "/projects/<project_id>/todos/"
+  decorators = [project_access_required]
+
+  @route("/", methods=["POST"])
+  @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
+  def post(self, project):
+    todo = Todo(data=request.json)
+
+    if todo.content:
+      try:
+        todo.content = markdown_to_db(todo.content)
+      except TypeError: # markdown conversion failed due to incorrect types
+        return abort(400)
+
+    todo.author = current_user._get_current_object()
+    todo.parent = project
+    todo.save()
+    r = todo.serialize(include_key=True)
+    return jsonify(**r)
+
+  @route("/", methods=["GET"])
+  def index(self, project):
+    todos = []
+    showdone = request.args.get("showdown", "0")
+    for todo in Todo.index("parent", project.key):
+      if showdone == "0" and todo.done:
+        continue
+
+      todos.append(todo.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+
+    todos.sort(key=lambda x: x["date"], reverse=True)
+
+    page = request.args.get("page", 1) - 1
+    return jsonify(todos=todos[page*10:page*10+10]) # 10 todos perpage?
+
+  @route("/<id>", methods=["DELETE"])
+  def delete(self, project, id):
+    try:
+      todo = Todo.get(id)
+      if todo.parent.key != project.key:
+        raise NotFoundError
+    except NotFoundError:
+      return abort(404)
+
+    todo.delete()
+    return jsonify(status="okay")
+
+TodosView.register(blueprint)
+
 class ProfileView(FlaskView):
 
   @route("/changename", methods=["POST"])
+  @ensure_good_request({"content"})
+  @login_required
   def changename(self):
-    if not request.json or len(request.json) != 1 or request.json.get("name") is None:
-      return abort(400)
-
     current_user.name = request.json["name"]
     current_user.save()
     return jsonify(status="okay")
 
 ProfileView.register(blueprint)
+
