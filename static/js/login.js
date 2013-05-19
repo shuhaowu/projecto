@@ -38,6 +38,7 @@ $(function () {
   // TODO: Need to convert to enable multiemail signin
   var currentUserEmail = window.currentUser.emails ? window.currentUser.emails[0] : null;
 
+  /*
   navigator.id.watch({
     loggedInUser: currentUserEmail,
     onlogin: function (assertion) {
@@ -77,5 +78,6 @@ $(function () {
         } // TODO: alert user.
       });
     }
-  })
+  });
+  */
 });

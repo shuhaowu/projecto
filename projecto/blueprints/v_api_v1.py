@@ -7,7 +7,7 @@ from functools import wraps
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem, Todo
+from ..models import Project, FeedItem, Todo, Comment
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db
 
 MODULE_NAME = "api_v1"
@@ -135,6 +135,37 @@ class TodosView(FlaskView):
     r = todo.serialize(include_key=True)
     return jsonify(**r)
 
+  @route("/<id>", methods=["PUT"])
+  @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
+  def put(self, project, id):
+    try:
+      todo = Todo.get(id)
+      if todo.parent.key != project.key:
+        raise NotFoundError
+    except NotFoundError:
+      return abort(404)
+
+    # Right now, while being in pretty bad turbulence on an airplane to San Jose,
+    # I would like to take a moment to appreciate how shitty my English is:
+    #
+    # > This method will treat all values with `None` as that it doesn't have
+    # > values unless `merge_none` is True. That is, if a value is None and the key
+    # > that it is associated to is defined as a property, the default value of that
+    # > property will be used unless `merge_none == True`
+    #
+    # Wat.
+
+    todo.merge(request.json)
+
+    # TODO: We probably want to make this consistent with `post`
+    try:
+      todo.content = markdown_to_db(todo.content["markdown"])
+    except TypeError:
+      return abort(400)
+
+    todo.save()
+    return jsonify(status="okay")
+
   @route("/", methods=["GET"])
   def index(self, project):
     todos = []
@@ -161,6 +192,24 @@ class TodosView(FlaskView):
 
     todo.delete()
     return jsonify(status="okay")
+
+  @route("/<id>", methods=["GET"])
+  def get(self, project, id):
+    try:
+      todo = Todo.get(id)
+      if todo.parent.key != project.key:
+        raise NotFoundError
+    except NotFoundError:
+      return abort(404)
+
+    r = todo.serialize(restricted=("parent", ),
+                       include_key=True,
+                       expand=[{"restricted": ("emails", ), "include_key": True}])
+    r["children"] = comments = []
+    for comment in Comment.index("parent", todo.key):
+      comments.append(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+
+    return jsonify(**r)
 
 TodosView.register(blueprint)
 

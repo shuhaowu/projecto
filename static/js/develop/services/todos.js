@@ -33,6 +33,24 @@
           dataType: "json"
         });
       };
+
+      this.get = function(project, todoId) {
+        return $.ajax({
+          type: "GET",
+          url: apiUrl(project.key, todoId),
+          dataType: "json"
+        });
+      };
+
+      this.put = function(project, todo) {
+        return $.ajax({
+          type: "PUT",
+          url: apiUrl(project.key, todo.key),
+          dataType: "json",
+          contentType: "application/json",
+          data: JSON.stringify(todo)
+        });
+      };
     }]
   );
 })();

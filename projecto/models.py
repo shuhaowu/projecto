@@ -71,9 +71,9 @@ class Project(Document):
 class Content(EmDocument):
   title = StringProperty()
   content = StringProperty()
-  children = ListProperty(index=True)
   author = ReferenceProperty(User, index=True)
   date = DateTimeProperty()
+  parent = StringProperty(index=True)
 
 class FeedItem(Document, Content):
   db = FEED

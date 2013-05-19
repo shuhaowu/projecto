@@ -52,17 +52,37 @@
           <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-click="showTodo(todo, $event)">{[ todo.title ]}</a>
         </div>
       </form>
+
+
       <div class="todos-todo-body" id="todo-{[ todo.key ]}">
-        <div class="todos-todo-content" ng-bind-html-unsafe="todo.content.html" ng-show="todo.content.markdown">
+
+        <!-- view mode -->
+        <div ng-show="!editMode[todo.key]">
+          <div class="todos-todo-content" ng-bind-html-unsafe="todo.content.html" ng-show="todo.content.markdown">
+          </div>
+          <div class="todos-todo-content" ng-show="!todo.content.markdown">
+            <p>No description provided.</p>
+          </div>
+          <div class="todos-todo-info">
+            <span class="right">
+              <span class="radius label" ng-repeat="tag in todo.tags">{[ tag ]}</span>
+            </span>
+            Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
+          </div>
         </div>
-        <div class="todos-todo-content" ng-show="!todo.content.markdown">
-          <p>No description provided.</p>
-        </div>
-        <div class="todos-todo-info">
-          <span class="right">
-            <span class="radius label" ng-repeat="tag in todo.tags">{[ tag ]}</span>
-          </span>
-          Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
+
+        <!-- edit mode -->
+        <div ng-show="editMode[todo.key]">
+          <form ng-submit="saveTodo(todo.key)">
+            <input type="text" ng-model="editMode[todo.key].title" />
+            <textarea ng-model="editMode[todo.key].content.markdown" rows="5">
+            </textarea>
+            <div class="right">
+              <button class="small secondary" ng-click="cancelEdit(todo.key)">Cancel</button>
+              <button class="small success" type="submit">Save</button>
+            </div>
+            <br class="clear" />
+          </form>
         </div>
       </div>
     </div>

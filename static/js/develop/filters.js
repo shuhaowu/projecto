@@ -47,6 +47,9 @@
       return v < 10 ? ("0" + v) : ("" + v);
     };
     return function(timestamp) {
+      if (timestamp === null || timestamp === undefined)
+        return "";
+
       if ($.type(timestamp) === "number") {
         timestamp = new Date(timestamp * 1000);
       }

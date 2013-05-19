@@ -15,6 +15,11 @@
       controller: "TodosController"
     });
 
+    $routeProvider.when("/projects/:id/todos/:todoId", {
+      templateUrl: "/static/partials/singletodo.html",
+      controller: "SingleTodoController"
+    });
+
     var profilePage = {
       templateUrl: "/static/partials/profile.html",
       controller: "ProfileController"

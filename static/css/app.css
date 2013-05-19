@@ -2,6 +2,7 @@
 .clear { clear: both; }
 .no-margin { margin: 0 !important; }
 .hide { display: none !important; }
+.show { display: block !important; }
 .statusmsg { font-size: 14px; }
 /* Workaround for Foundation 4 bug: https://github.com/zurb/foundation/issues/2127 */
 textarea { height: auto; }
