@@ -131,8 +131,7 @@ class TodosView(FlaskView):
     todo.author = current_user._get_current_object()
     todo.parent = project
     todo.save()
-    r = todo.serialize(include_key=True)
-    return jsonify(**r)
+    return jsonify(**todo.serialize_for_client("keys"))
 
   @route("/<id>", methods=["PUT"])
   @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
@@ -163,7 +162,7 @@ class TodosView(FlaskView):
       return abort(400)
 
     todo.save()
-    return jsonify(**todo.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+    return jsonify(**todo.serialize_for_client())
 
   @route("/", methods=["GET"])
   def index(self, project):
@@ -173,7 +172,7 @@ class TodosView(FlaskView):
       if showdone == "0" and todo.done:
         continue
 
-      todos.append(todo.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+      todos.append(todo.serialize_for_client(include_comments="keys"))
 
     todos.sort(key=lambda x: x["date"], reverse=True)
 
@@ -202,14 +201,7 @@ class TodosView(FlaskView):
     except NotFoundError:
       return abort(404)
 
-    r = todo.serialize(restricted=("parent", ),
-                       include_key=True,
-                       expand=[{"restricted": ("emails", ), "include_key": True}])
-    r["children"] = comments = []
-    for comment in Comment.index("parent", todo.key):
-      comments.append(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
-
-    return jsonify(**r)
+    return jsonify(**todo.serialize_for_client())
 
   @route("/<id>/markdone", methods=["POST"])
   @ensure_good_request({"done"}, {"done"})

@@ -100,6 +100,17 @@ class Todo(Document, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
+  def serialize_for_client(self, include_comments="expand"):
+    t = self.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])
+    if include_comments == "expand":
+      t["children"] = children = []
+      for comment in Comment.index("parent", self.key):
+        children.append(comment.serialize(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])))
+    elif include_comments == "keys":
+      t["children"] = Comment.index_keys_only("parent", self.key)
+    return t
+
+
 def establish_connections():
   User.establish_connection()
   Project.establish_connection()
