@@ -35,7 +35,7 @@
         </div>
         <div class="todos-todo-info">
           <span class="right">
-            <span class="radius label" ng-repeat="tag in todo.tags">{[ tag ]}</span>
+            <span class="radius label todos-todo-tag" ng-repeat="tag in todo.tags">{[ tag ]}</span>
           </span>
           Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
         </div>
