@@ -80,6 +80,7 @@ def project_access_required(fn):
   return wrapped
 
 from flask import request
+from leveldbkit import ValidationError
 
 def ensure_good_request(required_parameters, accepted_parameters=None):
   """Ensure that the request is good. aborts with 400 otherwise.
@@ -101,7 +102,10 @@ def ensure_good_request(required_parameters, accepted_parameters=None):
       if parameters_provided < required_parameters or required_parameters > accepted_parameters:
         return abort(400)
 
-      return f(*args, **kwargs)
+      try:
+        return f(*args, **kwargs)
+      except ValidationError:
+        return abort(400)
     return fn
 
   return decorator

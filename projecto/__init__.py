@@ -68,9 +68,6 @@ def tech():
 
 @app.route("/app")
 def mainapp():
-  user = list(User.index("emails", "shuhao@shuhaowu.com"))[0]
-  from flask.ext.login import login_user
-  login_user(user)
   if not current_user.is_authenticated():
     return redirect(url_for("main"))
   return render_template("app.html")

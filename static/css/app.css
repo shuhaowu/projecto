@@ -11,6 +11,7 @@ button, .button { margin: 0; }
 body { font-size: 0.85em; }
 .red { color: red !important; }
 span.custom.checkbox { cursor: pointer; }
+.strikeout { text-decoration: line-through; }
 
 /* Topbar customizations */
 nav.top-bar li:hover { background-color: #222; }

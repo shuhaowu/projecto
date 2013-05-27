@@ -43,12 +43,19 @@
       };
 
       this.put = function(project, todo) {
+        var j = {};
+        j["title"] = todo["title"];
+        j["content"] = {markdown: todo["content"]["markdown"] || todo["content"]};
+        j["assigned"] = todo["assigned"];
+        j["due"] = new Date(todo["due"]).getTime() / 1000;
+        j["tags"] = todo["tags"];
+
         return $.ajax({
           type: "PUT",
           url: apiUrl(project.key, todo.key),
           dataType: "json",
           contentType: "application/json",
-          data: JSON.stringify(todo)
+          data: JSON.stringify(j)
         });
       };
     }]

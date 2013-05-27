@@ -29,6 +29,23 @@
 
   var app = angular.module("projecto", []);
 
+  app.factory("absoluteTimeToJsDate", function(){
+    return function(absoluteTime) {
+      var splitted = absoluteTime.split(" ");
+      if (splitted.length == 1) {
+        return new Date(splitted[0]);
+      } else if (splitted.length > 1) {
+        var date = new Date(splitted[0]);
+        var time = splitted[1].split(":");
+        date.setHours(time[0]);
+        date.setMinutes(time[1]);
+        return date;
+      } else {
+        return null;
+      }
+    };
+  });
+
   app.config(["$routeProvider", routes]);
 
   app.config(["$interpolateProvider", function($interpolateProvider, $rootScope) {

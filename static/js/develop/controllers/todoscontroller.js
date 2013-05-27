@@ -2,11 +2,21 @@
 
 (function(){
   angular.module("projecto").controller(
-    "TodosController", ["$scope", "TodosService", "ProjectsService", function($scope, TodosService, ProjectsService){
+    "TodosController", ["$scope", "$filter", "TodosService", "ProjectsService", function($scope, $filter, TodosService, ProjectsService){
 
       $scope.newtodoitem = {};
       $scope.todos = [];
       $scope.editMode = {}
+
+      var showTodo = function(todo) {
+        // TODO: All of this needs to be moved into a directive.
+        var bodyElement = $("#todo-" + todo.key);
+        if (bodyElement.css("display") === "none") {
+          bodyElement.slideDown();
+        } else {
+          bodyElement.slideUp();
+        }
+      };
 
       $scope.newTodo = function() {
         // hack
@@ -54,18 +64,12 @@
         todo.done = !todo.done;
       };
 
-      $scope.showTodo = function(todo, $event) {
 
+      $scope.showTodo = function(todo, $event) {
         $event.preventDefault();
         $event.stopPropagation();
 
-        // TODO: All of this needs to be moved into a directive.
-        var bodyElement = $("#todo-" + todo.key);
-        if (bodyElement.css("display") === "none") {
-          bodyElement.slideDown();
-        } else {
-          bodyElement.slideUp();
-        }
+        showTodo(todo);
       };
 
       $scope.editTodo = function(todo, index) {
@@ -77,6 +81,7 @@
             bodyElement.slideDown();
 
           $scope.editMode[todo.key] = angular.copy(todo);
+          $scope.editMode[todo.key]["due"] = $filter("absoluteTime")(todo["due"]);
           $scope.editMode[todo.key]["_index"] = index; // For restoring later when we save
         }
       };
@@ -93,13 +98,20 @@
         }
 
         if ($scope.currentProject) {
-          TodosService.put($scope.currentProject, $scope.editMode[todoKey]).done(function() {
+          var tags = $scope.editMode[todoKey].tags;
+
+          if ($.type(tags) === "string" && tags.length > 0)
+            $scope.editMode[todoKey].tags = tags.split(",");
+
+          TodosService.put($scope.currentProject, $scope.editMode[todoKey]).done(function(data) {
             $scope.$apply(function() {
               var i = $scope.editMode[todoKey]._index;
               delete $scope.editMode[todoKey]._index;
-              $scope.todos[i] = $scope.editMode[todoKey];
+              $scope.todos[i] = data;
               delete $scope.editMode[todoKey];
             });
+
+            showTodo(data);
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Saving error: " + xhr.status, {type: "error", closable: true});
           });

@@ -30,6 +30,7 @@
 
       $scope.deletePost = function(post) {
         if ($scope.currentProject) {
+          console.log(post.author);
           if (confirm("Are you sure you want to delete this post?")) {
             FeedService.delete($scope.currentProject, post).done(function(){
               for (var i=0; i<$scope.posts.length; i++) {

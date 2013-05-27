@@ -3,7 +3,6 @@ from flask.ext.login import login_required, current_user
 from flask.ext.classy import FlaskView, route
 import settings
 import os
-from functools import wraps
 
 from leveldbkit import NotFoundError
 
@@ -91,7 +90,7 @@ class FeedView(FlaskView):
 
     r = []
     for item in feed:
-      r.append(item.serialize(restricted=("title", "parent", "author"), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+      r.append(item.serialize(restricted=("title", "parent"), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
 
     return jsonify(feed=r)
 
@@ -164,7 +163,7 @@ class TodosView(FlaskView):
       return abort(400)
 
     todo.save()
-    return jsonify(status="okay")
+    return jsonify(**todo.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
 
   @route("/", methods=["GET"])
   def index(self, project):
@@ -178,8 +177,9 @@ class TodosView(FlaskView):
 
     todos.sort(key=lambda x: x["date"], reverse=True)
 
+    amount = max(request.args.get("amount", 20), 100)
     page = request.args.get("page", 1) - 1
-    return jsonify(todos=todos[page*10:page*10+10]) # 10 todos perpage?
+    return jsonify(todos=todos[page*amount:page*amount+amount]) # 10 todos perpage?
 
   @route("/<id>", methods=["DELETE"])
   def delete(self, project, id):
@@ -210,6 +210,20 @@ class TodosView(FlaskView):
       comments.append(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
 
     return jsonify(**r)
+
+  @route("/<id>/markdone", methods=["POST"])
+  @ensure_good_request({"done"}, {"done"})
+  def markdone(self, project, id):
+    try:
+      todo = Todo.get(id)
+      if todo.parent.key != project.key:
+        raise NotFoundError
+    except NotFoundError:
+      return abort(404)
+
+    todo.done = request.json["done"]
+    todo.save()
+    return jsonify(status="okay")
 
 TodosView.register(blueprint)
 

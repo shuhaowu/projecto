@@ -49,7 +49,7 @@
           </span>
         </span>
         <div class="todos-todo-title">
-          <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-click="showTodo(todo, $event)">{[ todo.title ]}</a>
+          <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.done}" ng-click="showTodo(todo, $event)">{[ todo.title ]}</a>
         </div>
       </form>
 
@@ -64,8 +64,8 @@
             <p>No description provided.</p>
           </div>
           <div class="todos-todo-info">
-            <span class="right">
-              <span class="radius label" ng-repeat="tag in todo.tags">{[ tag ]}</span>
+            <span class="right" ng-repeat="tag in todo.tags">
+              <span class="radius label">{[ tag ]}</span>
             </span>
             Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
           </div>
@@ -74,11 +74,18 @@
         <!-- edit mode -->
         <div ng-show="editMode[todo.key]">
           <form ng-submit="saveTodo(todo.key)">
-            <input type="text" ng-model="editMode[todo.key].title" />
-            <textarea ng-model="editMode[todo.key].content.markdown" rows="5">
+            <input type="text" ng-model="editMode[todo.key].title" placeholder="Title" />
+            <textarea ng-model="editMode[todo.key].content.markdown" rows="5" placeholder="Description">
             </textarea>
+            <input type="text" ng-model="editMode[todo.key].tags" placeholder="Tags (separate with ,)" />
+            <div class="left" style="margin-right: 5px;">
+              <input type="text" ng-model="editMode[todo.key].assigned" placeholder="Assigned" />
+            </div>
+            <div class="left">
+              <input type="text" ng-model="editMode[todo.key].due" placeholder="Due (YYYY-MM-DD)" />
+            </div>
             <div class="right">
-              <button class="small secondary" ng-click="cancelEdit(todo.key)">Cancel</button>
+              <a class="small secondary button" ng-click="cancelEdit(todo.key)">Cancel</a>
               <button class="small success" type="submit">Save</button>
             </div>
             <br class="clear" />
