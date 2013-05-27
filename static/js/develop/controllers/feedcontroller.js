@@ -2,7 +2,7 @@
 
 (function() {
   angular.module("projecto").controller(
-    "FeedController", ["$scope", "FeedService", "ProjectsService", function($scope, FeedService, ProjectsService) {
+    "FeedController", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
       $scope.posts = [];
       $scope.newpost = "";
 
@@ -52,6 +52,7 @@
 
       $scope.update = function() {
         if ($scope.currentProject){
+          title("Feed", $scope.currentProject);
           FeedService.index($scope.currentProject).done(function(data){
             $scope.$apply(function(){
               $scope.posts = data.feed;

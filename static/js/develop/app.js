@@ -46,6 +46,15 @@
     };
   });
 
+  app.factory("title", ["$window", function($window) {
+    return function(title, project) {
+      if (!project)
+        $window.document.title = title + " - Projecto";
+      else
+        $window.document.title = title + " · " + project.name + " - Projecto";
+    };
+  }]);
+
   app.config(["$routeProvider", routes]);
 
   app.config(["$interpolateProvider", function($interpolateProvider, $rootScope) {

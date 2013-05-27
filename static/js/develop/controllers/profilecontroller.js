@@ -2,7 +2,7 @@
 
 (function(){
   angular.module("projecto").directive(
-    "profileName", ["ProfileService", function(ProfileService){
+    "profileName", ["title", "ProfileService", function(title, ProfileService){
       return {
         template: '<p id="profile-name">{[ user.name ]}</p> <a href="" ng-click="editName()" id="profile-name-edit">Change</a> <a href="" ng-click="cancelEditName()" id="profile-name-edit-cancel">Cancel</a>',
         restrict: "EA",
@@ -27,6 +27,7 @@
                 ProfileService.changeName(newName).done(function() {
                   scope.$apply(function(){
                     scope.user.name = newName;
+                    title(scope.user.name);
                   });
                 $("#profile-name", iElement).attr("content-editable", "false").off("keypress");
                 editLink.text("Change");
@@ -51,8 +52,10 @@
 
 
   angular.module("projecto").controller(
-    "ProfileController", ["$scope", "ProfileService", "ProjectsService", function($scope, ProfileService, ProjectsService){
+    "ProfileController", ["$scope", "title", "ProfileService", function($scope, title, ProfileService){
       $scope.user = angular.copy($scope.currentUser); // This can be changed later to view others.
+
+      title($scope.user.name);
 
       $scope.addEmail = $scope.removeEmail = $scope.updateEmail = function() {
         alert("This feature is not available yet :(");

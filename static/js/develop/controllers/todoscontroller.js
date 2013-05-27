@@ -2,7 +2,7 @@
 
 (function(){
   angular.module("projecto").controller(
-    "TodosController", ["$scope", "$filter", "TodosService", "ProjectsService", function($scope, $filter, TodosService, ProjectsService){
+    "TodosController", ["$scope", "$filter", "title", "TodosService", "ProjectsService", function($scope, $filter, title, TodosService, ProjectsService){
 
       $scope.newtodoitem = {};
       $scope.todos = [];
@@ -37,8 +37,6 @@
             $scope.newtodoitem.tags = $scope.newtodoitem.tags.split(",");
           }
 
-          console.log($scope.newtodoitem.tags);
-
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
             $scope.$apply(function(){
               $scope.todos.splice(0, 0, data);
@@ -54,6 +52,7 @@
 
       $scope.update = function() {
         if ($scope.currentProject){
+          title("Todos", $scope.currentProject);
           TodosService.index($scope.currentProject).done(function(data){
             $scope.$apply(function(){
               $scope.todos = data.todos;
@@ -161,7 +160,7 @@
   );
 
   angular.module("projecto").controller(
-    "SingleTodoController", ["$scope", "$route", "TodosService", "ProjectsService", function($scope, $route, TodosService, ProjectsService) {
+    "SingleTodoController", ["$scope", "$route", "title", "TodosService", "ProjectsService", function($scope, $route, title, TodosService, ProjectsService) {
       $scope.currentProject = null;
       $scope.todo = {};
       $("body").statusmsg("open", "Loading your page...");
@@ -169,6 +168,7 @@
       ProjectsService.getCurrentProject().done(function(currentProject) {
         $scope.currentProject = currentProject;
         TodosService.get(currentProject, $route.current.params.todoId).done(function(todo) {
+          title(todo.title, currentProject);
           $("body").statusmsg("close");
           $scope.todo = todo;
           $scope.$$phase || $scope.$apply();
