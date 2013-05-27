@@ -43,6 +43,7 @@ footer a:hover { text-decoration: underline; }
 .todos-todo-content { margin: 0 0 1em 0; }
 .todos-todo-info { font-size: 0.9em; color: #999; }
 .todos-control { font-size: 0.8em; line-height: 1.2em; color: #AAA; float: right; display: inline-block; margin-left: 0.3em; }
+.label.todos-todo-tag { margin-left: 4px; }
 
 /* todos-content */
 .todos-todo-content h1 { font-size: 1.8em; }

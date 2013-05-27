@@ -71,8 +71,8 @@
             <p>No description provided.</p>
           </div>
           <div class="todos-todo-info">
-            <span class="right" ng-repeat="tag in todo.tags">
-              <span class="radius label">{[ tag ]}</span>
+            <span class="right">
+              <span class="radius label todos-todo-tag" ng-repeat="tag in todo.tags">{[ tag ]}</span>
             </span>
             Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
           </div>
