@@ -9,14 +9,21 @@
         <div class="row">
           <div class="large-12 columns">
             <label>Todo title</label>
-            <input type="text" ng-model="newtodoitem.title" />
+            <input type="text" ng-model="newtodoitem.title" placeholder="Title for the todo" />
           </div>
         </div>
 
         <div class="row">
           <div class="large-12 columns">
             <label>Description</label>
-            <textarea ng-model="newtodoitem.content"></textarea>
+            <textarea ng-model="newtodoitem.content" placeholder="A short description for the todo" ></textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="large-12 columns">
+            <label>Tags</label>
+            <input type="text" ng-model="newtodoitem.tags" placeholder="Tags (comma separated list)" />
           </div>
         </div>
 

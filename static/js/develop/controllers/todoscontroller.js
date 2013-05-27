@@ -33,6 +33,12 @@
 
       $scope.createTodo = function() {
         if ($scope.newtodoitem.title) {
+          if ($scope.newtodoitem.tags) {
+            $scope.newtodoitem.tags = $scope.newtodoitem.tags.split(",");
+          }
+
+          console.log($scope.newtodoitem.tags);
+
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
             $scope.$apply(function(){
               $scope.todos.splice(0, 0, data);
