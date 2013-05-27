@@ -58,6 +58,16 @@
           data: JSON.stringify(j)
         });
       };
+
+      this.markDone = function(project, todo) {
+        return $.ajax({
+          type: "POST",
+          url: apiUrl(project.key, todo.key + "/markdone"),
+          dataType: "json",
+          contentType: "application/json",
+          data: JSON.stringify({done: !todo.done})
+        });
+      };
     }]
   );
 })();

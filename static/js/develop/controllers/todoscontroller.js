@@ -61,7 +61,13 @@
       };
 
       $scope.markDone = function(todo) {
-        todo.done = !todo.done;
+        TodosService.markDone($scope.currentProject, todo).done(function(data) {
+          $scope.$apply(function() {
+            todo.done = !todo.done;
+          });
+        }).fail(function(xhr) {
+          $("body").statusmsg("open", "Marking done failed: " + xhr.status, {type: "error", closable: true});
+        });
       };
 
 
