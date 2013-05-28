@@ -7,13 +7,15 @@
       controller: "FeedController",
     };
 
+    var todosPage = {
+      templateUrl: "/static/partials/todos.html",
+      controller: "TodosController"
+    }
     $routeProvider.when("/projects/:id/", feedPage);
     $routeProvider.when("/projects/:id/feed/", feedPage);
 
-    $routeProvider.when("/projects/:id/todos", {
-      templateUrl: "/static/partials/todos.html",
-      controller: "TodosController"
-    });
+    $routeProvider.when("/projects/:id/todos", todosPage);
+    $routeProvider.when("/projects/:id/todos/pages/:page", todosPage)
 
     $routeProvider.when("/projects/:id/todos/:todoId", {
       templateUrl: "/static/partials/singletodo.html",

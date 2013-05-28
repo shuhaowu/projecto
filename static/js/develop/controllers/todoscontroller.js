@@ -2,11 +2,16 @@
 
 (function(){
   angular.module("projecto").controller(
-    "TodosController", ["$scope", "$filter", "title", "TodosService", "ProjectsService", function($scope, $filter, title, TodosService, ProjectsService){
+    "TodosController", ["$scope", "$filter", "$route", "title", "TodosService", "ProjectsService", function($scope, $filter, $route, title, TodosService, ProjectsService){
 
       $scope.newtodoitem = {};
       $scope.todos = [];
       $scope.editMode = {}
+
+      $scope.currentPage = null;
+      $scope.totalPages = null;
+      $scope.totalTodos = 0;
+      $scope.pages = [];
 
       var showTodo = function(todo) {
         // TODO: All of this needs to be moved into a directive.
@@ -53,9 +58,17 @@
       $scope.update = function() {
         if ($scope.currentProject){
           title("Todos", $scope.currentProject);
-          TodosService.index($scope.currentProject).done(function(data){
+          TodosService.index($scope.currentProject, $route.current.params.page || 1).done(function(data){
             $scope.$apply(function(){
               $scope.todos = data.todos;
+              $scope.totalTodos = data.totalTodos;
+              $scope.currentPage = data.currentPage;
+              $scope.totalPages = Math.floor(data.totalTodos / data.todosPerPage) + (data.totalTodos % data.todosPerPage == 0 ? 0 : 1);
+              $scope.pages = [];
+              if ($scope.totalPages < 8) {
+                for (var i=1; i<=$scope.totalPages; i++)
+                  $scope.pages.push(i);
+              }
             });
           }).fail(function(xhr){
             $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});

@@ -18,11 +18,12 @@
         });
       };
 
-      this.index = function(project) {
+      this.index = function(project, page) {
         return $.ajax({
           type: "GET",
           url: apiUrl(project.key),
-          dataType: "json"
+          dataType: "json",
+          data: "page=" + page
         });
       };
 

@@ -74,7 +74,10 @@ class FeedView(FlaskView):
 
   @route("/", methods=["GET"])
   def index(self, project):
-    amount = max(request.args.get("amount", 20), 200)
+    try:
+      amount = min(int(request.args.get("amount", 20)), 200)
+    except (TypeError, ValueError):
+      return abort(400)
     ttype = request.args.get("type")
     feed = []
     # OPTIMIZATION: this is slow if there are lots. We need compaction and so
@@ -175,10 +178,15 @@ class TodosView(FlaskView):
       todos.append(todo.serialize_for_client(include_comments="keys"))
 
     todos.sort(key=lambda x: x["date"], reverse=True)
+    totalTodos = len(todos)
 
-    amount = max(request.args.get("amount", 20), 100)
-    page = request.args.get("page", 1) - 1
-    return jsonify(todos=todos[page*amount:page*amount+amount]) # 10 todos perpage?
+    try:
+      amount = min(int(request.args.get("amount", 2)), 100)
+      page = int(request.args.get("page", 1)) - 1
+    except (TypeError, ValueError):
+      return abort(400)
+
+    return jsonify(todos=todos[page*amount:page*amount+amount], currentPage=page+1, totalTodos=totalTodos, todosPerPage=amount) # 10 todos perpage?
 
   @route("/<id>", methods=["DELETE"])
   def delete(self, project, id):
