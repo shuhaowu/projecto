@@ -209,7 +209,7 @@ class TodosView(FlaskView):
           for tag in todo.tags:
             if tag in tags:
               filtered.append(todo.serialize_for_client(include_comments="keys"))
-              continue
+              break
 
     filtered.sort(key=lambda x: x["date"], reverse=True)
 
@@ -225,6 +225,14 @@ class TodosView(FlaskView):
       return abort(404)
 
     todo.delete()
+    return jsonify(status="okay")
+
+  @route("/done", methods=["DELETE"])
+  def clear_done(self, project):
+    for todo in Todo.index("parent", project.key):
+      if todo.done:
+        todo.delete()
+
     return jsonify(status="okay")
 
   @route("/<id>", methods=["GET"])

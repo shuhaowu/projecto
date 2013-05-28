@@ -21,6 +21,14 @@
       var recomputePages = function(totalTodos, todosPerPage) {
         $scope.totalTodos = totalTodos;
         $scope.totalPages = Math.floor(totalTodos / todosPerPage) + (totalTodos % todosPerPage == 0 ? 0 : 1);
+        console.log($scope);
+        if ($scope.totalPages === null) {
+          $scope.totalTodos = 0;
+          $scope.totalPages = null;
+          console.log($scope);
+          return;
+        }
+
         $scope.pages = [];
         if ($scope.totalPages < 8) {
           for (var i=1; i<=$scope.totalPages; i++)
@@ -44,13 +52,29 @@
         return tags;
       };
 
-      var showTodo = function(todo) {
+      var toggleTodo = function(todo, force) {
         // TODO: All of this needs to be moved into a directive.
         var bodyElement = $("#todo-" + todo.key);
         if (bodyElement.css("display") === "none") {
-          bodyElement.slideDown();
+          if (force != "close")
+            bodyElement.slideDown();
         } else {
-          bodyElement.slideUp();
+          if (force != "open")
+            bodyElement.slideUp();
+        }
+      };
+
+      $scope.expandTodos = function(e) {
+        if ($(e.target).text() === "Expand All") {
+          for (var i=0; i<$scope.todos.length; i++) {
+            toggleTodo($scope.todos[i], "open");
+          }
+          $(e.target).text("Close All");
+        } else {
+          for (var i=0; i<$scope.todos.length; i++) {
+            toggleTodo($scope.todos[i], "close");
+          }
+          $(e.target).text("Expand All");
         }
       };
 
@@ -126,12 +150,28 @@
         });
       };
 
+      $scope.clearDone = function(todo) {
+        TodosService.clearDone($scope.currentProject).done(function(data) {
+          console.log("test");
+          $scope.$apply(function() {
+            for (var i=0; i<$scope.todos.length; i++) {
+              if ($scope.todos[i].done) {
+                $scope.todos.splice(i, 1);
+                i--;
+              }
+            }
+          });
+        }).fail(function(xhr) {
+          $("body").statusmsg("open", "Clearing failed: " + xhr.status, {type: "error", closable: true});
+        });
+      };
+
 
       $scope.showTodo = function(todo, $event) {
         $event.preventDefault();
         $event.stopPropagation();
 
-        showTodo(todo);
+        toggleTodo(todo);
       };
 
       $scope.editTodo = function(todo, index) {
@@ -172,7 +212,7 @@
               delete $scope.editMode[todoKey];
             });
 
-            showTodo(data);
+            toggleTodo(data, "open");
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Saving error: " + xhr.status, {type: "error", closable: true});
           });
@@ -209,9 +249,9 @@
         return TodosService.filter($scope.currentProject, params).done(function(data) {
           $scope.$apply(function() {
             $scope.todos = data.todos;
-            $scope.currentPage = 0;
-            $scope.totalPages = 0;
-            $scope.todosPerPage = data.todos.length;
+            $scope.currentPage = null;
+            $scope.totalPages = null;
+            $scope.todosPerPage = null;
             $scope.totalTodos = data.todos.length;
             $scope.pages = [];
           });

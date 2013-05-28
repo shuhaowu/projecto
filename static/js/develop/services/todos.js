@@ -78,6 +78,14 @@
         });
       };
 
+      this.clearDone = function(project) {
+        return $.ajax({
+          type: "DELETE",
+          url: apiUrl(project.key, "done"),
+          dataType: "json"
+        });
+      };
+
       this.listTags = function(project) {
         return $.ajax({
           type: "GET",
