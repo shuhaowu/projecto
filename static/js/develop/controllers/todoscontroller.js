@@ -10,8 +10,19 @@
 
       $scope.currentPage = null;
       $scope.totalPages = null;
+      $scope.todosPerPage = null;
       $scope.totalTodos = 0;
       $scope.pages = [];
+
+      var recomputePages = function(totalTodos, todosPerPage) {
+        $scope.totalTodos = totalTodos;
+        $scope.totalPages = Math.floor(totalTodos / todosPerPage) + (totalTodos % todosPerPage == 0 ? 0 : 1);
+        $scope.pages = [];
+        if ($scope.totalPages < 8) {
+          for (var i=1; i<=$scope.totalPages; i++)
+            $scope.pages.push(i);
+        }
+      }
 
       var showTodo = function(todo) {
         // TODO: All of this needs to be moved into a directive.
@@ -45,6 +56,7 @@
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
             $scope.$apply(function(){
               $scope.todos.splice(0, 0, data);
+              recomputePages($scope.totalTodos+1, $scope.todosPerPage);
             });
             $scope.newTodo(); // hack. Closes.
           }).fail(function(xhr){
@@ -61,14 +73,9 @@
           TodosService.index($scope.currentProject, $route.current.params.page || 1).done(function(data){
             $scope.$apply(function(){
               $scope.todos = data.todos;
-              $scope.totalTodos = data.totalTodos;
+              $scope.todosPerPage = data.todosPerPage;
               $scope.currentPage = data.currentPage;
-              $scope.totalPages = Math.floor(data.totalTodos / data.todosPerPage) + (data.totalTodos % data.todosPerPage == 0 ? 0 : 1);
-              $scope.pages = [];
-              if ($scope.totalPages < 8) {
-                for (var i=1; i<=$scope.totalPages; i++)
-                  $scope.pages.push(i);
-              }
+              recomputePages(data.totalTodos, data.todosPerPage);
             });
           }).fail(function(xhr){
             $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
@@ -152,6 +159,7 @@
           TodosService.delete($scope.currentProject, todo).done(function() {
             $scope.$apply(function() {
               $scope.todos.splice(i, 1);
+              recomputePages($scope.totalTodos-1, $scope.todosPerPage);
             });
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Deletion failed: " + xhr.status, {type: "error", closable: true});

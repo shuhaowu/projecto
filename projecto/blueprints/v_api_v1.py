@@ -181,7 +181,7 @@ class TodosView(FlaskView):
     totalTodos = len(todos)
 
     try:
-      amount = min(int(request.args.get("amount", 2)), 100)
+      amount = min(int(request.args.get("amount", 20)), 100)
       page = int(request.args.get("page", 1)) - 1
     except (TypeError, ValueError):
       return abort(400)
