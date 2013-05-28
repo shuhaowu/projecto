@@ -169,6 +169,12 @@ class TodosView(FlaskView):
 
   @route("/", methods=["GET"])
   def index(self, project):
+    try:
+      amount = min(int(request.args.get("amount", 20)), 100)
+      page = int(request.args.get("page", 1)) - 1
+    except (TypeError, ValueError):
+      return abort(400)
+
     todos = []
     showdone = request.args.get("showdown", "0")
     for todo in Todo.index("parent", project.key):
@@ -180,13 +186,34 @@ class TodosView(FlaskView):
     todos.sort(key=lambda x: x["date"], reverse=True)
     totalTodos = len(todos)
 
-    try:
-      amount = min(int(request.args.get("amount", 20)), 100)
-      page = int(request.args.get("page", 1)) - 1
-    except (TypeError, ValueError):
-      return abort(400)
-
     return jsonify(todos=todos[page*amount:page*amount+amount], currentPage=page+1, totalTodos=totalTodos, todosPerPage=amount) # 10 todos perpage?
+
+  # also needs caching
+  @route("/filter", methods=["GET"])
+  def filter(self, project):
+    tags = set(request.args.getlist("tags"))
+    showdone = request.args.get("showdone", "0") == "1"
+    shownotdone = request.args.get("shownotdone", "1") == "1"
+
+    # TODO: milestone based filters
+    # TODO: time based filters
+
+    todos = Todo.index("parent", project.key)
+    filtered = []
+    for todo in todos:
+      if (not todo.done and shownotdone) or (showdone and todo.done):
+        if len(todo.tags) == 0 and " " in tags:
+          filtered.append(todo.serialize_for_client(include_comments="keys"))
+          continue
+        else:
+          for tag in todo.tags:
+            if tag in tags:
+              filtered.append(todo.serialize_for_client(include_comments="keys"))
+              continue
+
+    filtered.sort(key=lambda x: x["date"], reverse=True)
+
+    return jsonify(todos=filtered)
 
   @route("/<id>", methods=["DELETE"])
   def delete(self, project, id):
@@ -224,6 +251,18 @@ class TodosView(FlaskView):
     todo.done = request.json["done"]
     todo.save()
     return jsonify(status="okay")
+
+  # TODO: needs caching
+  @route("/tags/", methods=["GET"])
+  def list_tags(self, project):
+    todos = Todo.index("parent", project.key)
+    tags = set()
+    for todo in todos:
+      if todo.tags:
+        for tag in todo.tags:
+          tags.add(tag)
+
+    return jsonify(tags=list(tags))
 
 TodosView.register(blueprint)
 

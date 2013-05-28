@@ -39,6 +39,7 @@ footer a:hover { text-decoration: underline; }
 .todos-todo-title a, .todos-todo-title a:visited, .todos-todo-title a:focus { color: #555; }
 .todos-todo-title a:hover { color: #333; }
 .todos-todo-donebox { float: left; margin-right: 0.3em; }
+.todos-filter-box { margin-right: 0.3em; }
 .todos-todo-body { display: none; margin-top: 0.5em; border: 1px dashed #CCC; border-radius: 4px; padding: 0.6em; }
 .todos-todo-content { margin: 0 0 1em 0; }
 .todos-todo-info { font-size: 0.9em; color: #999; }

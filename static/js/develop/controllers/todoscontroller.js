@@ -6,7 +6,11 @@
 
       $scope.newtodoitem = {};
       $scope.todos = [];
-      $scope.editMode = {}
+      $scope.tags = [];
+      $scope.tagsFiltered = {};
+      $scope.showdone = "0";
+      $scope.shownotdone = "1";
+      $scope.editMode = {};
 
       $scope.currentPage = null;
       $scope.totalPages = null;
@@ -23,6 +27,22 @@
             $scope.pages.push(i);
         }
       }
+
+      var extractTags = function(tagstr) {
+        if ($.type(tagstr) === "array")
+          return tagstr;
+
+        var tags = tagstr.split(",");
+        for (var i=0; i<tags.length; i++) {
+          tags[i] = $.trim(tags[i], " ");
+          if (!tags[i]) {
+            tags.splice(i, 1);
+            i--;
+          }
+        }
+        console.log(tags);
+        return tags;
+      };
 
       var showTodo = function(todo) {
         // TODO: All of this needs to be moved into a directive.
@@ -49,9 +69,8 @@
 
       $scope.createTodo = function() {
         if ($scope.newtodoitem.title) {
-          if ($scope.newtodoitem.tags) {
-            $scope.newtodoitem.tags = $scope.newtodoitem.tags.split(",");
-          }
+          if ($scope.newtodoitem.tags)
+            $scope.newtodoitem.tags = extractTags($scope.newtodoitem.tags);
 
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
             $scope.$apply(function(){
@@ -80,6 +99,18 @@
           }).fail(function(xhr){
             $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
           });
+
+          TodosService.listTags($scope.currentProject).done(function(data) {
+            $scope.$apply(function() {
+              $scope.tags = data.tags;
+              $scope.tags.push(" ");
+              for (var i=0; i<data.tags.length; i++)
+                $scope.tagsFiltered[data.tags[i]] = true;
+            });
+          }).fail(function(xhr) {
+            $("body").statusmsg("open", "Updating tags failed: " + xhr.status, {type: "error", closable: true});
+          });
+
         } else {
           notLoaded();
         }
@@ -131,8 +162,7 @@
         if ($scope.currentProject) {
           var tags = $scope.editMode[todoKey].tags;
 
-          if ($.type(tags) === "string" && tags.length > 0)
-            $scope.editMode[todoKey].tags = tags.split(",");
+          $scope.editMode[todoKey].tags = extractTags(tags);
 
           TodosService.put($scope.currentProject, $scope.editMode[todoKey]).done(function(data) {
             $scope.$apply(function() {
@@ -167,6 +197,55 @@
         } else {
           notLoaded();
         }
+      };
+
+      var filter = function(tags) {
+        var params = {
+          tags: tags,
+          showdone: $scope.showdone,
+          shownotdone: $scope.shownotdone
+        };
+
+        return TodosService.filter($scope.currentProject, params).done(function(data) {
+          $scope.$apply(function() {
+            $scope.todos = data.todos;
+            $scope.currentPage = 0;
+            $scope.totalPages = 0;
+            $scope.todosPerPage = data.todos.length;
+            $scope.totalTodos = data.todos.length;
+            $scope.pages = [];
+          });
+        });
+      };
+
+      var getFilterTags = function() {
+        var tags = [];
+        for (var t in $scope.tagsFiltered) {
+          if ($scope.tagsFiltered[t])
+            tags.push(t);
+        }
+        return tags;
+      }
+
+      $scope.checkTagFilter = function(tag) {
+        $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
+        var tags = getFilterTags();
+        filter(tags).fail(function(xhr) {
+          $("body").statusmsg("open", "Filter failed: " + xhr.status, {type: "error", closable: true});
+          $scope.$apply(function () {
+            $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
+          });
+        });
+      };
+
+      $scope.checkShowFilter = function(attr) {
+        $scope[attr] = $scope[attr] === "1" ? "0" : "1";
+        filter(getFilterTags()).fail(function(xhr) {
+          $("body").statusmsg("open", "Filter failed: " + xhr.status, {type: "error", closable: true});
+          $scope.$apply(function() {
+            $scope[attr] = $scope[attr] === "1" ? "0" : "1";
+          });
+        });
       };
 
       $scope.currentProject = null;

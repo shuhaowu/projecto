@@ -23,8 +23,16 @@
           type: "GET",
           url: apiUrl(project.key),
           dataType: "json",
-          data: "page=" + page
+          data: {page: page}
         });
+      };
+
+      this.filter = function(project, params) {
+        return $.ajax({
+          type: "GET",
+          url: apiUrl(project.key, "filter"),
+          data: params
+        })
       };
 
       this.delete = function(project, todo) {
@@ -46,7 +54,7 @@
       this.put = function(project, todo) {
         var j = {};
         j["title"] = todo["title"];
-        j["content"] = {markdown: todo["content"]["markdown"] || todo["content"]};
+        j["content"] = {markdown: $.type(todo["content"]) === "string" ? todo["content"] : (todo["content"]["markdown"] || "")};
         j["assigned"] = todo["assigned"];
         j["due"] = new Date(todo["due"]).getTime() / 1000;
         j["tags"] = todo["tags"];
@@ -67,6 +75,14 @@
           dataType: "json",
           contentType: "application/json",
           data: JSON.stringify({done: !todo.done})
+        });
+      };
+
+      this.listTags = function(project) {
+        return $.ajax({
+          type: "GET",
+          url: apiUrl(project.key, "tags/"),
+          dataType: "json"
         });
       };
     }]

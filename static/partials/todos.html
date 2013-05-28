@@ -38,6 +38,18 @@
 <div class="row">
   <div class="large-3 columns">
     <div class="panel">
+      <h6>Filter</h6>
+      <form class="custom" ng-repeat="tag in tags">
+        <span class="custom checkbox todos-filter-box" ng-class="{checked: tagsFiltered[tag]}" ng-click="checkTagFilter(tag)"></span> {[ tag ]} <span ng-show="tag == ' '">No tag</span>
+      </form>
+      <hr />
+      <form class="custom">
+        <span class="custom checkbox todos-filter-box" ng-class="{checked: showdone == '1'}" ng-click="checkShowFilter('showdone')"></span> Show Completed
+      </form>
+      <form class="custom">
+        <span class="custom checkbox todos-filter-box" ng-class="{checked: shownotdone == '1'}" ng-click="checkShowFilter('shownotdone')"></span> Show not Done
+      </form>
+      <hr />
       <p>Number of Todos: {[ totalTodos ]}</p>
     </div>
   </div>
