@@ -21,11 +21,9 @@
       var recomputePages = function(totalTodos, todosPerPage) {
         $scope.totalTodos = totalTodos;
         $scope.totalPages = Math.floor(totalTodos / todosPerPage) + (totalTodos % todosPerPage == 0 ? 0 : 1);
-        console.log($scope);
         if ($scope.totalPages === null) {
           $scope.totalTodos = 0;
           $scope.totalPages = null;
-          console.log($scope);
           return;
         }
 

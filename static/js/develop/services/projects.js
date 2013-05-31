@@ -9,6 +9,7 @@
 
     this.new = function(name) {
       self._myProjects = null; // Invalidate so we need to refresh our projects and thereby the cache.
+      self._projectIdsToProjects = null;
       return $.ajax({
         type: "POST",
         url: projectAPIPrefix + "/",

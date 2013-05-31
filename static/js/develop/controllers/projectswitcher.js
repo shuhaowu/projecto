@@ -2,7 +2,7 @@
 
 (function() {
   angular.module("projecto").controller(
-    "ProjectSwitcher", ["$scope", "ProjectsService", function($scope, ProjectsService) {
+    "ProjectSwitcher", ["$scope", "$location", "ProjectsService", function($scope, $location, ProjectsService) {
       $scope.projectsOwned = [];
 
       $scope.projectsParticipating = [];
@@ -25,6 +25,7 @@
           $scope.$apply(function() {
             data.name = projectName;
             $scope.projectsOwned.push(data);
+            $location.path("/projects/" + data.key + "/");
           });
           $("body").statusmsg("open", "Project \""+projectName+"\" created!", {type: "success", autoclose: 2000});
         });
