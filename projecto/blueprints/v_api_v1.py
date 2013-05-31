@@ -63,7 +63,7 @@ class FeedView(FlaskView):
   decorators = [project_access_required]
 
   @route("/", methods=["POST"])
-  @ensure_good_request({"content"})
+  @ensure_good_request({"content"}, {"content"})
   def post(self, project):
     feeditem = FeedItem(data=request.json)
     # This is required as current_user is a werkzeug LocalProxy

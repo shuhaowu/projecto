@@ -10,14 +10,14 @@
 
       var delta, relative_is_future, t;
 
-      if (!relative_to) {
+      if (!relative_to)
         relative_to = parseInt(new Date().getTime() / 1000);
-      }
-      if ($.type(timestamp) !== "number") {
+
+      if ($.type(timestamp) !== "number")
         timestamp = timestamp.getTime() / 1000;
-      }
+
       delta = timestamp - relative_to;
-      relative_is_future = delta >= 0 ? true : false;
+      relative_is_future = delta > 0 ? true : false;
       delta = Math.abs(delta);
       if (delta < 60) {
         t = "less than a minute";
