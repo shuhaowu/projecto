@@ -34,6 +34,9 @@ COMMENTS_INDEXES = os.path.join(DATABASES_FOLDER, "comments.indexes")
 TODOS = os.path.join(DATABASES_FOLDER, "todos")
 TODOS_INDEXES = os.path.join(DATABASES_FOLDER, "todos.indexes")
 
+ARCHIVED_FEED = os.path.join(DATABASES_FOLDER, "archived_feed")
+ARCHIVED_FEED_INDEXES = os.path.join(DATABASES_FOLDER, "archived_feed.indexes")
+
 class User(Document, UserMixin):
   db = USERS
   indexdb = USERS_INDEXES
@@ -75,12 +78,35 @@ class Content(EmDocument):
   date = DateTimeProperty()
   parent = StringProperty(index=True)
 
+  def serialize_for_client(self, include_comments="expand"):
+    item = self.serialize(restricted=("parent"), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])
+    if include_comments == "expand":
+      item["children"] = children = []
+      for comment in Comment.index("parent", self.key):
+        children.append(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+    elif include_comments == "keys":
+      item["children"] = Comment.index_keys_only("parent", self.key)
+    return item
+
+class ArchivedFeedItem(Document, Content):
+  db = ARCHIVED_FEED
+  indexdb = ARCHIVED_FEED_INDEXES
+
+  parent = ReferenceProperty(Project, index=True)
+  type = StringProperty()
+
 class FeedItem(Document, Content):
   db = FEED
   indexdb = FEED_INDEXES
 
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
+
+  def archive(self):
+    archived_item = ArchivedFeedItem(key=self.key, data=self)
+    archived_item.save()
+    self.delete()
+    return archived_item
 
 class Comment(Document, Content):
   db = COMMENTS
@@ -100,23 +126,13 @@ class Todo(Document, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
-  def serialize_for_client(self, include_comments="expand"):
-    t = self.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])
-    if include_comments == "expand":
-      t["children"] = children = []
-      for comment in Comment.index("parent", self.key):
-        children.append(comment.serialize(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])))
-    elif include_comments == "keys":
-      t["children"] = Comment.index_keys_only("parent", self.key)
-    return t
-
-
 def establish_connections():
   User.establish_connection()
   Project.establish_connection()
   FeedItem.establish_connection()
   Comment.establish_connection()
   Todo.establish_connection()
+  ArchivedFeedItem.establish_connection()
 
 def close_connections():
   User.db = USERS
@@ -129,3 +145,5 @@ def close_connections():
   Comment.indexdb = COMMENTS_INDEXES
   Todo.db = TODOS
   Todo.indexdb = TODOS_INDEXES
+  ArchivedFeedItem.db = ARCHIVED_FEED
+  ArchivedFeedItem.indexdb = ARCHIVED_FEED_INDEXES

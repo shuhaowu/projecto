@@ -17,7 +17,7 @@
   <div class="large-8 columns">
     <div class="panel feed-post" ng-repeat="post in posts">
       <img src="https://secure.gravatar.com/avatar/{[ post.author.avatar ]}?s=50" class="feed-avatar" />
-      <span class="feed-date">{[ post.date | relativeTime ]} <a href="" ng-click="deletePost(post)" ng-show="post.author.key == currentUser.key" title="Delete">&times;</a></span>
+      <span class="feed-date">{[ post.children.length ]} Comment(s) | {[ post.date | relativeTime ]} <a href="" ng-click="deletePost(post)" ng-show="post.author.key == currentUser.key" title="Delete">&times;</a></span>
       <p>
         <strong>{[ post.author.name ]}</strong>
         <br />

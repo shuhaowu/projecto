@@ -80,26 +80,35 @@ class FeedView(FlaskView):
       return abort(400)
     ttype = request.args.get("type")
     feed = []
-    # OPTIMIZATION: this is slow if there are lots. We need compaction and so
-    # forth.
+
+    i = 0
     for feeditem in FeedItem.index("parent", project.key):
       if ttype is not None and feeditem.type != ttype:
         continue
 
-      feed.append(feeditem)
+      if i > 200:
+        feeditem.archive()
+        continue
 
-    feed.sort(key=lambda item: item.date, reverse=True)
+      feed.append(feeditem.serialize_for_client("keys"))
+      i += 1
+
+
+    feed.sort(key=lambda item: item["date"], reverse=True)
     feed = feed[:amount]
 
-    r = []
-    for item in feed:
-      r.append(item.serialize(restricted=("title", "parent"), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
-
-    return jsonify(feed=r)
+    return jsonify(feed=feed)
 
   @route("/<id>", methods=["GET"])
   def get(self, project, id):
-    pass
+    try:
+      feeditem = FeedItem.get(id)
+      if feeditem.parent.key != project.key:
+        raise NotFoundError
+    except NotFoundError:
+      return abort(404)
+    else:
+      return jsonify(**feeditem.serialize_for_client())
 
   @route("/<id>", methods=["DELETE"])
   def delete(self, project, id):

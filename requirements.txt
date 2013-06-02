@@ -9,7 +9,7 @@ argparse==1.2.1
 -e git://github.com/surfly/gevent.git@454a77ca561868854760b2d9cbfa3bf3bbd2e062#egg=gevent-dev
 greenlet==0.4.0
 leveldb==0.1
-leveldbkit==0.1.0a
+leveldbkit==0.1.1b
 misaka==1.0.2
 requests==1.2.0
 ujson==1.30
