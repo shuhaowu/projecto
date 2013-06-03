@@ -133,11 +133,15 @@ After install leveldb, you can use pip to install the rest via:
 
 This should take a little bit of time but should work without issues.
 
-Lastly, we need to link devsettings.py to settings.py (in production we link
+We need to link devsettings.py to settings.py (in production we link
 productionsettings.py to settings.py. That file is not available here for
 security reasons due to the secret key we have in there)
 
     $ ln -s devsettings.py settings.py
+
+We need to now create a database folder:
+
+    $ mkdir databases
 
 To start the server, run:
 
