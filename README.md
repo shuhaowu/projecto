@@ -5,13 +5,6 @@ Projecto is a simple project management web application built using Flask and
 AngularJS. It is a completely rewrite and redesign of a previous project
 management system I've written, [spm](https://github.com/shuhaowu/spm)
 
-Authors
--------
-
-Primary developers:
-
-    Shuhao Wu <shuhao@shuhaowu.com>
-
 Features
 --------
 
