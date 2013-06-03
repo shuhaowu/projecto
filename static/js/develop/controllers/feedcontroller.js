@@ -74,4 +74,7 @@
       });
     }]
   );
+
+  angular.module("projecto").controller("SingleFeedController", ["$scope", function($scope) {
+  }]);
 })();

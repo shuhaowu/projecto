@@ -93,7 +93,6 @@ class FeedView(FlaskView):
       feed.append(feeditem.serialize_for_client("keys"))
       i += 1
 
-
     feed.sort(key=lambda item: item["date"], reverse=True)
     feed = feed[:amount]
 

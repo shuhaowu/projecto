@@ -3,7 +3,6 @@ import os.path
 APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
 STATIC_FOLDER = os.path.join(APP_FOLDER, "static")
 TEMPLATES_FOLDER = os.path.join(APP_FOLDER, "templates")
-JST_FOLDER = os.path.join(APP_FOLDER, "jst")
 
 DEBUG = True
 

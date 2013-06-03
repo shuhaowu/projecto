@@ -13,6 +13,10 @@
     }
     $routeProvider.when("/projects/:id/", feedPage);
     $routeProvider.when("/projects/:id/feed/", feedPage);
+    $routeProvider.when("/projects/:id/feed/:feedId", {
+      templateUrl: "/static/partials/singlefeed.html",
+      controller: "SingleFeedController"
+    });
 
     $routeProvider.when("/projects/:id/todos", todosPage);
     $routeProvider.when("/projects/:id/todos/pages/:page", todosPage)
