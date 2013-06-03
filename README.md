@@ -10,7 +10,7 @@ Authors
 
 Primary developers:
 
- - Shuhao Wu <shuhao@shuhaowu.com>
+    Shuhao Wu <shuhao@shuhaowu.com>
 
 Features
 --------
