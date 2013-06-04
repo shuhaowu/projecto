@@ -1,5 +1,5 @@
 Flask==0.9
-Flask-Classy==0.5.2
+-e git://github.com/apiguy/flask-classy.git@7ae3d75d6410b0b152bd06d74b8f1712fb246497#egg=Flask_Classy-dev
 Flask-Login==0.1.3
 Flask-SeaSurf==0.1.16
 Jinja2==2.7

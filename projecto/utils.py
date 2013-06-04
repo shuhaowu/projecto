@@ -56,6 +56,7 @@ def project_access_required(fn):
     except NotFoundError:
       return abort(404)
 
+    # Move users from unregistered to registered if found.
     for email in current_user.emails:
       if email in project.unregistered_owners:
         project.unregistered_owners.remove(email)
