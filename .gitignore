@@ -1,5 +1,4 @@
 *.pyc
 *.komodoproject
-settings.py
 serversettings.py
 databases/

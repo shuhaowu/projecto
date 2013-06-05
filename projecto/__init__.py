@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from flask import Flask, render_template, redirect, url_for
 from flask.ext.login import current_user
-from settings import STATIC_FOLDER, TEMPLATES_FOLDER, SECRET_KEY, MAX_CONTENT_LENGTH, DEBUG
+from settings import STATIC_FOLDER, TEMPLATES_FOLDER, SECRET_KEY, MAX_CONTENT_LENGTH
 from .blueprints import blueprints
 from .models import establish_connections
 from .utils import jsonify, get_all_script_paths

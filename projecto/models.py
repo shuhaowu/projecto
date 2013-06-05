@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from settings import APP_FOLDER
+from settings import DATABASES
 from flask.ext.login import UserMixin
 import os.path
 from hashlib import md5
@@ -9,37 +9,14 @@ from leveldbkit import (
   StringProperty,
   DictProperty,
   DateTimeProperty,
-  NumberProperty,
-  EmDocumentsListProperty,
-  EmDocumentProperty,
   BooleanProperty,
   ReferenceProperty,
   ListProperty,
-  Property
 )
 
-DATABASES_FOLDER = os.path.join(APP_FOLDER, "databases")
-USERS = os.path.join(DATABASES_FOLDER, "users")
-USERS_INDEXES = os.path.join(DATABASES_FOLDER, "users.indexes")
-
-PROJECTS = os.path.join(DATABASES_FOLDER, "projects")
-PROJECTS_INDEXES = os.path.join(DATABASES_FOLDER, "projects.indexes")
-
-FEED = os.path.join(DATABASES_FOLDER, "feed")
-FEED_INDEXES = os.path.join(DATABASES_FOLDER, "feed.indexes")
-
-COMMENTS = os.path.join(DATABASES_FOLDER, "comments")
-COMMENTS_INDEXES = os.path.join(DATABASES_FOLDER, "comments.indexes")
-
-TODOS = os.path.join(DATABASES_FOLDER, "todos")
-TODOS_INDEXES = os.path.join(DATABASES_FOLDER, "todos.indexes")
-
-ARCHIVED_FEED = os.path.join(DATABASES_FOLDER, "archived_feed")
-ARCHIVED_FEED_INDEXES = os.path.join(DATABASES_FOLDER, "archived_feed.indexes")
-
 class User(Document, UserMixin):
-  db = USERS
-  indexdb = USERS_INDEXES
+  db = DATABASES["USERS"][0]
+  indexdb = DATABASES["USERS"][1]
 
   name = StringProperty(default="Paranoid User")
   emails = ListProperty(index=True)
@@ -60,8 +37,8 @@ class User(Document, UserMixin):
     return self.key
 
 class Project(Document):
-  db = PROJECTS
-  indexdb = PROJECTS_INDEXES
+  db = DATABASES["PROJECTS"][0]
+  indexdb = DATABASES["PROJECTS"][1]
 
   name = StringProperty()
   desc = StringProperty()
@@ -89,15 +66,15 @@ class Content(EmDocument):
     return item
 
 class ArchivedFeedItem(Document, Content):
-  db = ARCHIVED_FEED
-  indexdb = ARCHIVED_FEED_INDEXES
+  db = DATABASES["ARCHIVED_FEED"][0]
+  indexdb = DATABASES["ARCHIVED_FEED"][1]
 
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
 class FeedItem(Document, Content):
-  db = FEED
-  indexdb = FEED_INDEXES
+  db = DATABASES["FEED"][0]
+  indexdb = DATABASES["FEED"][1]
 
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
@@ -109,12 +86,12 @@ class FeedItem(Document, Content):
     return archived_item
 
 class Comment(Document, Content):
-  db = COMMENTS
-  indexdb = COMMENTS_INDEXES
+  db = DATABASES["COMMENTS"][0]
+  indexdb = DATABASES["COMMENTS"][1]
 
 class Todo(Document, Content):
-  db = TODOS
-  indexdb = TODOS_INDEXES
+  db = DATABASES["TODOS"][0]
+  indexdb = DATABASES["TODOS"][1]
 
   parent = ReferenceProperty(Project, index=True)
   assigned = ReferenceProperty(User, index=True)
@@ -135,15 +112,10 @@ def establish_connections():
   ArchivedFeedItem.establish_connection()
 
 def close_connections():
-  User.db = USERS
-  User.indexdb = USERS_INDEXES
-  Project.db = PROJECTS
-  Project.indexdb = PROJECTS_INDEXES
-  FeedItem.db = FEED
-  FeedItem.indexdb = FEED_INDEXES
-  Comment.db = COMMENTS
-  Comment.indexdb = COMMENTS_INDEXES
-  Todo.db = TODOS
-  Todo.indexdb = TODOS_INDEXES
-  ArchivedFeedItem.db = ARCHIVED_FEED
-  ArchivedFeedItem.indexdb = ARCHIVED_FEED_INDEXES
+  User.db, User.indexdb = DATABASES["USERS"]
+  Project.db, Project.indexdb = DATABASES["PROJECTS"]
+  FeedItem.db, FeedItem.indexdb = DATABASES["FEED"]
+  Comment.db, Comment.indexdb = DATABASES["COMMENTS"]
+  Todo.db, Todo.indexdb = DATABASES["TODOS"]
+  ArchivedFeedItem.db, ArchivedFeedItem.indexdb = DATABASES["ARCHIVED_FEED"]
+

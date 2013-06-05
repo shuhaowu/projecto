@@ -1,9 +1,3 @@
-import os.path
-
-APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
-STATIC_FOLDER = os.path.join(APP_FOLDER, "static")
-TEMPLATES_FOLDER = os.path.join(APP_FOLDER, "templates")
-
 DEBUG = True
 
 MAX_CONTENT_LENGTH = 20 * 1024 * 1024

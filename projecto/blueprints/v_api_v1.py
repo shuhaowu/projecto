@@ -6,7 +6,7 @@ import os
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem, Todo, Comment
+from ..models import Project, FeedItem, Todo
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db
 
 MODULE_NAME = "api_v1"
