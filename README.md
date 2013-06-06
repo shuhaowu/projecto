@@ -158,3 +158,10 @@ To start the server, run:
 Ignore the warning. We don't use store passwords so it is okay.
 
 Navigate to http://localhost:8800 to check out the site
+
+Tips for development
+--------------------
+
+ - Run all tests automagically: `python -m unittest discover`
+ - Do `pip install pdbpp` and once you get into the debugger, type sticky and
+   hit enter.

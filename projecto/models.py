@@ -15,9 +15,6 @@ from leveldbkit import (
 )
 
 class User(Document, UserMixin):
-  db = DATABASES["USERS"][0]
-  indexdb = DATABASES["USERS"][1]
-
   name = StringProperty(default="Paranoid User")
   emails = ListProperty(index=True)
   avatar = StringProperty()
@@ -37,9 +34,6 @@ class User(Document, UserMixin):
     return self.key
 
 class Project(Document):
-  db = DATABASES["PROJECTS"][0]
-  indexdb = DATABASES["PROJECTS"][1]
-
   name = StringProperty()
   desc = StringProperty()
 
@@ -66,16 +60,10 @@ class Content(EmDocument):
     return item
 
 class ArchivedFeedItem(Document, Content):
-  db = DATABASES["ARCHIVED_FEED"][0]
-  indexdb = DATABASES["ARCHIVED_FEED"][1]
-
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
 class FeedItem(Document, Content):
-  db = DATABASES["FEED"][0]
-  indexdb = DATABASES["FEED"][1]
-
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
@@ -86,13 +74,9 @@ class FeedItem(Document, Content):
     return archived_item
 
 class Comment(Document, Content):
-  db = DATABASES["COMMENTS"][0]
-  indexdb = DATABASES["COMMENTS"][1]
+  pass
 
 class Todo(Document, Content):
-  db = DATABASES["TODOS"][0]
-  indexdb = DATABASES["TODOS"][1]
-
   parent = ReferenceProperty(Project, index=True)
   assigned = ReferenceProperty(User, index=True)
   due = DateTimeProperty(default=lambda: None)
@@ -103,19 +87,32 @@ class Todo(Document, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
+ALL_MODELS = {
+  User: "USERS",
+  Project: "PROJECTS",
+  FeedItem: "FEED",
+  Comment: "COMMENTS",
+  Todo: "TODOS",
+  ArchivedFeedItem: "ARCHIVED_FEED"
+}
+
 def establish_connections():
-  User.establish_connection()
-  Project.establish_connection()
-  FeedItem.establish_connection()
-  Comment.establish_connection()
-  Todo.establish_connection()
-  ArchivedFeedItem.establish_connection()
+  for model in ALL_MODELS:
+    model.establish_connection()
 
 def close_connections():
-  User.db, User.indexdb = DATABASES["USERS"]
-  Project.db, Project.indexdb = DATABASES["PROJECTS"]
-  FeedItem.db, FeedItem.indexdb = DATABASES["FEED"]
-  Comment.db, Comment.indexdb = DATABASES["COMMENTS"]
-  Todo.db, Todo.indexdb = DATABASES["TODOS"]
-  ArchivedFeedItem.db, ArchivedFeedItem.indexdb = DATABASES["ARCHIVED_FEED"]
+  """This method is named close_connections because if there is a LevelDB
+  instance, resetting it will cause GC to destroy the instance, which will
+  cause the underlying leveldb library to unlock the database.
 
+  We need to use a modified version of werkzeug or else this won't be called
+  and we will get a lock error everytime the development server reloads.
+
+  Incidentally, we also can use this to easily populate all the dbs for each
+  model as evident by the immediate calling after this method.
+  """
+  for model, name in ALL_MODELS.iteritems():
+    model.db, model.indexdb = DATABASES[name]
+
+# This actually sets up the models
+close_connections()

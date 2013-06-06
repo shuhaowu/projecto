@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from flask import Flask, render_template, redirect, url_for
 from flask.ext.login import current_user
-from settings import STATIC_FOLDER, TEMPLATES_FOLDER, SECRET_KEY, MAX_CONTENT_LENGTH
+from settings import STATIC_FOLDER, TEMPLATES_FOLDER, SECRET_KEY, MAX_CONTENT_LENGTH, TESTING
 from .blueprints import blueprints
 from .models import establish_connections
 from .utils import jsonify, get_all_script_paths
@@ -9,6 +9,7 @@ from .utils import jsonify, get_all_script_paths
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATES_FOLDER)
 app.secret_key = SECRET_KEY
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+app.config["TESTING"] = TESTING
 
 # Login management
 

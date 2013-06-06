@@ -7,6 +7,7 @@ DATABASES_FOLDER = os.path.join(APP_FOLDER, "databases")
 
 _dbs_to_add = ('USERS', 'PROJECTS', 'FEED', 'COMMENTS', 'TODOS', 'ARCHIVED_FEED')
 DATABASES = {dbname: (os.path.join(DATABASES_FOLDER, dbname.lower()), os.path.join(DATABASES_FOLDER, dbname.lower() + ".indexes")) for dbname in _dbs_to_add}
+TESTING = False
 
 try:
   from serversettings import *

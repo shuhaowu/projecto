@@ -20,14 +20,11 @@ meta = {
   "url_prefix" : "/api/v1",
 }
 
-
 # Project APIs
 
 class ProjectsView(FlaskView):
-
   @route("/", methods=["POST"])
-
-  @ensure_good_request({"name"})
+  @ensure_good_request({"name"}, {"name"})
   @login_required
   def post(self):
     project = Project(data=request.json)
@@ -38,8 +35,8 @@ class ProjectsView(FlaskView):
   @route("/", methods=["GET"])
   @login_required
   def index(self):
-    projects_owned = [project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True) for project in Project.index("owners", current_user.key)]
-    projects_participating = [project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True) for project in Project.index("collaborators", current_user.key)]
+    projects_owned = [project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True) for project in Project.index("owners", current_user.key)]
+    projects_participating = [project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True) for project in Project.index("collaborators", current_user.key)]
 
     return jsonify(owned=projects_owned, participating=projects_participating)
 
@@ -54,7 +51,7 @@ class ProjectsView(FlaskView):
       if current_user.key in project.owners:
         return jsonify(**project.serialize(include_key=True))
       else:
-        return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True))
+        return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True))
 
 ProjectsView.register(blueprint)
 
