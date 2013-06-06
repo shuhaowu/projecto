@@ -18,7 +18,7 @@ class FlaskTestCase(TestCase):
     # Sets up a context so the request don't get destroyed during the request
     # for things such as login.
     self.client.__enter__()
-    self.user = User.register_or_login("test@test.com")
+    self.user = self.create_user("test@test.com")
 
   def tearDown(self):
     # We try to logout the user and then end the request context.
@@ -33,12 +33,15 @@ class FlaskTestCase(TestCase):
     # TODO: this might be.. troublesome
     self.assertTrue(response.location.endswith(redirect))
 
-  def login(self):
-    """Logs in self.user"""
-    test_login_user(self.client, self.user)
+  def create_user(self, email):
+    return User.register_or_login(email)
+
+  def login(self, user=None):
+    """Logs in user. If user is none it uses self.user"""
+    test_login_user(self.client, user if user else self.user)
 
   def logout(self):
-    """Logs out self.user"""
+    """Logs out currently logged in user"""
     test_logout_user(self.client)
 
   def _setup_request(self, kwargs):
@@ -102,4 +105,5 @@ class FlaskTestCase(TestCase):
       shutil.rmtree(settings.DATABASES[dbname][1])
 
     establish_connections()
-    self.user = User.register_or_login("test@test.com")
+    self.user = self.create_user("test@test.com")
+

@@ -39,8 +39,8 @@ class Project(Document):
 
   owners = ListProperty(index=True)
   collaborators = ListProperty(index=True)
-  unregistered_owners = ListProperty()
-  unregistered_collaborators = ListProperty() # These are users that have not registered onto projecto
+  unregistered_owners = ListProperty(index=True)
+  unregistered_collaborators = ListProperty(index=True) # These are users that have not registered onto projecto
 
 class Content(EmDocument):
   title = StringProperty()

@@ -5,6 +5,7 @@ from .utils import FlaskTestCase
 
 
 class TestProjectsAPI(FlaskTestCase):
+  # TODO: participating projects.
   def test_create_reject_nonuser(self):
     response, _ = self.postJSON("/api/v1/projects/", data={"name": "test"})
     self.assertStatus(403, response)
@@ -42,8 +43,16 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertTrue("unregistered_owners" in data)
     self.assertTrue("unregistered_collaborators" in data)
 
-  def test_list_my_owned_projects(self):
+  def test_get_project_reject_without_permission(self):
+    self.login()
+    _, data = self.postJSON("/api/v1/projects/", data={"name": "name"})
+    self.logout()
+    response, _ = self.getJSON("/api/v1/projects/{}".format(data["key"]))
+    self.assertStatus(403, response)
+
+  def test_list_my_projects(self):
     self.reset_database()
+    some_user = self.create_user("test2@test.com")
     self.login()
 
     response, data = self.getJSON("/api/v1/projects/")
@@ -61,6 +70,7 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertStatus(200, response)
 
     self.assertEquals(5, len(data["owned"]))
+    self.assertEquals(0, len(data["participating"]))
     keys_from_response = sorted([p["key"] for p in data["owned"]])
     keys.sort()
     self.assertEquals(keys, keys_from_response)
@@ -68,6 +78,21 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertTrue("collaborators" not in data["owned"][0])
     self.assertTrue("unregistered_owners" not in data["owned"][0])
     self.assertTrue("unregistered_collaborators" not in data["owned"][0])
+
+    self.logout()
+    self.login(some_user)
+
+    response, data = self.getJSON("/api/v1/projects/")
+    self.assertStatus(200, response)
+    self.assertEquals(0, len(data["owned"]))
+    self.assertEquals(0, len(data["participating"]))
+
+  def test_list_reject_not_logged_in(self):
+    response, _ = self.getJSON("/api/v1/projects/")
+    self.assertStatus(403, response)
+
+class TestFeedAPI(FlaskTestCase):
+  pass
 
 
 if __name__ == "__main__":
