@@ -83,7 +83,7 @@ class FeedView(FlaskView):
       if ttype is not None and feeditem.type != ttype:
         continue
 
-      if i > 200:
+      if i >= 200:
         feeditem.archive()
         continue
 

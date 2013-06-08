@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import unittest
 from .utils import FlaskTestCase
 
+# TODO: needs to code in participants
 
 class TestProjectsAPI(FlaskTestCase):
   # TODO: participating projects.
@@ -43,12 +44,21 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertTrue("unregistered_owners" in data)
     self.assertTrue("unregistered_collaborators" in data)
 
-  def test_get_project_reject_without_permission(self):
+  def test_get_project_reject_permission(self):
     self.login()
     _, data = self.postJSON("/api/v1/projects/", data={"name": "name"})
     self.logout()
     response, _ = self.getJSON("/api/v1/projects/{}".format(data["key"]))
     self.assertStatus(403, response)
+
+  def test_get_project_reject_notfound(self):
+    self.login()
+    response, data = self.getJSON("/api/v1/project/nope")
+    self.assertStatus(404, response)
+
+    self.logout()
+    response, data = self.getJSON("/api/v1/project/nope")
+    self.assertStatus(404, response)
 
   def test_list_my_projects(self):
     self.reset_database()
@@ -90,9 +100,6 @@ class TestProjectsAPI(FlaskTestCase):
   def test_list_reject_not_logged_in(self):
     response, _ = self.getJSON("/api/v1/projects/")
     self.assertStatus(403, response)
-
-class TestFeedAPI(FlaskTestCase):
-  pass
 
 
 if __name__ == "__main__":
