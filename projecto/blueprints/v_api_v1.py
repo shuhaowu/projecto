@@ -282,7 +282,7 @@ TodosView.register(blueprint)
 class ProfileView(FlaskView):
 
   @route("/changename", methods=["POST"])
-  @ensure_good_request({"content"})
+  @ensure_good_request({"name"}, {"name"})
   @login_required
   def changename(self):
     current_user.name = request.json["name"]
