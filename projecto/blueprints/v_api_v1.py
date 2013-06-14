@@ -142,7 +142,7 @@ class TodosView(FlaskView):
     return jsonify(**todo.serialize_for_client("keys"))
 
   @route("/<id>", methods=["PUT"])
-  @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
+  @ensure_good_request(set(), {"title", "content", "assigned", "due", "tags"})
   def put(self, project, id):
     try:
       todo = Todo.get(id)
@@ -165,7 +165,7 @@ class TodosView(FlaskView):
 
     # TODO: We probably want to make this consistent with `post`
     try:
-      todo.content = markdown_to_db(todo.content["markdown"])
+      todo.content = markdown_to_db(todo.content.get("markdown", ""))
     except TypeError:
       return abort(400)
 

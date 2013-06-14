@@ -107,3 +107,20 @@ class FlaskTestCase(TestCase):
     establish_connections()
     self.user = self.create_user("test@test.com")
 
+
+class ProjectTestCase(FlaskTestCase):
+  def reset_database(self):
+    FlaskTestCase.reset_database(self)
+    self.project_key = None
+    self.setup_project()
+
+  def setup_project(self):
+    if (not hasattr(self, "project_key")) or (not self.project_key):
+      self.login()
+      response, data = self.postJSON("/api/v1/projects/", data={"name": "test"})
+      self.project_key = data["key"]
+      self.logout()
+
+  def setUp(self):
+    FlaskTestCase.setUp(self)
+    self.setup_project()

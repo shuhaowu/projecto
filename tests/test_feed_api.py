@@ -5,26 +5,9 @@ import time
 from projecto.models import ArchivedFeedItem, FeedItem
 
 import unittest
-from .utils import FlaskTestCase
+from .utils import ProjectTestCase
 
-class TestFeedAPI(FlaskTestCase):
-
-  def reset_database(self):
-    FlaskTestCase.reset_database(self)
-    self.project_key = None
-    self.setup_project()
-
-  def setup_project(self):
-    if (not hasattr(self, "project_key")) or (not self.project_key):
-      self.login()
-      response, data = self.postJSON("/api/v1/projects/", data={"name": "test"})
-      self.project_key = data["key"]
-      self.logout()
-
-  def setUp(self):
-    FlaskTestCase.setUp(self)
-    self.setup_project()
-
+class TestFeedAPI(ProjectTestCase):
   def base_url(self, postfix):
     return "/api/v1/projects/{}/feed{}".format(self.project_key, postfix)
 
