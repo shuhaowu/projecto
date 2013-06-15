@@ -1,12 +1,12 @@
 Flask==0.9
 -e git://github.com/apiguy/flask-classy.git@7ae3d75d6410b0b152bd06d74b8f1712fb246497#egg=Flask_Classy-dev
-Flask-Login==0.1.3
+-e git://github.com/shuhaowu/flask-login.git@4cd0fb4e5e84146bc967d79cc982660e664ea362#egg=Flask_Login-dev
 Flask-SeaSurf==0.1.16
 Jinja2==2.7
 MarkupSafe==0.18
 -e git://github.com/shuhaowu/werkzeug.git@ba2101628cbf55fb8265ca645addf2bce0df7cad#egg=Werkzeug-dev
 argparse==1.2.1
-leveldbkit==0.1.2b
+-e git://github.com/shuhaowu/leveldbkit.git@ebf3fb25ed24d0a4939f067a0d33b01db653de1b#egg=leveldbkit-dev
 misaka==1.0.2
 requests==1.2.3
 ujson==1.30

@@ -100,7 +100,7 @@ def ensure_good_request(required_parameters, accepted_parameters=None):
         return abort(400)
 
       parameters_provided = set(request.json.keys())
-      if parameters_provided < required_parameters or required_parameters > accepted_parameters:
+      if not (parameters_provided >= required_parameters) or not (parameters_provided <= accepted_parameters):
         return abort(400)
 
       try:

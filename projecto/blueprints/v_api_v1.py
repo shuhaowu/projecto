@@ -6,28 +6,27 @@ import os
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem, Todo, Comment
+from ..models import Project, FeedItem, Todo
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db
 
 MODULE_NAME = "api_v1"
 TEMPLATES_FOLDER = os.path.join(settings.TEMPLATES_FOLDER, MODULE_NAME)
 
+
 blueprint = Blueprint(MODULE_NAME, __name__,
                       template_folder=TEMPLATES_FOLDER,
                       static_folder=settings.STATIC_FOLDER)
+
 
 meta = {
   "url_prefix" : "/api/v1",
 }
 
-
 # Project APIs
 
 class ProjectsView(FlaskView):
-
   @route("/", methods=["POST"])
-
-  @ensure_good_request({"name"})
+  @ensure_good_request({"name"}, {"name"})
   @login_required
   def post(self):
     project = Project(data=request.json)
@@ -38,8 +37,8 @@ class ProjectsView(FlaskView):
   @route("/", methods=["GET"])
   @login_required
   def index(self):
-    projects_owned = [project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True) for project in Project.index("owners", current_user.key)]
-    projects_participating = [project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True) for project in Project.index("collaborators", current_user.key)]
+    projects_owned = [project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True) for project in Project.index("owners", current_user.key)]
+    projects_participating = [project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True) for project in Project.index("collaborators", current_user.key)]
 
     return jsonify(owned=projects_owned, participating=projects_participating)
 
@@ -54,7 +53,7 @@ class ProjectsView(FlaskView):
       if current_user.key in project.owners:
         return jsonify(**project.serialize(include_key=True))
       else:
-        return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered"), include_key=True))
+        return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True))
 
 ProjectsView.register(blueprint)
 
@@ -86,7 +85,7 @@ class FeedView(FlaskView):
       if ttype is not None and feeditem.type != ttype:
         continue
 
-      if i > 200:
+      if i >= 200:
         feeditem.archive()
         continue
 
@@ -145,7 +144,7 @@ class TodosView(FlaskView):
     return jsonify(**todo.serialize_for_client("keys"))
 
   @route("/<id>", methods=["PUT"])
-  @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
+  @ensure_good_request(set(), {"title", "content", "assigned", "due", "tags"})
   def put(self, project, id):
     try:
       todo = Todo.get(id)
@@ -168,7 +167,7 @@ class TodosView(FlaskView):
 
     # TODO: We probably want to make this consistent with `post`
     try:
-      todo.content = markdown_to_db(todo.content["markdown"])
+      todo.content = markdown_to_db(todo.content.get("markdown", ""))
     except TypeError:
       return abort(400)
 
@@ -285,7 +284,7 @@ TodosView.register(blueprint)
 class ProfileView(FlaskView):
 
   @route("/changename", methods=["POST"])
-  @ensure_good_request({"content"})
+  @ensure_good_request({"name"}, {"name"})
   @login_required
   def changename(self):
     current_user.name = request.json["name"]

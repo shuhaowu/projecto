@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from settings import APP_FOLDER
+from settings import DATABASES
 from flask.ext.login import UserMixin
 import os.path
 from hashlib import md5
@@ -9,38 +9,12 @@ from leveldbkit import (
   StringProperty,
   DictProperty,
   DateTimeProperty,
-  NumberProperty,
-  EmDocumentsListProperty,
-  EmDocumentProperty,
   BooleanProperty,
   ReferenceProperty,
   ListProperty,
-  Property
 )
 
-DATABASES_FOLDER = os.path.join(APP_FOLDER, "databases")
-USERS = os.path.join(DATABASES_FOLDER, "users")
-USERS_INDEXES = os.path.join(DATABASES_FOLDER, "users.indexes")
-
-PROJECTS = os.path.join(DATABASES_FOLDER, "projects")
-PROJECTS_INDEXES = os.path.join(DATABASES_FOLDER, "projects.indexes")
-
-FEED = os.path.join(DATABASES_FOLDER, "feed")
-FEED_INDEXES = os.path.join(DATABASES_FOLDER, "feed.indexes")
-
-COMMENTS = os.path.join(DATABASES_FOLDER, "comments")
-COMMENTS_INDEXES = os.path.join(DATABASES_FOLDER, "comments.indexes")
-
-TODOS = os.path.join(DATABASES_FOLDER, "todos")
-TODOS_INDEXES = os.path.join(DATABASES_FOLDER, "todos.indexes")
-
-ARCHIVED_FEED = os.path.join(DATABASES_FOLDER, "archived_feed")
-ARCHIVED_FEED_INDEXES = os.path.join(DATABASES_FOLDER, "archived_feed.indexes")
-
 class User(Document, UserMixin):
-  db = USERS
-  indexdb = USERS_INDEXES
-
   name = StringProperty(default="Paranoid User")
   emails = ListProperty(index=True)
   avatar = StringProperty()
@@ -60,16 +34,13 @@ class User(Document, UserMixin):
     return self.key
 
 class Project(Document):
-  db = PROJECTS
-  indexdb = PROJECTS_INDEXES
-
   name = StringProperty()
   desc = StringProperty()
 
   owners = ListProperty(index=True)
   collaborators = ListProperty(index=True)
-  unregistered_owners = ListProperty()
-  unregistered_collaborators = ListProperty() # These are users that have not registered onto projecto
+  unregistered_owners = ListProperty(index=True)
+  unregistered_collaborators = ListProperty(index=True) # These are users that have not registered onto projecto
 
 class Content(EmDocument):
   title = StringProperty()
@@ -89,16 +60,10 @@ class Content(EmDocument):
     return item
 
 class ArchivedFeedItem(Document, Content):
-  db = ARCHIVED_FEED
-  indexdb = ARCHIVED_FEED_INDEXES
-
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
 class FeedItem(Document, Content):
-  db = FEED
-  indexdb = FEED_INDEXES
-
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
@@ -109,13 +74,9 @@ class FeedItem(Document, Content):
     return archived_item
 
 class Comment(Document, Content):
-  db = COMMENTS
-  indexdb = COMMENTS_INDEXES
+  pass
 
 class Todo(Document, Content):
-  db = TODOS
-  indexdb = TODOS_INDEXES
-
   parent = ReferenceProperty(Project, index=True)
   assigned = ReferenceProperty(User, index=True)
   due = DateTimeProperty(default=lambda: None)
@@ -126,24 +87,32 @@ class Todo(Document, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
+ALL_MODELS = {
+  User: "USERS",
+  Project: "PROJECTS",
+  FeedItem: "FEED",
+  Comment: "COMMENTS",
+  Todo: "TODOS",
+  ArchivedFeedItem: "ARCHIVED_FEED"
+}
+
 def establish_connections():
-  User.establish_connection()
-  Project.establish_connection()
-  FeedItem.establish_connection()
-  Comment.establish_connection()
-  Todo.establish_connection()
-  ArchivedFeedItem.establish_connection()
+  for model in ALL_MODELS:
+    model.establish_connection()
 
 def close_connections():
-  User.db = USERS
-  User.indexdb = USERS_INDEXES
-  Project.db = PROJECTS
-  Project.indexdb = PROJECTS_INDEXES
-  FeedItem.db = FEED
-  FeedItem.indexdb = FEED_INDEXES
-  Comment.db = COMMENTS
-  Comment.indexdb = COMMENTS_INDEXES
-  Todo.db = TODOS
-  Todo.indexdb = TODOS_INDEXES
-  ArchivedFeedItem.db = ARCHIVED_FEED
-  ArchivedFeedItem.indexdb = ARCHIVED_FEED_INDEXES
+  """This method is named close_connections because if there is a LevelDB
+  instance, resetting it will cause GC to destroy the instance, which will
+  cause the underlying leveldb library to unlock the database.
+
+  We need to use a modified version of werkzeug or else this won't be called
+  and we will get a lock error everytime the development server reloads.
+
+  Incidentally, we also can use this to easily populate all the dbs for each
+  model as evident by the immediate calling after this method.
+  """
+  for model, name in ALL_MODELS.iteritems():
+    model.db, model.indexdb = DATABASES[name]
+
+# This actually sets up the models
+close_connections()
