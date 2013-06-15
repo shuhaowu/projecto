@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from leveldbkit import NotFoundError
 from projecto.models import Todo
 
 import unittest
@@ -123,6 +124,29 @@ class TestTodoAPI(ProjectTestCase):
     response, data = self.getJSON(self.base_url("/" + key))
     self.assertStatus(403, response)
 
+  def test_delete_todo(self):
+    self.login()
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
+    key = data["key"]
+
+    response, data = self.deleteJSON(self.base_url("/" + key))
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      Todo.get(key)
+
+    response, data = self.deleteJSON(self.base_url("/" + key))
+    self.assertStatus(404, response)
+
+  def test_delete_todo_reject_permission(self):
+    self.login()
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
+    key = data["key"]
+    self.logout()
+
+    response, data = self.deleteJSON(self.base_url("/" + key))
+    self.assertStatus(403, response)
+
   def test_markdone_todo(self):
     self.login()
     response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
@@ -167,14 +191,108 @@ class TestTodoAPI(ProjectTestCase):
     self.login()
 
     keys = []
-    for i in xrange(10):
+    for i in xrange(50):
       response, data = self.postJSON(self.base_url("/"), data={"title": "a todo"})
       keys.append(data["key"])
 
-    keys.reserve()
+    keys.sort()
 
-    response, data = self.getJSON(self.base_url("/"), data={"title": "a todo"})
+    response, data = self.getJSON(self.base_url("/"))
+    self.assertStatus(200, response)
+    self.assertEquals(4, len(data))
+    self.assertTrue("todos" in data)
+    self.assertEquals(1, data["currentPage"])
+    self.assertEquals(50, data["totalTodos"])
+    self.assertEquals(20, data["todosPerPage"])
 
+    self.assertEquals(20, len(data["todos"]))
+    k = [t["key"] for t in data["todos"]]
+
+    response, data = self.getJSON(self.base_url("/?page=2"))
+    self.assertEquals(20, len(data["todos"]))
+    self.assertEquals(2, data["currentPage"])
+    self.assertEquals(50, data["totalTodos"])
+    self.assertEquals(20, data["todosPerPage"])
+    k.extend([t["key"] for t in data["todos"]])
+
+    response, data = self.getJSON(self.base_url("/?page=3"))
+    self.assertEquals(10, len(data["todos"]))
+    self.assertEquals(3, data["currentPage"])
+    self.assertEquals(50, data["totalTodos"])
+    self.assertEquals(20, data["todosPerPage"])
+    k.extend([t["key"] for t in data["todos"]])
+
+    k.sort()
+    self.assertEquals(keys, k)
+
+  def test_index_todos_reject_permission(self):
+    response, data = self.getJSON(self.base_url("/"))
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("test2@test.com")
+    self.login(user2)
+
+    response, data = self.getJSON(self.base_url("/"))
+    self.assertStatus(403, response)
+
+  def test_markdone(self):
+    self.login()
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
+    key = data["key"]
+
+    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": True})
+    self.assertStatus(200, response)
+
+    self.assertTrue(Todo.get(key).done)
+
+    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": False})
+    self.assertStatus(200, response)
+
+    self.assertFalse(Todo.get(key).done)
+
+  def test_markdone_reject_badrequest(self):
+    self.login() # TODO: we really gotta refactor these
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
+    key = data["key"]
+
+    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"title": True})
+    self.assertStatus(400, response)
+
+    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"title": True, "done": True})
+    self.assertStatus(400, response)
+
+  def test_markdone_reject_permission(self):
+    self.login() # TODO: we really gotta refactor these
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
+    key = data["key"]
+    self.logout()
+
+    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": False})
+    self.assertStatus(403, response)
+
+  def test_list_tags(self):
+    self.login()
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo", "tags": ["tag1", "tag2", "another tag"]})
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo", "tags": ["tag1", "mrrow", "wut"]})
+
+    response, data = self.getJSON(self.base_url("/tags/"))
+    self.assertStatus(200, response)
+    self.assertEquals(1, len(data))
+    self.assertTrue("tags" in data)
+    data["tags"].sort()
+    self.assertTrue(sorted(["tag1", "tag2", "mrrow", "wut", "another tag"]), data["tags"])
+
+  def test_list_tags_reject_permission(self):
+    self.login()
+    response, data = self.postJSON(self.base_url("/"), data={"title": "todo", "tags": ["tag1", "tag2", "another tag"]})
+    self.logout()
+
+    response, data = self.getJSON(self.base_url("/tags/"))
+    self.assertStatus(403, response)
+
+  # TODO: this gotta be written! We still might change how filter works, though
+  #def test_filter(self):
+  #  pass
 
 
 if __name__ == "__main__":

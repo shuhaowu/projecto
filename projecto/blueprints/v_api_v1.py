@@ -12,9 +12,11 @@ from ..utils import jsonify, project_access_required, ensure_good_request, markd
 MODULE_NAME = "api_v1"
 TEMPLATES_FOLDER = os.path.join(settings.TEMPLATES_FOLDER, MODULE_NAME)
 
+
 blueprint = Blueprint(MODULE_NAME, __name__,
                       template_folder=TEMPLATES_FOLDER,
                       static_folder=settings.STATIC_FOLDER)
+
 
 meta = {
   "url_prefix" : "/api/v1",
