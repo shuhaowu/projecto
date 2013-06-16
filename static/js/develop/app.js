@@ -26,6 +26,11 @@
       controller: "SingleTodoController"
     });
 
+    $routeProvider.when("/projects/:id/manage", {
+      templateUrl: "/static/partials/manage.html",
+      controller: "ManageController"
+    });
+
     var profilePage = {
       templateUrl: "/static/partials/profile.html",
       controller: "ProfileController"

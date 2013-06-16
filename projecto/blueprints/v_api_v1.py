@@ -7,7 +7,7 @@ import os
 from leveldbkit import NotFoundError
 
 from ..models import Project, FeedItem, Todo
-from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db
+from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db, project_managers_required
 
 MODULE_NAME = "api_v1"
 TEMPLATES_FOLDER = os.path.join(settings.TEMPLATES_FOLDER, MODULE_NAME)
@@ -280,6 +280,12 @@ class TodosView(FlaskView):
     return jsonify(tags=list(tags))
 
 TodosView.register(blueprint)
+
+class ManageView(FlaskView):
+  route_base = "/projects/<project_id>/todos/"
+  decorators = [project_managers_required]
+
+ManageView.register(blueprint)
 
 class ProfileView(FlaskView):
 

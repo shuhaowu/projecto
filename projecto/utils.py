@@ -80,6 +80,31 @@ def project_access_required(fn):
     return abort(403)
   return wrapped
 
+def project_managers_required(fn):
+  @wraps(fn)
+  def wrapped(project_id, *args, **kwargs):
+    if not current_user.is_authenticated():
+      return abort(403)
+
+    try:
+      project = Project.get(project_id)
+    except NotFoundError:
+      return abort(404)
+
+    for email in current_user.emails:
+      if email in project.unregistered_owners:
+        project.unregistered_owners.remove(email)
+        project.owners.append(current_user.key)
+        project.save()
+        return fn(project, *args, **kwargs)
+      else:
+        for userkey in project.owners:
+          if email in User.get(userkey).emails:
+            return fn(project, *args, **kwargs)
+
+    return abort(403)
+  return wrapped
+
 from flask import request
 from leveldbkit import ValidationError
 
