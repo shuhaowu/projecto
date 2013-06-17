@@ -43,17 +43,16 @@ class ProjectsView(FlaskView):
     return jsonify(owned=projects_owned, participating=projects_participating)
 
   @route("/<id>", methods=["GET"])
-  @login_required
-  def get(self, id):
-    try:
-      project = Project.get(id)
-    except NotFoundError:
-      return abort(404)
+  @project_access_required
+  def get(self, project):
+    if current_user.key in project.owners:
+      return jsonify(**project.serialize(include_key=True))
     else:
-      if current_user.key in project.owners:
-        return jsonify(**project.serialize(include_key=True))
-      else:
-        return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True))
+      return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True))
+
+  @route("/<id>/stats", methods=["GET"])
+  def stats(self, id):
+    pass
 
 ProjectsView.register(blueprint)
 

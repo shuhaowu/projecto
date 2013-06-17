@@ -9,7 +9,10 @@
 
   }]);
 
-  angular.module("projecto").controller("ProjectOverviewController", ["$scope", function($scope) {
+  angular.module("projecto").controller("ProjectOverviewController", ["$scope", "ProjectsService", function($scope, ProjectsService) {
+    ProjectsService.getCurrentProjectStats().done(function(project) {
+      $scope.name = project.name;
 
+    });
   }]);
 })();

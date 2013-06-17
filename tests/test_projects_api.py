@@ -47,7 +47,13 @@ class TestProjectsAPI(FlaskTestCase):
   def test_get_project_reject_permission(self):
     self.login()
     _, data = self.postJSON("/api/v1/projects/", data={"name": "name"})
+
     self.logout()
+    response, _ = self.getJSON("/api/v1/projects/{}".format(data["key"]))
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("test2@test.com")
+    self.login(user2)
     response, _ = self.getJSON("/api/v1/projects/{}".format(data["key"]))
     self.assertStatus(403, response)
 

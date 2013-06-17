@@ -65,9 +65,11 @@
     }
 
     this.getCurrentProject = function() {
-      if ($location.path().slice(0, 9) != "/projects" || !$route.current || !$route.current.params.id)
-        return $.Deferred().reject("Not a project url");
-      else {
+      if ($location.path().slice(0, 9) != "/projects" || !$route.current || !$route.current.params.id) {
+        var deferred = $.Deferred();
+        deferred.reject("Not a project url");
+        return deferred.promise();
+      } else {
         if (self._projectIdsToProjects === null) {
           var projectPromise = $.Deferred();
           this._buildCache().done(function() {
@@ -79,5 +81,19 @@
         }
       }
     };
+
+    this.getCurrentProjectStats = function() {
+      if ($location.path().slice(0, 9) != "/projects" || !$route.current || !$route.current.params.id) {
+        var deferred = $.Deferred();
+        deferred.reject("Not a project url");
+        return deferred.promise();
+      } else {
+        return $.ajax({
+          type: "GET",
+          url: projectAPIPrefix + "/" + $route.current.params.id + "/stats"
+        });
+      }
+    };
+
   }]);
 })();
