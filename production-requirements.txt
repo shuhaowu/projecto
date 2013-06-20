@@ -13,5 +13,5 @@ leveldb==0.1
 leveldbkit==0.1.2b
 misaka==1.0.2
 requests==1.2.3
-ujson==1.30
+ujson==1.33
 wsgiref==0.1.2
