@@ -11,7 +11,10 @@
           $("body").statusmsg("open", "Posting...");
           FeedService.new($scope.currentProject, $scope.newpost).done(function(data){
             $("body").statusmsg("close");
+            // The backend API won't transmit useless information to save
+            // bandwidth.
             data.author = window.currentUser;
+            data.children = [];
             $scope.$apply(function(){
               $scope.newpost = "";
               $scope.posts.splice(0, 0, data);
