@@ -14,10 +14,11 @@ from settings import DEBUG, APP_FOLDER
 if DEBUG:
   def get_all_script_paths():
     scripts = []
+    scripts.append("/static/js/develop/app.js")   # must be the 1st script
     prefix_length = len(APP_FOLDER)
     for root, subdirs, files in os.walk(os.path.join(APP_FOLDER, "static/js/develop")):
       for fname in files:
-        if fname.endswith(".js"):
+        if fname.endswith(".js") and fname != "app.js":
           scripts.append(root[prefix_length:] + "/" + fname)
 
     return scripts
