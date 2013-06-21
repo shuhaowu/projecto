@@ -1,5 +1,7 @@
 <div class="row">
   <div class="large-12 columns">
+
+    <!-- Top buttons -->
     <div class="right">
       <a href="" ng-click="clearDone()" class="small secondary button" ng-show="showdone">Clear Done</a>
       <a href="" ng-click="expandTodos($event)" class="small secondary button">Expand All</a>
@@ -7,6 +9,8 @@
     </div>
     <a href="#/projects/{[ currentProject.key ]}/todos/" class="small secondary button">All Todos</a>
     <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a>
+
+    <!-- "New Todo" form -->
     <div class="panel" id="todos-new-todo">
       <h5>New Todo</h5>
       <form ng-submit="createTodo()">
@@ -40,6 +44,8 @@
 </div>
 
 <div class="row">
+
+  <!-- Filter panel -->
   <div class="large-3 columns">
     <div class="panel">
       <h6>Filter</h6>
@@ -57,10 +63,15 @@
       <p>Number of Todos: {[ totalTodos ]}</p>
     </div>
   </div>
+
+  <!-- Todo list -->
   <div class="large-9 columns">
     <div class="panel" ng-repeat="todo in todos">
+
+      <!-- SUGGESTION: Make a separate todoItem template + controller -->
+
       <form class="custom">
-        <span ng-class="{custom: true, checkbox: true, checked: todo.done, 'todos-todo-donebox': true}" ng-click="markDone(todo)"></span>
+        <span class="custom checkbox todos-todo-donebox" ng-class="{checked: todo.done}" ng-click="markDone(todo)"></span>
         <span class="todos-control">
           <span class="radius label" ng-show="todo.due">Due {[ todo.due | relativeTime ]}</span>
           <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}">
@@ -77,13 +88,16 @@
       </form>
 
 
+      <!-- QUESTION: What dictates whether this <div> is created or not? Not obvious by looking at this
+                     template that this is usually hidden 
+      -->
       <div class="todos-todo-body" id="todo-{[ todo.key ]}">
 
         <!-- view mode -->
         <div ng-show="!editMode[todo.key]">
-          <div class="todos-todo-content" ng-bind-html-unsafe="todo.content.html" ng-show="todo.content.markdown">
+          <div ng-show="todo.content.markdown" class="todos-todo-content" ng-bind-html-unsafe="todo.content.html">
           </div>
-          <div class="todos-todo-content" ng-show="!todo.content.markdown">
+          <div ng-hide="todo.content.markdown" class="todos-todo-content" >
             <p>No description provided.</p>
           </div>
           <div class="todos-todo-info">
@@ -121,9 +135,23 @@
       <p>No todo items. Hurray!</p>
     </div>
 
+
+    <!-- Pagination -->
+
+    <!-- NOTE: For issue #5, something must be wrong with totalPages -->
+
+    <!-- IDEA: Make pagination its own modular component, so we can re-use it on other pages-->
+
+    <!-- IDEA: For the <ul>, make ng-show="1 < totalPages", use a single <li> with ng-repeat, 
+               link ng-show to a function, make ng-class="{current: i == currentPage}", make &hellip; element
+               hide with the same function linked to ng-show 
+    -->
+
     <ul class="pagination right" ng-show="1 < totalPages && totalPages < 9">
-      <li ng-class="{current: i == currentPage}" ng-repeat="i in pages"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ i ]}">{[ i ]}</a></li>
+      <li ng-repeat="i in pages" ng-class="{current: i == currentPage}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ i ]}">{[ i ]}</a></li>
     </ul>
+
+    
 
     <ul class="pagination right" ng-show="totalPages >= 9">
       <li ng-class="{current: currentPage == 1}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/1">1</a></li>
