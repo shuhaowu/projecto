@@ -20,13 +20,16 @@
 
       var recomputePages = function(totalTodos, todosPerPage) {
         $scope.totalTodos = totalTodos;
-        $scope.totalPages = Math.floor(totalTodos / todosPerPage) + (totalTodos % todosPerPage == 0 ? 0 : 1);
+        $scope.totalPages = Math.ceil(totalTodos / todosPerPage);
+
+        // QUESTION: Why would totalPages ever be null?
         if ($scope.totalPages === null) {
           $scope.totalTodos = 0;
           $scope.totalPages = null;
           return;
         }
 
+        // QUESTION: What's the point of this array?
         $scope.pages = [];
         if ($scope.totalPages < 8) {
           for (var i=1; i<=$scope.totalPages; i++)
@@ -247,11 +250,11 @@
         return TodosService.filter($scope.currentProject, params).done(function(data) {
           $scope.$apply(function() {
             $scope.todos = data.todos;
-            $scope.currentPage = null;
+            $scope.currentPage = 1;
             $scope.totalPages = null;
-            $scope.todosPerPage = null;
             $scope.totalTodos = data.todos.length;
             $scope.pages = [];
+            recomputePages($scope.totalTodos, $scope.todosPerPage);
           });
         });
       };
