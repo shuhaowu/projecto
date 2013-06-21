@@ -42,7 +42,7 @@ class ProjectsView(FlaskView):
 
     return jsonify(owned=projects_owned, participating=projects_participating)
 
-  @route("/<id>", methods=["GET"])
+  @route("/<project_id>", methods=["GET"])
   @project_access_required
   def get(self, project):
     if current_user.key in project.owners:
@@ -50,8 +50,8 @@ class ProjectsView(FlaskView):
     else:
       return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True))
 
-  @route("/<id>/stats", methods=["GET"])
-  def stats(self, id):
+  @route("/<project_id>/stats", methods=["GET"])
+  def stats(self, project):
     pass
 
 ProjectsView.register(blueprint)

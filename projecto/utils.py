@@ -48,7 +48,11 @@ def project_access_required(fn):
   up in the future.
   """
   @wraps(fn)
-  def wrapped(project_id, *args, **kwargs):
+  def wrapped(*args, **kwargs):
+    project_id = kwargs.pop("project_id")
+    if project_id is None:
+      raise ValueError("Project_id is required! This is probably a programming error.")
+
     if not current_user.is_authenticated():
       return abort(403)
 
@@ -63,27 +67,30 @@ def project_access_required(fn):
         project.unregistered_owners.remove(email)
         project.owners.append(current_user.key)
         project.save()
-        return fn(project, *args, **kwargs)
+        return fn(project=project, *args, **kwargs)
       elif email in project.unregistered_collaborators:
         project.unregistered_collaborators.remove(email)
         project.collaborators.append(current_user.key)
         project.save()
-        return fn(project, *args, **kwargs)
+        return fn(project=project, *args, **kwargs)
       else:
         for userkey in project.owners:
           if email in User.get(userkey).emails:
-            return fn(project, *args, **kwargs)
+            return fn(project=project, *args, **kwargs)
 
         for userkey in project.collaborators:
           if email in User.get(userkey).emails:
-            return fn(project, *args, **kwargs)
+            return fn(project=project, *args, **kwargs)
 
     return abort(403)
   return wrapped
 
 def project_managers_required(fn):
   @wraps(fn)
-  def wrapped(project_id, *args, **kwargs):
+  def wrapped(*args, **kwargs):
+    project_id = kwargs.pop("project_id")
+    if project_id is None:
+      raise ValueError("Project_id is required! This is probably a programming error.")
     if not current_user.is_authenticated():
       return abort(403)
 
@@ -97,11 +104,11 @@ def project_managers_required(fn):
         project.unregistered_owners.remove(email)
         project.owners.append(current_user.key)
         project.save()
-        return fn(project, *args, **kwargs)
+        return fn(project=project, *args, **kwargs)
       else:
         for userkey in project.owners:
           if email in User.get(userkey).emails:
-            return fn(project, *args, **kwargs)
+            return fn(project=project, *args, **kwargs)
 
     return abort(403)
   return wrapped
