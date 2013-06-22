@@ -65,7 +65,7 @@ class ProjectsView(FlaskView):
 
     return jsonify(owners=owners, collaborators=collaborators, unregistered_owners=project.unregistered_owners, unregistered_collaborators=project.unregistered_collaborators)
 
-  @route("/<project_id>/addowner", methods=["POST"])
+  @route("/<project_id>/addowners", methods=["POST"])
   @ensure_good_request({"emails"}, {"emails"})
   @project_managers_required
   def addowner(self, project):
