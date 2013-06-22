@@ -5,9 +5,8 @@ from unittest import TestCase
 from flask.ext.login import test_login_user, test_logout_user
 
 from projecto import app
-from projecto.models import User, establish_connections, close_connections
+from projecto.models import User, Project, establish_connections, close_connections
 import settings
-
 
 class FlaskTestCase(TestCase):
   def setUp(self):
@@ -124,3 +123,11 @@ class ProjectTestCase(FlaskTestCase):
   def setUp(self):
     FlaskTestCase.setUp(self)
     self.setup_project()
+
+def new_project(user, **kwargs):
+  save = kwargs.pop("save", False)
+  proj = Project(data=kwargs)
+  proj.owners.append(user.key)
+  if save:
+    proj.save()
+  return proj

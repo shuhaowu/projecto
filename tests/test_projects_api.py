@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import unittest
-from .utils import FlaskTestCase
+from .utils import FlaskTestCase, new_project
 
 # TODO: needs to code in participants
 
@@ -29,12 +29,11 @@ class TestProjectsAPI(FlaskTestCase):
 
   def test_get_project_as_owner(self):
     self.login()
-    response, data = self.postJSON("/api/v1/projects/", data={"name": "project"})
-    key = data["key"]
-    response, data = self.getJSON("/api/v1/projects/{}".format(key))
+    proj = new_project(user=self.user, name="project", save=True)
+    response, data = self.getJSON("/api/v1/projects/{}".format(proj.key))
 
     self.assertStatus(200, response)
-    self.assertEquals(key, data["key"])
+    self.assertEquals(proj.key, data["key"])
     self.assertEquals("project", data["name"])
 
     # this is okay because I'm an owner
@@ -45,16 +44,14 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertTrue("unregistered_collaborators" in data)
 
   def test_get_project_reject_permission(self):
-    self.login()
-    _, data = self.postJSON("/api/v1/projects/", data={"name": "name"})
+    proj = new_project(user=self.user, name="project", save=True)
 
-    self.logout()
-    response, _ = self.getJSON("/api/v1/projects/{}".format(data["key"]))
+    response, _ = self.getJSON("/api/v1/projects/{}".format(proj.key))
     self.assertStatus(403, response)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
-    response, _ = self.getJSON("/api/v1/projects/{}".format(data["key"]))
+    response, _ = self.getJSON("/api/v1/projects/{}".format(proj.key))
     self.assertStatus(403, response)
 
   def test_get_project_reject_notfound(self):
@@ -79,8 +76,7 @@ class TestProjectsAPI(FlaskTestCase):
 
     keys = []
     for i in xrange(5):
-      _, data = self.postJSON("/api/v1/projects/", data={"name": "project"})
-      keys.append(data["key"])
+      keys.append(new_project(user=self.user, save=True).key)
 
     response, data = self.getJSON("/api/v1/projects/")
     self.assertStatus(200, response)
@@ -107,6 +103,29 @@ class TestProjectsAPI(FlaskTestCase):
     response, _ = self.getJSON("/api/v1/projects/")
     self.assertStatus(403, response)
 
+  # def test_list_members(self):
+  #   pass
+
+  # def test_list_members_reject_permission(self):
+  #   pass
+
+  # def test_add_owner(self):
+  #   pass
+
+  # def test_add_owner_reject_permission(self):
+  #   pass
+
+  # def test_add_owner_reject_badrequest(self):
+  #   pass
+
+  # def test_add_collaborator(self):
+  #   pass
+
+  # def test_add_collaborator_reject_permission(self):
+  #   pass
+
+  # def test_add_collaborator_reject_badrequest(self):
+  #   pass
 
 if __name__ == "__main__":
   unittest.main()

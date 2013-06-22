@@ -6,7 +6,7 @@ import os
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem, Todo
+from ..models import Project, FeedItem, Todo, User
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db, project_managers_required
 
 MODULE_NAME = "api_v1"
@@ -50,9 +50,48 @@ class ProjectsView(FlaskView):
     else:
       return jsonify(**project.serialize(restricted=("owners", "collaborators", "unregistered_collaborators", "unregistered_owners"), include_key=True))
 
-  @route("/<project_id>/stats", methods=["GET"])
-  def stats(self, project):
-    pass
+  @route("/<project_id>/members", methods=["GET"])
+  @project_managers_required
+  def members(self, project):
+    owners = []
+    for key in project.owners:
+      u = User.get(key)
+      owners.append({"name": u.name, "email": u.emails[0]})
+
+    collaborators = []
+    for key in project.collaborators:
+      u = User.get(key)
+      collaborators.append({"name": u.name, "email": u.emails[0]})
+
+    return jsonify(owners=owners, collaborators=collaborators, unregistered_owners=project.unregistered_owners, unregistered_collaborators=project.unregistered_collaborators)
+
+  @route("/<project_id>/addowner", methods=["POST"])
+  @ensure_good_request({"emails"}, {"emails"})
+  @project_managers_required
+  def addowner(self, project):
+    for email in request.json["emails"]:
+      userkeys = User.index_keys_only("emails", email)
+      if userkeys:
+        project.owners.append(userkeys[0])
+      else:
+        project.unregistered_owners.append(email)
+
+    project.save()
+    return jsonify(status="okay")
+
+  @route("/<project_id>/addcollaborators", methods=["POST"])
+  @ensure_good_request({"emails"}, {"emails"})
+  @project_managers_required
+  def addcollaborator(self, project):
+    for email in request.json["emails"]:
+      userkeys = User.index_keys_only("emails", email)
+      if userkeys:
+        project.collaborators.append(userkeys[0])
+      else:
+        project.unregistered_collaborators.append(email)
+
+    project.save()
+    return jsonify(status="okay")
 
 ProjectsView.register(blueprint)
 
