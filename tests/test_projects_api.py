@@ -218,11 +218,31 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertEquals(1, len(project.unregistered_collaborators))
     self.assertTrue("unregistered@collaborators.com", project.unregistered_collaborators)
 
-  # def test_add_collaborator_reject_permission(self):
-  #   pass
+  def test_add_collaborator_reject_permission(self):
+    project = new_project(self.user, name="project", save=True)
 
-  # def test_add_collaborator_reject_badrequest(self):
-  #   pass
+    response, data = self.postJSON("/api/v1/projects/{}/addcollaborators".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("test2@test.com")
+    self.login(user2)
+    response, data = self.postJSON("/api/v1/projects/{}/addcollaborators".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(403, response)
+
+    project.collaborators.append(user2.key)
+    project.save()
+    response, data = self.postJSON("/api/v1/projects/{}/addcollaborators".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(403, response)
+
+  def test_add_collaborator_reject_badrequest(self):
+    project = new_project(self.user, name="project", save=True)
+
+    self.login()
+    response, data = self.postJSON("/api/v1/projects/{}/addcollaborators".format(project.key), data={"invalid": "invalid"})
+    self.assertStatus(400, response)
+
+    response, data = self.postJSON("/api/v1/projects/{}/addcollaborators".format(project.key), data={"invalid": "invalid", "emails": ["yay@yay.com"]})
+    self.assertStatus(400, response)
 
 if __name__ == "__main__":
   unittest.main()
