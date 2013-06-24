@@ -11,6 +11,7 @@ import settings
 
 class FlaskTestCase(TestCase):
   def setUp(self):
+    self.loggedin = False
     self.app = app
     # Setting this will allow us to stop validating CSRF.
     self.app.config["TESTING"] = True
@@ -39,10 +40,13 @@ class FlaskTestCase(TestCase):
   def login(self, user=None):
     """Logs in user. If user is none it uses self.user"""
     test_login_user(self.client, user if user else self.user)
+    self.loggedin = True
 
   def logout(self):
     """Logs out currently logged in user"""
-    test_logout_user(self.client)
+    if self.loggedin:
+      test_logout_user(self.client)
+      self.loggedin = False
 
   def _setup_request(self, kwargs):
     if "content_type" not in kwargs:
