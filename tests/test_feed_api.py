@@ -1,15 +1,16 @@
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
 import time
 
 from projecto.models import ArchivedFeedItem, FeedItem
 
 import unittest
-from .utils import ProjectTestCase
+from .utils import ProjectTestCase, new_feeditem
 
 class TestFeedAPI(ProjectTestCase):
   def base_url(self, postfix):
-    return "/api/v1/projects/{}/feed{}".format(self.project_key, postfix)
+    return "/api/v1/projects/{}/feed{}".format(self.project.key, postfix)
 
   def test_new_feeditem(self):
     self.login()
@@ -40,12 +41,11 @@ class TestFeedAPI(ProjectTestCase):
     self.assertStatus(403, response)
 
   def test_get_feeditem(self):
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
     self.login()
-    _, data = self.postJSON(self.base_url("/"), data={"content": "content"})
-    key = data["key"]
-    response, data = self.getJSON(self.base_url("/" + key))
+    response, data = self.getJSON(self.base_url("/" + feeditem.key))
     self.assertTrue("key" in data)
-    self.assertEquals(key, data["key"])
+    self.assertEquals(feeditem.key, data["key"])
     self.assertTrue("content" in data)
     self.assertEquals("content", data["content"])
     self.assertTrue("author" in data)
@@ -56,16 +56,13 @@ class TestFeedAPI(ProjectTestCase):
     self.assertEquals([], data["children"])
 
   def test_get_feeditem_reject_permission(self):
-    self.login()
-    _, data = self.postJSON(self.base_url("/"), data={"content": "content"})
-    key = data["key"]
-    self.logout()
-    response = self.get(self.base_url("/" + key))
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
+    response = self.get(self.base_url("/" + feeditem.key))
     self.assertStatus(403, response)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
-    response = self.get(self.base_url("/" + key))
+    response = self.get(self.base_url("/" + feeditem.key))
     self.assertStatus(403, response)
 
   def test_get_feeditem_reject_notfound(self):
@@ -79,13 +76,11 @@ class TestFeedAPI(ProjectTestCase):
 
   def test_delete_feeditem(self):
     self.login()
-
-    _, data = self.postJSON(self.base_url("/"), data={"content": "content"})
-    key = data["key"]
-    response, data = self.deleteJSON(self.base_url("/" + key))
+    feeditem = new_feeditem(self.user, project=self.project, content="content", save=True)
+    response, data = self.deleteJSON(self.base_url("/" + feeditem.key))
     self.assertStatus(200, response)
 
-    response, data = self.getJSON(self.base_url("/" + key))
+    response, data = self.getJSON(self.base_url("/" + feeditem.key))
     self.assertStatus(404, response)
 
   def test_delete_feeditem_reject_notfound(self):
@@ -95,27 +90,24 @@ class TestFeedAPI(ProjectTestCase):
     self.assertStatus(404, response)
 
   def test_delete_feeditem_reject_permission(self):
-    self.login()
-    _, data = self.postJSON(self.base_url("/"), data={"content": "content"})
-    key = data["key"]
-    self.logout()
+    feeditem = new_feeditem(self.user, project=self.project, content="content", save=True)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
-    response, _ = self.deleteJSON(self.base_url("/" + key))
+    response, _ = self.deleteJSON(self.base_url("/" + feeditem.key))
     self.assertStatus(403, response)
 
   def test_index_feeditems(self):
     self.reset_database()
-    self.login()
     keys = []
+    now = datetime.now()
     for i in xrange(10):
-      _, data = self.postJSON(self.base_url("/"), data={"content": "content" + str(i)})
-      keys.append(data["key"])
-      time.sleep(1) # this is not ideal.
+      fi = new_feeditem(self.user, project=self.project, content="content" + str(i), date=now + timedelta(i), save=True)
+      keys.append(fi.key)
 
     keys.reverse() # When we index, it's sorted via date
 
+    self.login()
     response, data = self.getJSON(self.base_url("/"))
     self.assertTrue(1, len(data))
     self.assertTrue("feed" in data)
@@ -126,13 +118,13 @@ class TestFeedAPI(ProjectTestCase):
 
   def test_index_feeditems_will_archive_oldones(self):
     self.reset_database()
-    self.login()
     for i in xrange(250):
-      _, data = self.postJSON(self.base_url("/"), data={"content": "content"})
+      new_feeditem(self.user, project=self.project, content="content", save=True)
 
+    self.login()
     self.get(self.base_url("/"))
-    self.assertEquals(200, len(FeedItem.index_keys_only("parent", self.project_key)))
-    self.assertEquals(50, len(ArchivedFeedItem.index_keys_only("parent", self.project_key)))
+    self.assertEquals(200, len(FeedItem.index_keys_only("parent", self.project.key)))
+    self.assertEquals(50, len(ArchivedFeedItem.index_keys_only("parent", self.project.key)))
 
   def test_index_feeditems_reject_permission(self):
     response, data = self.getJSON(self.base_url("/"))

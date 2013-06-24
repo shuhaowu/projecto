@@ -5,7 +5,8 @@ from unittest import TestCase
 from flask.ext.login import test_login_user, test_logout_user
 
 from projecto import app
-from projecto.models import User, Project, establish_connections, close_connections
+from projecto.models import (User, Project, establish_connections,
+                             close_connections, FeedItem, Todo)
 import settings
 
 class FlaskTestCase(TestCase):
@@ -110,15 +111,12 @@ class FlaskTestCase(TestCase):
 class ProjectTestCase(FlaskTestCase):
   def reset_database(self):
     FlaskTestCase.reset_database(self)
-    self.project_key = None
+    self.project = None
     self.setup_project()
 
   def setup_project(self):
-    if (not hasattr(self, "project_key")) or (not self.project_key):
-      self.login()
-      response, data = self.postJSON("/api/v1/projects/", data={"name": "test"})
-      self.project_key = data["key"]
-      self.logout()
+    if (not hasattr(self, "project")) or (not self.project):
+      self.project = new_project(self.user, save=True)
 
   def setUp(self):
     FlaskTestCase.setUp(self)
@@ -126,8 +124,43 @@ class ProjectTestCase(FlaskTestCase):
 
 def new_project(user, **kwargs):
   save = kwargs.pop("save", False)
-  proj = Project(data=kwargs)
+  key = kwargs.pop("key", None)
+  if key:
+    proj = Project(key=key, data=kwargs)
+  else:
+    proj = Project(data=kwargs)
+
   proj.owners.append(user.key)
   if save:
     proj.save()
   return proj
+
+def new_feeditem(user, project, **kwargs):
+  save = kwargs.pop("save", False)
+  key = kwargs.pop("key", None)
+  kwargs["parent"] = project
+
+  if key:
+    feeditem = FeedItem(key=key, data=kwargs)
+  else:
+    feeditem = FeedItem(data=kwargs)
+
+  feeditem.author = user
+  if save:
+    feeditem.save()
+  return feeditem
+
+def new_todo(user, project, **kwargs):
+  save = kwargs.pop("save", False)
+  key = kwargs.pop("key", None)
+  kwargs["parent"] = project
+
+  if key:
+    t = Todo(key=key, data=kwargs)
+  else:
+    t = Todo(data=kwargs)
+
+  t.author = user
+  if save:
+    t.save()
+  return t

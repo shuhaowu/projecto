@@ -4,11 +4,11 @@ from leveldbkit import NotFoundError
 from projecto.models import Todo
 
 import unittest
-from .utils import ProjectTestCase
+from .utils import ProjectTestCase, new_todo
 
 class TestTodoAPI(ProjectTestCase):
   def base_url(self, postfix):
-    return "/api/v1/projects/{}/todos{}".format(self.project_key, postfix)
+    return "/api/v1/projects/{}/todos{}".format(self.project.key, postfix)
 
   # We need to test for security problems like XSS here.
 
@@ -59,17 +59,16 @@ class TestTodoAPI(ProjectTestCase):
   # def test_new_todo_filter_xss(self):
 
   def test_update_todo(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.putJSON(self.base_url("/" + key), data={"title": "todo2"})
+    self.login()
+    response, data = self.putJSON(self.base_url("/" + todo.key), data={"title": "todo2"})
     self.assertStatus(200, response)
     self.assertTrue("key" in data)
-    self.assertEquals(key, data["key"])
+    self.assertEquals(todo.key, data["key"])
     self.assertEquals("todo2", data["title"])
 
-    response, data = self.putJSON(self.base_url("/" + key), data={"content": {"markdown": "aaaa"}})
+    response, data = self.putJSON(self.base_url("/" + todo.key), data={"content": {"markdown": "aaaa"}})
     self.assertStatus(200, response)
     self.assertEquals("todo2", data["title"])
     self.assertTrue("content" in data)
@@ -78,113 +77,101 @@ class TestTodoAPI(ProjectTestCase):
     self.assertTrue("<p>aaaa</p>" in data["content"]["html"])
 
   def test_update_todo_reject_badrequest(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.putJSON(self.base_url("/" + key), data={"author": "someauthor"})
+    self.login()
+    response, data = self.putJSON(self.base_url("/" + todo.key), data={"author": "someauthor"})
     self.assertStatus(400, response)
 
-    response, data = self.putJSON(self.base_url("/" + key), data={"title": "title", "adfaf": "adfa"})
+    response, data = self.putJSON(self.base_url("/" + todo.key), data={"title": "title", "adfaf": "adfa"})
     self.assertStatus(400, response)
 
   def test_update_todo_reject_permission(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    self.logout()
-    response, data = self.putJSON(self.base_url("/" + key), data={"title": "todo2"})
+    response, data = self.putJSON(self.base_url("/" + todo.key), data={"title": "todo2"})
     self.assertStatus(403, response)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
-    response, data = self.putJSON(self.base_url("/" + key), data={"title": "todo2"})
+    response, data = self.putJSON(self.base_url("/" + todo.key), data={"title": "todo2"})
     self.assertStatus(403, response)
 
   def test_get_todo(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, title="todo", save=True)
 
-    response, data = self.getJSON(self.base_url("/" + key))
+    self.login()
+    response, data = self.getJSON(self.base_url("/" + todo.key))
     self.assertStatus(200, response)
 
-  def test_get_todo_reject_permission(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
-    self.logout()
+    self.assertEqual(todo.key, data["key"])
+    self.assertEqual("todo", data["title"])
+    self.assertEqual(self.user.key, data["author"]["key"])
+    self.assertEqual(self.user.name, data["author"]["name"])
 
-    response, data = self.getJSON(self.base_url("/" + key))
+  def test_get_todo_reject_permission(self):
+    todo = new_todo(self.user, self.project, save=True)
+
+    response, data = self.getJSON(self.base_url("/" + todo.key))
     self.assertStatus(403, response)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
-    response, data = self.getJSON(self.base_url("/" + key))
+    response, data = self.getJSON(self.base_url("/" + todo.key))
     self.assertStatus(403, response)
 
   def test_delete_todo(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.deleteJSON(self.base_url("/" + key))
+    self.login()
+    response, data = self.deleteJSON(self.base_url("/" + todo.key))
     self.assertStatus(200, response)
 
     with self.assertRaises(NotFoundError):
-      Todo.get(key)
+      Todo.get(todo.key)
 
-    response, data = self.deleteJSON(self.base_url("/" + key))
+    response, data = self.deleteJSON(self.base_url("/" + todo.key))
     self.assertStatus(404, response)
 
   def test_delete_todo_reject_permission(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
-    self.logout()
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.deleteJSON(self.base_url("/" + key))
+    response, data = self.deleteJSON(self.base_url("/" + todo.key))
     self.assertStatus(403, response)
 
   def test_markdone_todo(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": True})
+    self.login()
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": True})
     self.assertStatus(200, response)
-    todo = Todo.get(key)
+    todo = Todo.get(todo.key)
     self.assertTrue(todo.done)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": False})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": False})
     self.assertStatus(200, response)
-    todo = Todo.get(key)
+    todo = Todo.get(todo.key)
     self.assertFalse(todo.done)
 
   def test_markdone_todo_reject_badrequest(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"notdone": False})
+    self.login()
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"notdone": False})
     self.assertStatus(400, response)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": False, "invalid": "invalid"})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": False, "invalid": "invalid"})
     self.assertStatus(400, response)
 
   def test_markdone_todo_reject_permission(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
-    self.logout()
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": True})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": True})
     self.assertStatus(403, response)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": True})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": True})
     self.assertStatus(403, response)
 
   def test_index_todos(self):
@@ -192,8 +179,8 @@ class TestTodoAPI(ProjectTestCase):
 
     keys = []
     for i in xrange(50):
-      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo"})
-      keys.append(data["key"])
+        todo = new_todo(self.user, self.project, save=True)
+        keys.append(todo.key)
 
     keys.sort()
 
@@ -236,45 +223,40 @@ class TestTodoAPI(ProjectTestCase):
     self.assertStatus(403, response)
 
   def test_markdone(self):
+    todo = new_todo(self.user, self.project, save=True)
+
     self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
-
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": True})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": True})
     self.assertStatus(200, response)
 
-    self.assertTrue(Todo.get(key).done)
+    self.assertTrue(Todo.get(todo.key).done)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": False})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": False})
     self.assertStatus(200, response)
 
-    self.assertFalse(Todo.get(key).done)
+    self.assertFalse(Todo.get(todo.key).done)
 
   def test_markdone_reject_badrequest(self):
-    self.login() # TODO: we really gotta refactor these
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"title": True})
+    self.login() # TODO: we really gotta refactor these
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"title": True})
     self.assertStatus(400, response)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"title": True, "done": True})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"title": True, "done": True})
     self.assertStatus(400, response)
 
   def test_markdone_reject_permission(self):
-    self.login() # TODO: we really gotta refactor these
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})
-    key = data["key"]
-    self.logout()
+    todo = new_todo(self.user, self.project, save=True)
 
-    response, data = self.postJSON(self.base_url("/" + key + "/markdone"), data={"done": False})
+    response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": False})
     self.assertStatus(403, response)
 
   def test_list_tags(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo", "tags": ["tag1", "tag2", "another tag"]})
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo", "tags": ["tag1", "mrrow", "wut"]})
+    new_todo(self.user, self.project, tags=["tag1", "tag2", "another tag"], save=True)
+    new_todo(self.user, self.project, tags=["tag1", "mrrow", "wut"], save=True)
 
+    self.login()
     response, data = self.getJSON(self.base_url("/tags/"))
     self.assertStatus(200, response)
     self.assertEquals(1, len(data))
@@ -283,9 +265,7 @@ class TestTodoAPI(ProjectTestCase):
     self.assertTrue(sorted(["tag1", "tag2", "mrrow", "wut", "another tag"]), data["tags"])
 
   def test_list_tags_reject_permission(self):
-    self.login()
-    response, data = self.postJSON(self.base_url("/"), data={"title": "todo", "tags": ["tag1", "tag2", "another tag"]})
-    self.logout()
+    todo = new_todo(self.user, self.project, tags=["tag1", "tag2", "another tag"], save=True)
 
     response, data = self.getJSON(self.base_url("/tags/"))
     self.assertStatus(403, response)
