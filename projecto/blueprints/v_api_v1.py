@@ -126,6 +126,16 @@ class TodosView(FlaskView):
   route_base = "/projects/<project_id>/todos/"
   decorators = [project_access_required]
 
+  # NOTE: Can't use this because of the class decorator
+  #
+  # def get_amount_and_page(args):
+  #   try:
+  #     amount = min(int(args.get("amount", 20)), 100)
+  #     page = int(args.get("page", 1)) - 1
+  #   except:
+  #     raise
+  #   return (amount, page)
+
   @route("/", methods=["POST"])
   @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
   def post(self, project):
@@ -182,7 +192,7 @@ class TodosView(FlaskView):
       return abort(400)
 
     todos = []
-    showdone = request.args.get("showdown", "0")
+    showdone = request.args.get("showdone", "0")
     for todo in Todo.index("parent", project.key):
       if showdone == "0" and todo.done:
         continue
@@ -201,6 +211,12 @@ class TodosView(FlaskView):
     showdone = request.args.get("showdone", "0") == "1"
     shownotdone = request.args.get("shownotdone", "1") == "1"
 
+    try:
+      amount = min(int(request.args.get("amount", 20)), 100)
+      page = int(request.args.get("page", 1)) - 1
+    except (TypeError, ValueError):
+      return abort(400)
+
     # TODO: milestone based filters
     # TODO: time based filters
 
@@ -218,8 +234,10 @@ class TodosView(FlaskView):
               break
 
     filtered.sort(key=lambda x: x["date"], reverse=True)
+    totalTodos = len(filtered)
 
-    return jsonify(todos=filtered)
+    return jsonify(todos=filtered[page*amount:page*amount+amount],
+                   currentPage=page+1, totalTodos=totalTodos, todosPerPage=amount)
 
   @route("/<id>", methods=["DELETE"])
   def delete(self, project, id):

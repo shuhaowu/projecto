@@ -22,20 +22,32 @@
         $scope.totalTodos = totalTodos;
         $scope.totalPages = Math.ceil(totalTodos / todosPerPage);
 
-        // QUESTION: Why would totalPages ever be null?
-        if ($scope.totalPages === null) {
-          $scope.totalTodos = 0;
-          $scope.totalPages = null;
-          return;
-        }
+        // NOTE: We can comment this out but we still need
+        //       to add pagination for filtered todos.
+        // if ($scope.totalPages === null) {
+        //   $scope.totalTodos = 0;
+        //   $scope.totalPages = null;
+        //   return;
+        // }
 
-        // QUESTION: What's the point of this array?
+        // NOTE: This array is used in the template, for pagination.
+        //       It will be eliminated when the pagination template
+        //       is made into a directive.
         $scope.pages = [];
         if ($scope.totalPages < 8) {
           for (var i=1; i<=$scope.totalPages; i++)
             $scope.pages.push(i);
         }
-      }
+      };
+
+      var updateTodosAndPages = function(data) {
+        $scope.$apply(function(){
+          $scope.todos = data.todos;
+          $scope.todosPerPage = data.todosPerPage;
+          $scope.currentPage = data.currentPage;
+          recomputePages(data.totalTodos, data.todosPerPage);
+        });
+      };
 
       var extractTags = function(tagstr) {
         if ($.type(tagstr) === "array")
@@ -114,16 +126,11 @@
       $scope.update = function() {
         if ($scope.currentProject){
           title("Todos", $scope.currentProject);
-          TodosService.index($scope.currentProject, $route.current.params.page || 1).done(function(data){
-            $scope.$apply(function(){
-              $scope.todos = data.todos;
-              $scope.todosPerPage = data.todosPerPage;
-              $scope.currentPage = data.currentPage;
-              recomputePages(data.totalTodos, data.todosPerPage);
+          TodosService.index($scope.currentProject, $route.current.params.page || 1)
+            .done(updateTodosAndPages)
+            .fail(function(xhr){
+              $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
             });
-          }).fail(function(xhr){
-            $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
-          });
 
           TodosService.listTags($scope.currentProject).done(function(data) {
             $scope.$apply(function() {
@@ -244,19 +251,11 @@
         var params = {
           tags: tags,
           showdone: $scope.showdone,
-          shownotdone: $scope.shownotdone
+          shownotdone: $scope.shownotdone,
+          page: ($route.current.params.page || 1)
         };
 
-        return TodosService.filter($scope.currentProject, params).done(function(data) {
-          $scope.$apply(function() {
-            $scope.todos = data.todos;
-            $scope.currentPage = 1;
-            $scope.totalPages = null;
-            $scope.totalTodos = data.todos.length;
-            $scope.pages = [];
-            recomputePages($scope.totalTodos, $scope.todosPerPage);
-          });
-        });
+        return TodosService.filter($scope.currentProject, params).done(updateTodosAndPages);
       };
 
       var getFilterTags = function() {
@@ -292,6 +291,7 @@
       $scope.currentProject = null;
 
       ProjectsService.getCurrentProject().done(function(currentProject){
+        console.log("We're setting this page again");
         $scope.currentProject = currentProject;
         $scope.update();
         $scope.$$phase || $scope.$apply();
