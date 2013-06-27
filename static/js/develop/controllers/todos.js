@@ -123,29 +123,51 @@
         }
       };
 
-      $scope.update = function() {
-        if ($scope.currentProject){
-          title("Todos", $scope.currentProject);
-          TodosService.index($scope.currentProject, $route.current.params.page || 1)
-            .done(updateTodosAndPages)
-            .fail(function(xhr){
-              $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
-            });
+      var getFilterTags = function() {
+        var tags = [];
+        for (var t in $scope.tagsFiltered) {
+          if ($scope.tagsFiltered[t])
+            tags.push(t);
+        }
+        return tags;
+      };
 
-          TodosService.listTags($scope.currentProject).done(function(data) {
+      $scope.updateTodos = function() {
+
+        var params = {
+          tags: getFilterTags(),
+          showdone: $scope.showdone,
+          shownotdone: $scope.shownotdone,
+          page: ($scope.currentPage || 1)
+        };
+
+        TodosService.filter($scope.currentProject, params)
+          .done(updateTodosAndPages)
+          .fail(function(xhr){
+            $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
+          });
+      };
+
+      $scope.update = function() {
+        TodosService.listTags($scope.currentProject)
+          .done(function(data) {
+            // update list of tags
             $scope.$apply(function() {
               $scope.tags = data.tags;
               $scope.tags.push(" ");
-              for (var i=0; i<data.tags.length; i++)
-                $scope.tagsFiltered[data.tags[i]] = true;
+              for (var i=0, l=data.tags.length; i < l; i++) {
+                if ($scope.tagsFiltered[data.tags[i]] === undefined) {
+                  $scope.tagsFiltered[data.tags[i]] = true;
+                }
+              }
             });
-          }).fail(function(xhr) {
+
+            // update list of todos
+            $scope.updateTodos();
+          })
+          .fail(function(xhr) {
             $("body").statusmsg("open", "Updating tags failed: " + xhr.status, {type: "error", closable: true});
           });
-
-        } else {
-          notLoaded();
-        }
       };
 
       $scope.markDone = function(todo) {
@@ -225,7 +247,7 @@
             $("body").statusmsg("open", "Saving error: " + xhr.status, {type: "error", closable: true});
           });
         } else {
-          notLoaded();
+          window.notLoaded();
         }
       };
 
@@ -243,60 +265,50 @@
             $("body").statusmsg("open", "Deletion failed: " + xhr.status, {type: "error", closable: true});
           });
         } else {
-          notLoaded();
+          window.notLoaded();
         }
       };
 
-      var filter = function(tags) {
-        var params = {
-          tags: tags,
-          showdone: $scope.showdone,
-          shownotdone: $scope.shownotdone,
-          page: ($route.current.params.page || 1)
-        };
+      // NOTE: This should be removed before the next PR
+      //
+      // var filter = function(tags) {
+      //   var params = {
+      //     tags: tags,
+      //     showdone: $scope.showdone,
+      //     shownotdone: $scope.shownotdone,
+      //     page: ($route.current.params.page || 1)
+      //   };
 
-        return TodosService.filter($scope.currentProject, params).done(updateTodosAndPages);
-      };
-
-      var getFilterTags = function() {
-        var tags = [];
-        for (var t in $scope.tagsFiltered) {
-          if ($scope.tagsFiltered[t])
-            tags.push(t);
-        }
-        return tags;
-      }
+      //   return TodosService.filter($scope.currentProject, params).done(updateTodosAndPages);
+      // };
 
       $scope.checkTagFilter = function(tag) {
         $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
-        var tags = getFilterTags();
-        filter(tags).fail(function(xhr) {
-          $("body").statusmsg("open", "Filter failed: " + xhr.status, {type: "error", closable: true});
-          $scope.$apply(function () {
-            $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
-          });
-        });
+        $scope.update();
       };
 
       $scope.checkShowFilter = function(attr) {
         $scope[attr] = $scope[attr] === "1" ? "0" : "1";
-        filter(getFilterTags()).fail(function(xhr) {
-          $("body").statusmsg("open", "Filter failed: " + xhr.status, {type: "error", closable: true});
-          $scope.$apply(function() {
-            $scope[attr] = $scope[attr] === "1" ? "0" : "1";
-          });
-        });
+        $scope.update();
+      };
+
+      $scope.goToPage = function(pageNo) {
+        $scope.currentPage = pageNo;
+        $scope.update();
       };
 
       $scope.currentProject = null;
 
       ProjectsService.getCurrentProject().done(function(currentProject){
-        console.log("We're setting this page again");
-        $scope.currentProject = currentProject;
-        $scope.update();
-        $scope.$$phase || $scope.$apply();
+        if (currentProject){
+          $scope.currentProject = currentProject;
+          title("Todos", $scope.currentProject);
+          $scope.update();
+          $scope.$$phase || $scope.$apply();
+        } else {
+          window.notLoaded();
+        }
       });
-
     }]
   );
 

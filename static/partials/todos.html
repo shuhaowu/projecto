@@ -148,23 +148,23 @@
     -->
 
     <ul class="pagination right" ng-show="1 < totalPages && totalPages < 9">
-      <li ng-repeat="i in pages" ng-class="{current: i == currentPage}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ i ]}">{[ i ]}</a></li>
+      <li ng-repeat="i in pages" ng-class="{current: i == currentPage}"><a href="" ng-click="goToPage({[i]})">{[ i ]}</a></li>
     </ul>
 
     
 
     <ul class="pagination right" ng-show="totalPages >= 9">
-      <li ng-class="{current: currentPage == 1}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/1">1</a></li>
-      <li ng-class="{current: currentPage == 2}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/2">2</a></li>
-      <li ng-show="currentPage == 2"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ 3 ]}">3</a></li>
+      <li ng-class="{current: currentPage == 1}"><a href="" ng-click="goToPage(1)">1</a></li>
+      <li ng-class="{current: currentPage == 2}"><a href="" ng-click="goToPage(2)">2</a></li>
+      <li ng-show="currentPage == 2"><a href="" ng-click="goToPage(3)">3</a></li>
       <li class="unavailable" ng-hide="currentPage == 3 || currentPage == 4">&hellip;</li>
-      <li ng-show="3 < currentPage && currentPage < totalPages-1"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ currentPage-1 ]}">{[ currentPage-1 ]}</a></li>
-      <li ng-show="2 < currentPage && currentPage < totalPages-1" class="current"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ currentPage ]}">{[ currentPage ]}</a></li>
-      <li ng-show="2 < currentPage && currentPage < totalPages-2"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ currentPage+1 ]}">{[ currentPage+1 ]}</a></li>
+      <li ng-show="3 < currentPage && currentPage < totalPages-1"><a href="" ng-click="goToPage({[ currentPage-1 ]})">{[ currentPage-1 ]}</a></li>
+      <li ng-show="2 < currentPage && currentPage < totalPages-1" class="current"><a href="" ng-click="goToPage({[ currentPage ]})">{[ currentPage ]}</a></li>
+      <li ng-show="2 < currentPage && currentPage < totalPages-2"><a href="" ng-click="goToPage({[ currentPage+1 ]})">{[ currentPage+1 ]}</a></li>
       <li class="unavailable" ng-hide="currentPage >= totalPages-3 || currentPage <= 2">&hellip;</li>
-      <li ng-show="currentPage == totalPages-1"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ totalPages-2 ]}">{[ totalPages-2 ]}</a></li>
-      <li ng-class="{current: currentPage == totalPages-1}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ totalPages-1 ]}">{[ totalPages-1 ]}</a></li>
-      <li ng-class="{current: currentPage == totalPages}"><a href="#/projects/{[ currentProject.key ]}/todos/pages/{[ totalPages ]}">{[ totalPages ]}</a></li>
+      <li ng-show="currentPage == totalPages-1"><a href="" ng-click="goToPage({[ totalPages-2 ]})">{[ totalPages-2 ]}</a></li>
+      <li ng-class="{current: currentPage == totalPages-1}"><a href="" ng-click="goToPage({[ totalPages-1 ]})">{[ totalPages-1 ]}</a></li>
+      <li ng-class="{current: currentPage == totalPages}"><a href="" ng-click="goToPage({[ totalPages ]})">{[ totalPages ]}</a></li>
     </ul>
   </div>
 </div>
