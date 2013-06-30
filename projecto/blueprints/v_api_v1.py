@@ -93,6 +93,51 @@ class ProjectsView(FlaskView):
     project.save()
     return jsonify(status="okay")
 
+  @route("/<project_id>/removeowners", methods=["POST"])
+  @ensure_good_request({"emails"}, {"emails"})
+  @project_managers_required
+  def removeowners(self, project):
+    # this request should fail and not modify if there is an invalid email.
+    # i.e. this request should be atomic.
+    for email in request.json["emails"]:
+      userkeys = User.index_keys_only("emails", email)
+      if userkeys:
+        if len(project.owners) == 1 and userkeys[0] == project.owners[0]:
+          return abort(403)
+
+        try:
+          project.owners.remove(userkeys[0])
+        except ValueError:
+          return abort(404)
+      else:
+        try:
+          project.unregistered_owners.remove(email)
+        except ValueError:
+          return abort(404)
+
+    project.save()
+    return jsonify(status="okay")
+
+  @route("/<project_id>/removecollaborators", methods=["POST"])
+  @ensure_good_request({"emails"}, {"emails"})
+  @project_managers_required
+  def removecollaborators(self, project):
+    for email in request.json["emails"]:
+      userkeys = User.index_keys_only("emails", email)
+      if userkeys:
+        try:
+          project.collaborators.remove(userkeys[0])
+        except ValueError:
+          return abort(404)
+      else:
+        try:
+          project.unregistered_collaborators.remove(email)
+        except ValueError:
+          return abort(404)
+
+    project.save()
+    return jsonify(status="okay")
+
 ProjectsView.register(blueprint)
 
 class FeedView(FlaskView):
