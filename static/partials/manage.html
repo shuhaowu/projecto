@@ -6,8 +6,8 @@
         <div class="content" data-section-content ng-controller="ProjectMembershipController">
           <div class="row">
             <div class="large-12 columns">
-              <button class="tiny right" ng-click="addManager()">Add</button>
-              <h5 class="text-center">Managers</h5>
+              <button class="tiny right" ng-click="addOwner()">Add</button>
+              <h5 class="text-center">Owners</h5>
               <table class="text-center" width="100%">
                 <thead>
                   <tr>
@@ -17,11 +17,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr ng-repeat="manager in managers">
-                    <td>{[ manager.email ]}</td>
-                    <td>{[ manager.name ]}</td>
+                  <tr ng-repeat="owner in owners">
+                    <td>{[ owner.email ]}</td>
+                    <td>{[ owner.name ]}</td>
                     <td>
-                      <button class="tiny alert" ng-click="removeManager($index, manager)">Remove</button>
+                      <button class="tiny alert" ng-click="removeOwner($index, owner)">Remove</button>
                     </td>
                   </tr>
                 </tbody>
@@ -45,7 +45,7 @@
                     <td>{[ collaborator.email ]}</td>
                     <td>{[ collaborator.name ]}</td>
                     <td>
-                      <button class="tiny alert" ng-click="removeCollaborator($index, collaborator.email)">Remove</button>
+                      <button class="tiny alert" ng-click="removeCollaborator($index, collaborator)">Remove</button>
                     </td>
                   </tr>
                 </tbody>
@@ -54,7 +54,7 @@
           </div>
           <div class="row">
             <div class="large-6 columns">
-              <h5 class="text-center">Unregistered Managers</h5>
+              <h5 class="text-center">Unregistered Owners</h5>
               <table width="100%" class="text-center">
                 <thead>
                   <tr>
@@ -63,10 +63,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr ng-repeat="manager in unregisteredManagers">
-                    <td>{[ manager ]}</td>
+                  <tr ng-repeat="owner in unregisteredOwners">
+                    <td>{[ owner ]}</td>
                     <td>
-                      <button class="tiny alert" ng-click="removeUnregisteredManager($index, manager)">Remove</button>
+                      <button class="tiny alert" ng-click="removeUnregisteredOwner($index, owner)">Remove</button>
                     </td>
                   </tr>
                 </tbody>
@@ -85,7 +85,7 @@
                   <tr ng-repeat="collaborator in unregisteredCollaborators">
                     <td>{[ collaborator ]}</td>
                     <td>
-                      <button class="tiny alert" ng-clic="removeUnregisteredCollaborator(collaborator)">Remove</button>
+                      <button class="tiny alert" ng-click="removeUnregisteredCollaborator($index, collaborator)">Remove</button>
                     </td>
                   </tr>
                 </tbody>

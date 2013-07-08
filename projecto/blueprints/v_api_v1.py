@@ -364,12 +364,6 @@ class TodosView(FlaskView):
 
 TodosView.register(blueprint)
 
-class ManageView(FlaskView):
-  route_base = "/projects/<project_id>/todos/"
-  decorators = [project_managers_required]
-
-ManageView.register(blueprint)
-
 class ProfileView(FlaskView):
 
   @route("/changename", methods=["POST"])
