@@ -78,7 +78,7 @@
             <ng-pluralize count="todo.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
           </a>
           <span ng-show="currentProject.owner || currentUser.key == todo.author.key">
-            | <a href="" titile="Edit" ng-click="editTodo(todo, $index)">Edit</a> |
+            | <a href="" title="Edit" ng-click="editTodo(todo, $index)">Edit</a> |
             <a href="" title="Delete" ng-click="deleteTodo(todo, $index)">Delete</a>
           </span>
         </span>
@@ -137,8 +137,6 @@
 
 
     <!-- Pagination -->
-
-    <!-- NOTE: For issue #5, something must be wrong with totalPages -->
 
     <!-- IDEA: Make pagination its own modular component, so we can re-use it on other pages-->
 

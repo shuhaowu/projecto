@@ -40,12 +40,15 @@
         }
       };
 
-      var updateTodosAndPages = function(data) {
+      var showTodosUpdate = function(data, msg) {
         $scope.$apply(function(){
           $scope.todos = data.todos;
           $scope.todosPerPage = data.todosPerPage;
           $scope.currentPage = data.currentPage;
           recomputePages(data.totalTodos, data.todosPerPage);
+          if (msg) {
+            $("body").statusmsg("open", msg, {type: "success", autoclose: 500});
+          }
         });
       };
 
@@ -110,17 +113,28 @@
             $scope.newtodoitem.tags = extractTags($scope.newtodoitem.tags);
 
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
-            $scope.$apply(function(){
-              $scope.todos.splice(0, 0, data);
-              recomputePages($scope.totalTodos+1, $scope.todosPerPage);
-            });
-            $scope.newTodo(); // hack. Closes.
+            $scope.update("Created");
+            $scope.newTodo(); // hack. Closes the "New Todo" form.
           }).fail(function(xhr){
             $("body").statusmsg("open", "Posting failed: " + xhr.status, {type: "error", closable: true});
           });
         } else {
           $("body").statusmsg("open", "Todos must have a title!", {type: "error", autoclose: 2000});
         }
+      };
+
+      var updateTags = function(data) {
+        $scope.$apply(function() {
+          $scope.tags = data.tags;
+          $scope.tags.push(" ");
+
+          // if we've received a new tag, set it to "checked"
+          for (var i=0, l=data.tags.length; i < l; i++) {
+            if ($scope.tagsFiltered[data.tags[i]] === undefined) {
+              $scope.tagsFiltered[data.tags[i]] = true;
+            }
+          }
+        });
       };
 
       var getFilterTags = function() {
@@ -132,8 +146,7 @@
         return tags;
       };
 
-      $scope.updateTodos = function() {
-
+      var updateTodos = function(msg) {
         var params = {
           tags: getFilterTags(),
           showdone: $scope.showdone,
@@ -142,28 +155,20 @@
         };
 
         TodosService.filter($scope.currentProject, params)
-          .done(updateTodosAndPages)
+          .done(function(data) {
+            showTodosUpdate(data, msg)
+          })
           .fail(function(xhr){
             $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
           });
       };
 
-      $scope.update = function() {
+      $scope.update = function(msg) {
+        console.log("Updating the todos list");
         TodosService.listTags($scope.currentProject)
           .done(function(data) {
-            // update list of tags
-            $scope.$apply(function() {
-              $scope.tags = data.tags;
-              $scope.tags.push(" ");
-              for (var i=0, l=data.tags.length; i < l; i++) {
-                if ($scope.tagsFiltered[data.tags[i]] === undefined) {
-                  $scope.tagsFiltered[data.tags[i]] = true;
-                }
-              }
-            });
-
-            // update list of todos
-            $scope.updateTodos();
+            updateTags(data);
+            updateTodos(msg);
           })
           .fail(function(xhr) {
             $("body").statusmsg("open", "Updating tags failed: " + xhr.status, {type: "error", closable: true});
@@ -223,6 +228,16 @@
           delete $scope.editMode[todoKey];
       };
 
+      var noCurrentEdits = function() {
+        for (var key in $scope.editMode) {
+          if ($scope.editMode.hasOwnProperty(key)) {
+            // a key is present, so a todo is currently being edited.
+            return false;
+          }
+        }
+        return true;
+      };
+
       $scope.saveTodo = function(todoKey) {
         if (!$scope.editMode[todoKey]) {
           $("body").statusmsg("open", "Something has gone wrong... Please refresh the page.", {type: "error"});
@@ -236,13 +251,19 @@
 
           TodosService.put($scope.currentProject, $scope.editMode[todoKey]).done(function(data) {
             $scope.$apply(function() {
+              var msg = "Saved";
               var i = $scope.editMode[todoKey]._index;
-              delete $scope.editMode[todoKey]._index;
-              $scope.todos[i] = data;
               delete $scope.editMode[todoKey];
+              if (noCurrentEdits()) {
+                $scope.update(msg);
+              }
+              else {
+                $scope.todos[i] = data;
+                $("body").statusmsg("open", msg, {type: "success", autoclose: 1000});
+              }
             });
-
             toggleTodo(data, "open");
+
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Saving error: " + xhr.status, {type: "error", closable: true});
           });
@@ -257,10 +278,7 @@
 
         if ($scope.currentProject) {
           TodosService.delete($scope.currentProject, todo).done(function() {
-            $scope.$apply(function() {
-              $scope.todos.splice(i, 1);
-              recomputePages($scope.totalTodos-1, $scope.todosPerPage);
-            });
+            $scope.update("Deleted");
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Deletion failed: " + xhr.status, {type: "error", closable: true});
           });
@@ -279,7 +297,7 @@
       //     page: ($route.current.params.page || 1)
       //   };
 
-      //   return TodosService.filter($scope.currentProject, params).done(updateTodosAndPages);
+      //   return TodosService.filter($scope.currentProject, params).done(showTodosUpdate);
       // };
 
       $scope.checkTagFilter = function(tag) {
@@ -335,3 +353,7 @@
     }]
   );
 })();
+
+
+// NOTE: CLICKING ANY FILTER BOX WILL CLOSE ANY EDIT FORM CURRENTLY OPEN. I BELIEVE THAT THIS IS ACCEPTABLE
+//       BEHAVIOR
