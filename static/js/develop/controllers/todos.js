@@ -22,14 +22,6 @@
         $scope.totalTodos = totalTodos;
         $scope.totalPages = Math.ceil(totalTodos / todosPerPage);
 
-        // NOTE: We can comment this out but we still need
-        //       to add pagination for filtered todos.
-        // if ($scope.totalPages === null) {
-        //   $scope.totalTodos = 0;
-        //   $scope.totalPages = null;
-        //   return;
-        // }
-
         // NOTE: This array is used in the template, for pagination.
         //       It will be eliminated when the pagination template
         //       is made into a directive.
@@ -156,7 +148,7 @@
 
         TodosService.filter($scope.currentProject, params)
           .done(function(data) {
-            showTodosUpdate(data, msg)
+            showTodosUpdate(data, msg);
           })
           .fail(function(xhr){
             $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
@@ -287,19 +279,6 @@
         }
       };
 
-      // NOTE: This should be removed before the next PR
-      //
-      // var filter = function(tags) {
-      //   var params = {
-      //     tags: tags,
-      //     showdone: $scope.showdone,
-      //     shownotdone: $scope.shownotdone,
-      //     page: ($route.current.params.page || 1)
-      //   };
-
-      //   return TodosService.filter($scope.currentProject, params).done(showTodosUpdate);
-      // };
-
       $scope.checkTagFilter = function(tag) {
         $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
         $scope.update();
@@ -355,5 +334,5 @@
 })();
 
 
-// NOTE: CLICKING ANY FILTER BOX WILL CLOSE ANY EDIT FORM CURRENTLY OPEN. I BELIEVE THAT THIS IS ACCEPTABLE
-//       BEHAVIOR
+// NOTE: Clicking any filter box will close any Edit form currently open. I believe that this is acceptable
+//       behavior

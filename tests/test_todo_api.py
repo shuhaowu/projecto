@@ -235,6 +235,58 @@ class TestTodoAPI(ProjectTestCase):
     response, data = self.getJSON(self.base_url("/"))
     self.assertStatus(403, response)
 
+  def test_filter_todos(self):
+    self.login()
+
+    keys = []
+    for i in xrange(30):
+      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo", "tags": ["tag1"]})
+      keys.append(data["key"])
+    for i in xrange(20):
+      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo", "tags": ["tag2"]})
+      keys.append(data["key"])
+    keys.sort()
+
+    for i in xrange(7):
+      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo", "tags": ["tag3"]})
+
+    response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=1"))
+    self.assertStatus(200, response)
+    self.assertEquals(4, len(data))
+    self.assertTrue("todos" in data)
+    self.assertEquals(1, data["currentPage"])
+    self.assertEquals(50, data["totalTodos"])
+    self.assertEquals(20, data["todosPerPage"])
+    self.assertEquals(20, len(data["todos"]))
+    k = [t["key"] for t in data["todos"]]
+
+    response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=2"))
+    self.assertEquals(2, data["currentPage"])
+    self.assertEquals(50, data["totalTodos"])
+    self.assertEquals(20, data["todosPerPage"])
+    self.assertEquals(20, len(data["todos"]))
+    k.extend([t["key"] for t in data["todos"]])
+
+    response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=3"))
+    self.assertEquals(3, data["currentPage"])
+    self.assertEquals(50, data["totalTodos"])
+    self.assertEquals(20, data["todosPerPage"])
+    self.assertEquals(10, len(data["todos"]))
+    k.extend([t["key"] for t in data["todos"]])
+
+    k.sort()
+    self.assertEquals(keys, k)
+
+  def test_filter_todos_reject_permission(self):
+    response, data = self.getJSON(self.base_url("/filter"))
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("test2@test.com")
+    self.login(user2)
+
+    response, data = self.getJSON(self.base_url("/filter"))
+    self.assertStatus(403, response)
+
   def test_markdone(self):
     self.login()
     response, data = self.postJSON(self.base_url("/"), data={"title": "todo"})

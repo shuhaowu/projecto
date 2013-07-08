@@ -126,16 +126,6 @@ class TodosView(FlaskView):
   route_base = "/projects/<project_id>/todos/"
   decorators = [project_access_required]
 
-  # NOTE: Can't use this because of the class decorator
-  #
-  # def get_amount_and_page(args):
-  #   try:
-  #     amount = min(int(args.get("amount", 20)), 100)
-  #     page = int(args.get("page", 1)) - 1
-  #   except:
-  #     raise
-  #   return (amount, page)
-
   @route("/", methods=["POST"])
   @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
   def post(self, project):
