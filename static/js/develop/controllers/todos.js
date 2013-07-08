@@ -156,7 +156,6 @@
       };
 
       $scope.update = function(msg) {
-        console.log("Updating the todos list");
         TodosService.listTags($scope.currentProject)
           .done(function(data) {
             updateTags(data);
