@@ -6,8 +6,8 @@
         <div class="content" data-section-content ng-controller="ProjectMembershipController">
           <div class="row">
             <div class="large-12 columns">
-              <button class="tiny right" ng-click="addManager()">Add</button>
-              <h5 class="text-center">Managers</h5>
+              <button class="tiny right" ng-click="addOwner()">Add</button>
+              <h5 class="text-center">Owners</h5>
               <table class="text-center" width="100%">
                 <thead>
                   <tr>
@@ -17,11 +17,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>shuhao@shuhaowu.com</td>
-                    <td>Shuhao Wu</td>
+                  <tr ng-repeat="owner in owners">
+                    <td>{[ owner.email ]}</td>
+                    <td>{[ owner.name ]}</td>
                     <td>
-                      <button class="tiny alert">Remove</button>
+                      <button class="tiny alert" ng-click="removeOwner($index, owner)">Remove</button>
                     </td>
                   </tr>
                 </tbody>
@@ -30,8 +30,8 @@
           </div>
           <div class="row">
             <div class="large-12 columns">
-              <button class="tiny right" ng-click="addParticipants()">Add</button>
-              <h5 class="text-center">Participants</h5>
+              <button class="tiny right" ng-click="addCollaborator()">Add</button>
+              <h5 class="text-center">Collaborators</h5>
               <table class="text-center" width="100%">
                 <thead>
                   <tr>
@@ -41,11 +41,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>shuhao@shuhaowu.com</td>
-                    <td>Shuhao Wu</td>
+                  <tr ng-repeat="collaborator in collaborators">
+                    <td>{[ collaborator.email ]}</td>
+                    <td>{[ collaborator.name ]}</td>
                     <td>
-                      <button class="tiny alert">Remove</button>
+                      <button class="tiny alert" ng-click="removeCollaborator($index, collaborator)">Remove</button>
                     </td>
                   </tr>
                 </tbody>
@@ -54,7 +54,7 @@
           </div>
           <div class="row">
             <div class="large-6 columns">
-              <h5 class="text-center">Unregistered Managers</h5>
+              <h5 class="text-center">Unregistered Owners</h5>
               <table width="100%" class="text-center">
                 <thead>
                   <tr>
@@ -63,17 +63,17 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>spammer@spam.com</td>
+                  <tr ng-repeat="owner in unregisteredOwners">
+                    <td>{[ owner ]}</td>
                     <td>
-                      <button class="tiny alert">Remove</button>
+                      <button class="tiny alert" ng-click="removeUnregisteredOwner($index, owner)">Remove</button>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div class="large-6 columns">
-              <h5 class="text-center">Unregistered Participants</h5>
+              <h5 class="text-center">Unregistered Collaborators</h5>
               <table width="100%" class="text-center">
                 <thead>
                   <tr>
@@ -82,10 +82,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>spammer@spam.com</td>
+                  <tr ng-repeat="collaborator in unregisteredCollaborators">
+                    <td>{[ collaborator ]}</td>
                     <td>
-                      <button class="tiny alert">Remove</button>
+                      <button class="tiny alert" ng-click="removeUnregisteredCollaborator($index, collaborator)">Remove</button>
                     </td>
                   </tr>
                 </tbody>

@@ -198,6 +198,68 @@ class TestProjectsAPI(FlaskTestCase):
     response, data = self.postJSON("/api/v1/projects/{}/addowners".format(project.key), data={"invalid": "invalid", "emails": ["yay@yay.com"]})
     self.assertStatus(400, response)
 
+  def test_remove_owner(self):
+    project = new_project(self.user, name="project", save=True)
+    user2 = self.create_user("test2@test.com")
+    project.owners.append(user2.key)
+    project.save()
+    self.login()
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(200, response)
+
+    project.reload()
+    self.assertEquals(1, len(project.owners))
+    self.assertEquals(self.user.key, project.owners[0])
+
+    project.unregistered_owners.append("unregistered@owners.com")
+    project.save()
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["unregistered@owners.com"]})
+    self.assertStatus(200, response)
+
+    project.reload()
+    self.assertEquals([], project.unregistered_owners)
+
+  def test_remove_owner_reject_notfound(self):
+    project = new_project(self.user, name="project", save=True)
+    self.login()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(404, response)
+
+  def test_remove_owner_reject_badrequest(self):
+    project = new_project(self.user, name="project", save=True)
+    self.login()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"invalid": "email"})
+    self.assertStatus(400, response)
+
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["email@email.com"], "invalid": "invalid"})
+    self.assertStatus(400, response)
+
+  def test_remove_owner_reject_permission(self):
+    project = new_project(self.user, name="project", save=True)
+    user2 = self.create_user("test2@email.com")
+
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["test@test.com"]})
+    self.assertStatus(403, response)
+
+    self.login(user2)
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["test@test.com"]})
+    self.assertStatus(403, response)
+
+    project.collaborators.append(user2.key)
+    project.save()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["test@test.com"]})
+    self.assertStatus(403, response)
+
+    self.logout()
+    self.login(self.user)
+
+    # We can't remove when there is only 1 owner.
+    response, data = self.postJSON("/api/v1/projects/{}/removeowners".format(project.key), data={"emails": ["test@test.com"]})
+    self.assertStatus(403, response)
+
   def test_add_collaborator(self):
     project = new_project(self.user, name="project", save=True)
 
@@ -242,6 +304,58 @@ class TestProjectsAPI(FlaskTestCase):
     self.assertStatus(400, response)
 
     response, data = self.postJSON("/api/v1/projects/{}/addcollaborators".format(project.key), data={"invalid": "invalid", "emails": ["yay@yay.com"]})
+    self.assertStatus(400, response)
+
+  def test_remove_collaborator(self):
+    project = new_project(self.user, name="project", save=True)
+    user2 = self.create_user("test2@test.com")
+    project.collaborators.append(user2.key)
+    project.save()
+    self.login()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(200, response)
+
+    project.reload()
+    self.assertEquals([], project.collaborators)
+
+    project.unregistered_collaborators.append("test2@project.com")
+    project.save()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"emails": ["test2@project.com"]})
+    self.assertStatus(200, response)
+
+    project.reload()
+    self.assertEquals([], project.unregistered_collaborators)
+
+  def test_remove_collaborator_reject_notfound(self):
+    project = new_project(self.user, name="project", save=True)
+    self.login()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"emails": ["test@test.com"]})
+    self.assertStatus(404, response)
+
+  def test_remove_collaborator_reject_permission(self):
+    project = new_project(self.user, name="project", save=True)
+    user2 = self.create_user("test2@test.com")
+    project.collaborators.append(user2.key)
+    project.save()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(403, response)
+
+    self.login(user2)
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"emails": ["test2@test.com"]})
+    self.assertStatus(403, response)
+
+  def test_remove_collaborator_reject_badrequest(self):
+    project = new_project(self.user, name="project", save=True)
+    self.login()
+
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"invalid": ["test2@test.com"]})
+    self.assertStatus(400, response)
+
+    response, data = self.postJSON("/api/v1/projects/{}/removecollaborators".format(project.key), data={"emails": ["test2@test.com"], "invalid": "invalid"})
     self.assertStatus(400, response)
 
 if __name__ == "__main__":

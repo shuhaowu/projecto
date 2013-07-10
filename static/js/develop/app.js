@@ -68,9 +68,11 @@
 
   app.config(["$routeProvider", routes]);
 
-  app.config(["$interpolateProvider", function($interpolateProvider, $rootScope) {
+  app.config(["$interpolateProvider", "$httpProvider", function($interpolateProvider, $httpProvider) {
     $interpolateProvider.startSymbol("{[");
     $interpolateProvider.endSymbol("]}");
+
+    $httpProvider.defaults.headers.common["X-CSRFToken"] = window.csrfToken;
   }]);
 
   app.run(["$rootScope", "ProjectsService", function($rootScope, ProjectsService) {
