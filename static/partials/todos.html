@@ -68,8 +68,6 @@
   <div class="large-9 columns">
     <div class="panel" ng-repeat="todo in todos">
 
-      <!-- SUGGESTION: Make a separate todoItem template + controller -->
-
       <form class="custom">
         <span class="custom checkbox todos-todo-donebox" ng-class="{checked: todo.done}" ng-click="markDone(todo)"></span>
         <span class="todos-control">
@@ -88,9 +86,6 @@
       </form>
 
 
-      <!-- QUESTION: What dictates whether this <div> is created or not? Not obvious by looking at this
-                     template that this is usually hidden 
-      -->
       <div class="todos-todo-body" id="todo-{[ todo.key ]}">
 
         <!-- view mode -->
@@ -137,19 +132,9 @@
 
 
     <!-- Pagination -->
-
-    <!-- IDEA: Make pagination its own modular component, so we can re-use it on other pages-->
-
-    <!-- IDEA: For the <ul>, make ng-show="1 < totalPages", use a single <li> with ng-repeat, 
-               link ng-show to a function, make ng-class="{current: i == currentPage}", make &hellip; element
-               hide with the same function linked to ng-show 
-    -->
-
     <ul class="pagination right" ng-show="1 < totalPages && totalPages < 9">
       <li ng-repeat="i in pages" ng-class="{current: i == currentPage}"><a href="" ng-click="goToPage({[i]})">{[ i ]}</a></li>
     </ul>
-
-    
 
     <ul class="pagination right" ng-show="totalPages >= 9">
       <li ng-class="{current: currentPage == 1}"><a href="" ng-click="goToPage(1)">1</a></li>

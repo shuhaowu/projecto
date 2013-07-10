@@ -39,7 +39,7 @@
           $scope.currentPage = data.currentPage;
           recomputePages(data.totalTodos, data.todosPerPage);
           if (msg) {
-            $("body").statusmsg("open", msg, {type: "success", autoclose: 500});
+            $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
           }
         });
       };
@@ -250,7 +250,7 @@
               }
               else {
                 $scope.todos[i] = data;
-                $("body").statusmsg("open", msg, {type: "success", autoclose: 1000});
+                $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
               }
             });
             toggleTodo(data, "open");

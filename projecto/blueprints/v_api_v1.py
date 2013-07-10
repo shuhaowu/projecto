@@ -3,6 +3,7 @@ from flask.ext.login import login_required, current_user
 from flask.ext.classy import FlaskView, route
 import settings
 import os
+import math
 
 from leveldbkit import NotFoundError
 
@@ -225,6 +226,10 @@ class TodosView(FlaskView):
 
     filtered.sort(key=lambda x: x["date"], reverse=True)
     totalTodos = len(filtered)
+    if (totalTodos < (page*amount + 1)):
+      page = int(math.ceil(totalTodos / amount)) - 1
+      if (page < 0):
+        page = 0
 
     return jsonify(todos=filtered[page*amount:page*amount+amount],
                    currentPage=page+1, totalTodos=totalTodos, todosPerPage=amount)
