@@ -178,7 +178,6 @@
 
       $scope.clearDone = function(todo) {
         TodosService.clearDone($scope.currentProject).done(function(data) {
-          console.log("test");
           $scope.$apply(function() {
             for (var i=0; i<$scope.todos.length; i++) {
               if ($scope.todos[i].done) {
@@ -219,14 +218,26 @@
           delete $scope.editMode[todoKey];
       };
 
-      var noCurrentEdits = function() {
+      var currentlyEditing = function() {
         for (var key in $scope.editMode) {
           if ($scope.editMode.hasOwnProperty(key)) {
             // a key is present, so a todo is currently being edited.
-            return false;
+            return true;
           }
         }
-        return true;
+        return false;
+      };
+
+      var cancelAction = function(action) {
+        if (currentlyEditing()) {
+          action = action || "proceed";
+          var msg = "There are todo items currently being edited on this page.\n";
+          msg += "Are you sure that you wish to " + action + "? (Unsaved changes will be lost)";
+          if (!window.confirm(msg)) {
+            return true;
+          }
+        }
+        return false;
       };
 
       $scope.saveTodo = function(todoKey) {
@@ -245,7 +256,7 @@
               var msg = "Saved";
               var i = $scope.editMode[todoKey]._index;
               delete $scope.editMode[todoKey];
-              if (noCurrentEdits()) {
+              if (!currentlyEditing()) {
                 $scope.update(msg);
               }
               else {
@@ -268,8 +279,18 @@
           return;
 
         if ($scope.currentProject) {
-          TodosService.delete($scope.currentProject, todo).done(function() {
-            $scope.update("Deleted");
+          TodosService["delete"]($scope.currentProject, todo).done(function() {
+            var msg = "Deleted";
+            if (!currentlyEditing()) {
+              $scope.update(msg);
+            }
+            else {
+              $scope.$apply(function() {
+                $scope.todos.splice(i, 1);
+                $scope.totalTodos--;
+                $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
+              });
+            }
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Deletion failed: " + xhr.status, {type: "error", closable: true});
           });
@@ -279,16 +300,19 @@
       };
 
       $scope.checkTagFilter = function(tag) {
+        if (cancelAction("change the filters")) return;
         $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
         $scope.update();
       };
 
       $scope.checkShowFilter = function(attr) {
+        if (cancelAction("change the filters")) return;
         $scope[attr] = $scope[attr] === "1" ? "0" : "1";
         $scope.update();
       };
 
       $scope.goToPage = function(pageNo) {
+        if (cancelAction("change the page")) return;
         $scope.currentPage = pageNo;
         $scope.update();
       };
@@ -331,7 +355,3 @@
     }]
   );
 })();
-
-
-// NOTE: Clicking any filter box will close any Edit form currently open. I believe that this is acceptable
-//       behavior
