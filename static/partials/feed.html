@@ -1,17 +1,15 @@
 <div class="row">
   <div class="large-4 columns">
     <div class="panel">
-      <div ng-show="currentProject.owner">
-        <form ng-submit="post()">
-          <textarea placeholder="Post something!" rows="2" ng-model="newpost"></textarea>
-          <div class="right">
-            <span ng-class="{red: newpost.length > 140, 'feed-character-count': true}" title="Messages should be kept brief, preferably below 160 characters!">{[ newpost.length ]}</span>
-            <button type="submit" class="small">Post</button>
-          </div>
-        </form>
-        <!-- required hack to get spacing to work -->
-        <br class="clear" />
-      </div>
+      <form ng-submit="post()">
+        <textarea placeholder="Post something!" rows="2" ng-model="newpost"></textarea>
+        <div class="right">
+          <span ng-class="{red: newpost.length > 140, 'feed-character-count': true}" title="Messages should be kept brief, preferably below 160 characters!">{[ newpost.length ]}</span>
+          <button type="submit" class="small">Post</button>
+        </div>
+      </form>
+      <!-- required hack to get spacing to work -->
+      <br class="clear" />
     </div>
   </div>
   <div class="large-8 columns">
@@ -19,7 +17,7 @@
       <img src="https://secure.gravatar.com/avatar/{[ post.author.avatar ]}?s=50" class="feed-avatar" />
       <span class="feed-date"> <a href="#/projects/{[ currentProject.key ]}/feed/{[ post.key ]}"><ng-pluralize count="post.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize></a> |
 
-      {[ post.date | relativeTime ]} <a href="" ng-click="deletePost(post)" ng-show="post.author.key == currentUser.key" title="Delete">&times;</a></span>
+      {[ post.date | relativeTime ]} <a href="" ng-click="deletePost(post)" ng-show="currentProject.owner || post.author.key == currentUser.key" title="Delete">&times;</a></span>
       <p>
         <strong>{[ post.author.name ]}</strong>
         <br />
