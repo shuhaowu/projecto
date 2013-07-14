@@ -4,7 +4,7 @@ import settings
 import os
 import requests
 import ujson
-from ..utils import jsonify, csrf
+from ..utils import jsonify, hook_user_to_projects
 
 from ..models import User
 
@@ -33,6 +33,7 @@ def login():
       email = persona_data["email"]
       user = User.register_or_login(email)
       login_user(user)
+      hook_user_to_projects(user)
       return jsonify(status="ok")
     else:
       return jsonify(**persona_data), 403

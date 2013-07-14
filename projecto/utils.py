@@ -37,6 +37,18 @@ from leveldbkit import NotFoundError
 from flask.ext.login import current_user
 from .models import Project, User
 
+def hook_user_to_projects(user):
+  for email in user.emails:
+    for project in Project.index("unregistered_owners", email):
+      project.unregistered_owners.remove(email)
+      project.owners.append(user.key)
+      project.save()
+
+    for project in Project.index("unregistered_collaborators", email):
+      project.unregistered_collaborators.remove(email)
+      project.collaborators.append(user.key)
+      project.save()
+
 def project_access_required(fn):
   """This will allow anyone who is currently registered in that project to
   access the project. Denying the rest. It requires a project_id. It will also
@@ -63,24 +75,13 @@ def project_access_required(fn):
 
     # Move users from unregistered to registered if found.
     for email in current_user.emails:
-      if email in project.unregistered_owners:
-        project.unregistered_owners.remove(email)
-        project.owners.append(current_user.key)
-        project.save()
-        return fn(project=project, *args, **kwargs)
-      elif email in project.unregistered_collaborators:
-        project.unregistered_collaborators.remove(email)
-        project.collaborators.append(current_user.key)
-        project.save()
-        return fn(project=project, *args, **kwargs)
-      else:
-        for userkey in project.owners:
-          if email in User.get(userkey).emails:
-            return fn(project=project, *args, **kwargs)
+      for userkey in project.owners:
+        if email in User.get(userkey).emails:
+          return fn(project=project, *args, **kwargs)
 
-        for userkey in project.collaborators:
-          if email in User.get(userkey).emails:
-            return fn(project=project, *args, **kwargs)
+      for userkey in project.collaborators:
+        if email in User.get(userkey).emails:
+          return fn(project=project, *args, **kwargs)
 
     return abort(403)
   return wrapped
@@ -100,15 +101,9 @@ def project_managers_required(fn):
       return abort(404)
 
     for email in current_user.emails:
-      if email in project.unregistered_owners:
-        project.unregistered_owners.remove(email)
-        project.owners.append(current_user.key)
-        project.save()
-        return fn(project=project, *args, **kwargs)
-      else:
-        for userkey in project.owners:
-          if email in User.get(userkey).emails:
-            return fn(project=project, *args, **kwargs)
+      for userkey in project.owners:
+        if email in User.get(userkey).emails:
+          return fn(project=project, *args, **kwargs)
 
     return abort(403)
   return wrapped
