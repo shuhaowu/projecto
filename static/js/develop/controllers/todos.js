@@ -20,19 +20,29 @@
 
       var recomputePages = function(totalTodos, todosPerPage) {
         $scope.totalTodos = totalTodos;
-        $scope.totalPages = Math.floor(totalTodos / todosPerPage) + (totalTodos % todosPerPage == 0 ? 0 : 1);
-        if ($scope.totalPages === null) {
-          $scope.totalTodos = 0;
-          $scope.totalPages = null;
-          return;
-        }
+        $scope.totalPages = Math.ceil(totalTodos / todosPerPage);
 
+        // NOTE: This array is used in the template, for pagination.
+        //       It will be eliminated when the pagination template
+        //       is made into a directive.
         $scope.pages = [];
         if ($scope.totalPages < 8) {
           for (var i=1; i<=$scope.totalPages; i++)
             $scope.pages.push(i);
         }
-      }
+      };
+
+      var showTodosUpdate = function(data, msg) {
+        $scope.$apply(function(){
+          $scope.todos = data.todos;
+          $scope.todosPerPage = data.todosPerPage;
+          $scope.currentPage = data.currentPage;
+          recomputePages(data.totalTodos, data.todosPerPage);
+          if (msg) {
+            $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
+          }
+        });
+      };
 
       var extractTags = function(tagstr) {
         if ($.type(tagstr) === "array")
@@ -95,11 +105,8 @@
             $scope.newtodoitem.tags = extractTags($scope.newtodoitem.tags);
 
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
-            $scope.$apply(function(){
-              $scope.todos.splice(0, 0, data);
-              recomputePages($scope.totalTodos+1, $scope.todosPerPage);
-            });
-            $scope.newTodo(); // hack. Closes.
+            $scope.update("Created");
+            $scope.newTodo(); // hack. Closes the "New Todo" form.
           }).fail(function(xhr){
             $("body").statusmsg("open", "Posting failed: " + xhr.status, {type: "error", closable: true});
           });
@@ -108,34 +115,55 @@
         }
       };
 
-      $scope.update = function() {
-        if ($scope.currentProject){
-          title("Todos", $scope.currentProject);
-          TodosService.index($scope.currentProject, $route.current.params.page || 1).done(function(data){
-            $scope.$apply(function(){
-              $scope.todos = data.todos;
-              $scope.todosPerPage = data.todosPerPage;
-              $scope.currentPage = data.currentPage;
-              recomputePages(data.totalTodos, data.todosPerPage);
-            });
-          }).fail(function(xhr){
+      var updateTags = function(data) {
+        $scope.$apply(function() {
+          $scope.tags = data.tags;
+          $scope.tags.push(" ");
+
+          // if we've received a new tag, set it to "checked"
+          for (var i=0, l=data.tags.length; i < l; i++) {
+            if ($scope.tagsFiltered[data.tags[i]] === undefined) {
+              $scope.tagsFiltered[data.tags[i]] = true;
+            }
+          }
+        });
+      };
+
+      var getFilterTags = function() {
+        var tags = [];
+        for (var t in $scope.tagsFiltered) {
+          if ($scope.tagsFiltered[t])
+            tags.push(t);
+        }
+        return tags;
+      };
+
+      var updateTodos = function(msg) {
+        var params = {
+          tags: getFilterTags(),
+          showdone: $scope.showdone,
+          shownotdone: $scope.shownotdone,
+          page: ($scope.currentPage || 1)
+        };
+
+        TodosService.filter($scope.currentProject, params)
+          .done(function(data) {
+            showTodosUpdate(data, msg);
+          })
+          .fail(function(xhr){
             $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
           });
+      };
 
-          TodosService.listTags($scope.currentProject).done(function(data) {
-            $scope.$apply(function() {
-              $scope.tags = data.tags;
-              $scope.tags.push(" ");
-              for (var i=0; i<data.tags.length; i++)
-                $scope.tagsFiltered[data.tags[i]] = true;
-            });
-          }).fail(function(xhr) {
+      $scope.update = function(msg) {
+        TodosService.listTags($scope.currentProject)
+          .done(function(data) {
+            updateTags(data);
+            updateTodos(msg);
+          })
+          .fail(function(xhr) {
             $("body").statusmsg("open", "Updating tags failed: " + xhr.status, {type: "error", closable: true});
           });
-
-        } else {
-          notLoaded();
-        }
       };
 
       $scope.markDone = function(todo) {
@@ -150,7 +178,6 @@
 
       $scope.clearDone = function(todo) {
         TodosService.clearDone($scope.currentProject).done(function(data) {
-          console.log("test");
           $scope.$apply(function() {
             for (var i=0; i<$scope.todos.length; i++) {
               if ($scope.todos[i].done) {
@@ -191,6 +218,28 @@
           delete $scope.editMode[todoKey];
       };
 
+      var currentlyEditing = function() {
+        for (var key in $scope.editMode) {
+          if ($scope.editMode.hasOwnProperty(key)) {
+            // a key is present, so a todo is currently being edited.
+            return true;
+          }
+        }
+        return false;
+      };
+
+      var cancelAction = function(action) {
+        if (currentlyEditing()) {
+          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
+          msg += "This action will reload the todo items, but you have items currently open for editing. ";
+          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
+          if (!window.confirm(msg)) {
+            return true;
+          }
+        }
+        return false;
+      };
+
       $scope.saveTodo = function(todoKey) {
         if (!$scope.editMode[todoKey]) {
           $("body").statusmsg("open", "Something has gone wrong... Please refresh the page.", {type: "error"});
@@ -204,18 +253,24 @@
 
           TodosService.put($scope.currentProject, $scope.editMode[todoKey]).done(function(data) {
             $scope.$apply(function() {
+              var msg = "Saved";
               var i = $scope.editMode[todoKey]._index;
-              delete $scope.editMode[todoKey]._index;
-              $scope.todos[i] = data;
               delete $scope.editMode[todoKey];
+              if (!currentlyEditing()) {
+                $scope.update(msg);
+              }
+              else {
+                $scope.todos[i] = data;
+                $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
+              }
             });
-
             toggleTodo(data, "open");
+
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Saving error: " + xhr.status, {type: "error", closable: true});
           });
         } else {
-          notLoaded();
+          window.notLoaded();
         }
       };
 
@@ -224,76 +279,56 @@
           return;
 
         if ($scope.currentProject) {
-          TodosService.delete($scope.currentProject, todo).done(function() {
-            $scope.$apply(function() {
-              $scope.todos.splice(i, 1);
-              recomputePages($scope.totalTodos-1, $scope.todosPerPage);
-            });
+          TodosService["delete"]($scope.currentProject, todo).done(function() {
+            var msg = "Deleted";
+            if (!currentlyEditing()) {
+              $scope.update(msg);
+            }
+            else {
+              $scope.$apply(function() {
+                $scope.todos.splice(i, 1);
+                $scope.totalTodos--;
+                $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
+              });
+            }
           }).fail(function(xhr) {
             $("body").statusmsg("open", "Deletion failed: " + xhr.status, {type: "error", closable: true});
           });
         } else {
-          notLoaded();
+          window.notLoaded();
         }
       };
-
-      var filter = function(tags) {
-        var params = {
-          tags: tags,
-          showdone: $scope.showdone,
-          shownotdone: $scope.shownotdone
-        };
-
-        return TodosService.filter($scope.currentProject, params).done(function(data) {
-          $scope.$apply(function() {
-            $scope.todos = data.todos;
-            $scope.currentPage = null;
-            $scope.totalPages = null;
-            $scope.todosPerPage = null;
-            $scope.totalTodos = data.todos.length;
-            $scope.pages = [];
-          });
-        });
-      };
-
-      var getFilterTags = function() {
-        var tags = [];
-        for (var t in $scope.tagsFiltered) {
-          if ($scope.tagsFiltered[t])
-            tags.push(t);
-        }
-        return tags;
-      }
 
       $scope.checkTagFilter = function(tag) {
+        if (cancelAction("change the filters")) return;
         $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
-        var tags = getFilterTags();
-        filter(tags).fail(function(xhr) {
-          $("body").statusmsg("open", "Filter failed: " + xhr.status, {type: "error", closable: true});
-          $scope.$apply(function () {
-            $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
-          });
-        });
+        $scope.update();
       };
 
       $scope.checkShowFilter = function(attr) {
+        if (cancelAction("change the filters")) return;
         $scope[attr] = $scope[attr] === "1" ? "0" : "1";
-        filter(getFilterTags()).fail(function(xhr) {
-          $("body").statusmsg("open", "Filter failed: " + xhr.status, {type: "error", closable: true});
-          $scope.$apply(function() {
-            $scope[attr] = $scope[attr] === "1" ? "0" : "1";
-          });
-        });
+        $scope.update();
+      };
+
+      $scope.goToPage = function(pageNo) {
+        if (cancelAction("change the page")) return;
+        $scope.currentPage = pageNo;
+        $scope.update();
       };
 
       $scope.currentProject = null;
 
       ProjectsService.getCurrentProject().done(function(currentProject){
-        $scope.currentProject = currentProject;
-        $scope.update();
-        $scope.$$phase || $scope.$apply();
+        if (currentProject){
+          $scope.currentProject = currentProject;
+          title("Todos", $scope.currentProject);
+          $scope.update();
+          $scope.$$phase || $scope.$apply();
+        } else {
+          window.notLoaded();
+        }
       });
-
     }]
   );
 

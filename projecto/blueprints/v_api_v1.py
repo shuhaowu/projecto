@@ -3,6 +3,7 @@ from flask.ext.login import login_required, current_user
 from flask.ext.classy import FlaskView, route
 import settings
 import os
+import math
 
 from leveldbkit import NotFoundError
 
@@ -266,7 +267,7 @@ class TodosView(FlaskView):
       return abort(400)
 
     todos = []
-    showdone = request.args.get("showdown", "0")
+    showdone = request.args.get("showdone", "0")
     for todo in Todo.index("parent", project.key):
       if showdone == "0" and todo.done:
         continue
@@ -285,6 +286,12 @@ class TodosView(FlaskView):
     showdone = request.args.get("showdone", "0") == "1"
     shownotdone = request.args.get("shownotdone", "1") == "1"
 
+    try:
+      amount = min(int(request.args.get("amount", 20)), 100)
+      page = int(request.args.get("page", 1)) - 1
+    except (TypeError, ValueError):
+      return abort(400)
+
     # TODO: milestone based filters
     # TODO: time based filters
 
@@ -302,8 +309,14 @@ class TodosView(FlaskView):
               break
 
     filtered.sort(key=lambda x: x["date"], reverse=True)
+    totalTodos = len(filtered)
+    if (totalTodos < (page*amount + 1)):
+      page = int(math.ceil(totalTodos / amount)) - 1
+      if (page < 0):
+        page = 0
 
-    return jsonify(todos=filtered)
+    return jsonify(todos=filtered[page*amount:page*amount+amount],
+                   currentPage=page+1, totalTodos=totalTodos, todosPerPage=amount)
 
   @route("/<id>", methods=["DELETE"])
   def delete(self, project, id):

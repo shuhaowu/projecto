@@ -19,7 +19,6 @@
     });
 
     $routeProvider.when("/projects/:id/todos", todosPage);
-    $routeProvider.when("/projects/:id/todos/pages/:page", todosPage)
 
     $routeProvider.when("/projects/:id/todos/:todoId", {
       templateUrl: "/static/partials/singletodo.html",
