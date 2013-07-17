@@ -230,9 +230,9 @@
 
       var cancelAction = function(action) {
         if (currentlyEditing()) {
-          action = action || "proceed";
-          var msg = "There are todo items currently being edited on this page.\n";
-          msg += "Are you sure that you wish to " + action + "? (Unsaved changes will be lost)";
+          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
+          msg += "This action will reload the todo items, but you have items currently open for editing. ";
+          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
           if (!window.confirm(msg)) {
             return true;
           }
