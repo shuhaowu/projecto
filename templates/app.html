@@ -22,7 +22,7 @@
         <li><label></label></li>
         <li class="divider"></li>
         <li><label>Projects you're participating in</label></li>
-        <li ng-repeat="projects in projectsParticipating">
+        <li ng-repeat="project in projectsParticipating">
           <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
         </li>
         <li><label></label></li> <!-- hack to add in some extra space -->
