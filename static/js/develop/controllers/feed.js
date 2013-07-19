@@ -1,6 +1,31 @@
 "use strict";
 
 (function() {
+
+
+  angular.module("projecto").controller("FeedItemController", ["$scope", "FeedService", function($scope, FeedService) {
+    $scope.deletePost = function(post) {
+      if ($scope.currentProject) {
+        if (confirm("Are you sure you want to delete this post?")) {
+          FeedService.delete($scope.currentProject, post).done(function(){
+            for (var i=0; i<$scope.posts.length; i++) {
+              if ($scope.posts[i].key === post.key) {
+                $scope.$apply(function(){
+                  $scope.posts.splice(i, 1);
+                });
+                break;
+              }
+            }
+          }).fail(function(xhr){
+            $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
+          });
+        }
+      } else {
+        notLoaded();
+      }
+    };
+  }]);
+
   angular.module("projecto").controller(
     "FeedController", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
       $scope.posts = [];
@@ -31,28 +56,6 @@
         }
       };
 
-      $scope.deletePost = function(post) {
-        if ($scope.currentProject) {
-          console.log(post.author);
-          if (confirm("Are you sure you want to delete this post?")) {
-            FeedService.delete($scope.currentProject, post).done(function(){
-              for (var i=0; i<$scope.posts.length; i++) {
-                if ($scope.posts[i].key === post.key) {
-                  $scope.$apply(function(){
-                    $scope.posts.splice(i, 1);
-                  });
-                  break;
-                }
-              }
-            }).fail(function(xhr){
-              $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
-            });
-          }
-        } else {
-          notLoaded();
-        }
-      };
-
       $scope.update = function() {
         if ($scope.currentProject){
           title("Feed", $scope.currentProject);
@@ -78,6 +81,8 @@
     }]
   );
 
-  angular.module("projecto").controller("SingleFeedController", ["$scope", function($scope) {
+  angular.module("projecto", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
+
   }]);
+
 })();
