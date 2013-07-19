@@ -13,16 +13,8 @@
     </div>
   </div>
   <div class="large-8 columns">
-    <div class="panel feed-post" ng-repeat="post in posts">
-      <img src="https://secure.gravatar.com/avatar/{[ post.author.avatar ]}?s=50" class="feed-avatar" />
-      <span class="feed-date"> <a href="#/projects/{[ currentProject.key ]}/feed/{[ post.key ]}"><ng-pluralize count="post.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize></a> |
-
-      {[ post.date | relativeTime ]} <a href="" ng-click="deletePost(post)" ng-show="currentProject.owner || post.author.key == currentUser.key" title="Delete">&times;</a></span>
-      <p>
-        <strong>{[ post.author.name ]}</strong>
-        <br />
-        {[ post.content ]}
-      </p>
+    <div ng-repeat="post in posts">
+      <ng-include src="'/static/partials/feeditem.html'"></ng-include>
     </div>
     <div class="panel" class="hide" ng-show="posts.length == 0">
       <p>No activities yet. You can always post something!</p>
