@@ -128,7 +128,7 @@
     };
 
     // so that feeditem.html knows what's going on.
-    $scope.singlePost = true;
+    $scope.hideComment = true;
 
     ProjectsService.getCurrentProject().done(function(currentProject) {
       $scope.currentProject = currentProject;

@@ -2,7 +2,7 @@
   <img src="https://secure.gravatar.com/avatar/{[ post.author.avatar ]}?s=50" class="feed-avatar" />
   <span class="feed-date">
 
-    <span ng-hide="singlePost">
+    <span ng-hide="hideCommentLink">
     <a href="#/projects/{[ currentProject.key ]}/feed/{[ post.key ]}"><ng-pluralize count="post.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize></a> |
     </span>
 
