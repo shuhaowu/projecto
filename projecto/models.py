@@ -72,6 +72,13 @@ class FeedItem(Document, Content):
     self.delete()
     return archived_item
 
+  def delete(self, *args, **kwargs):
+    """Overriden as we need to delete the children"""
+    for comment in Comment.index("parent", self.key):
+      comment.delete()
+
+    return Document.delete(self, *args, **kwargs)
+
 class Comment(Document, Content):
   pass
 
