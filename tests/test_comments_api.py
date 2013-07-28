@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from leveldbkit import NotFoundError
+
 from .utils import ProjectTestCase, new_comment, new_feeditem
 
 class TestCommentsAPI(ProjectTestCase):
@@ -60,7 +62,65 @@ class TestCommentsAPI(ProjectTestCase):
     self.assertStatus(400, response)
 
   def test_delete_comment_for_feed(self):
-    pass
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
+    comment = new_comment(self.user, feeditem.key, content="content", save=True)
+
+    self.login()
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      comment.reload()
+
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(404, response)
+
+    user2 = self.create_user("test2@test.com")
+    self.project.collaborators.append(user2.key)
+    self.project.save()
+    comment = new_comment(user2, feeditem.key, content="content", save=True)
+
+    # still logged in as the project owner
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(200, response)
+    with self.assertRaises(NotFoundError):
+      comment.reload()
+
+    comment = new_comment(user2, feeditem.key, content="content", save=True)
+    self.logout()
+    self.login(user2)
+
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(200, response)
+    with self.assertRaises(NotFoundError):
+      comment.reload()
+
+    self.project.collaborators.remove(user2.key)
+    self.project.save()
 
   def test_delete_comment_for_feed_reject_permission(self):
-    pass
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
+    comment = new_comment(self.user, feeditem.key, content="content", save=True)
+
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("test2@test.com")
+    self.login(user2)
+
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(403, response)
+
+    self.project.collaborators.append(user2.key)
+    self.project.save()
+
+    # just to be safe
+    self.logout()
+    self.login(user2)
+
+    # not post owner nor project owner.
+    response, data = self.deleteJSON(self.base_url(feeditem.key, comment.key))
+    self.assertStatus(403, response)
+
+    # should not fail.
+    comment.reload()
