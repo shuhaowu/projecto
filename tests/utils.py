@@ -6,7 +6,7 @@ from flask.ext.login import test_login_user, test_logout_user
 
 from projecto import app
 from projecto.models import (User, Project, establish_connections,
-                             close_connections, FeedItem, Todo)
+                             close_connections, FeedItem, Todo, Comment)
 import settings
 
 class FlaskTestCase(TestCase):
@@ -153,6 +153,20 @@ def new_feeditem(user, project, **kwargs):
   if save:
     feeditem.save()
   return feeditem
+
+def new_comment(user, parent, **kwargs):
+  save = kwargs.pop("save", False)
+  key = kwargs.pop("key", None)
+  kwargs["parent"] = parent
+  if key:
+    comment = Comment(key=key, data=kwargs)
+  else:
+    comment = Comment(data=kwargs)
+
+  comment.author = user
+  if save:
+    comment.save()
+  return comment
 
 def new_todo(user, project, **kwargs):
   save = kwargs.pop("save", False)

@@ -154,6 +154,21 @@ class CommentView(FlaskView):
     comment.save()
     return jsonify(**comment.serialize(restricted=("title", "parent", "author"), include_key=True))
 
+  @route("/<comment_id>", methods=["DELETE"])
+  def delete(self, project, parent_id, comment_id):
+    try:
+      comment = Comment.get(comment_id)
+    except NotFoundError:
+      return abort(404)
+    else:
+      # Note that ideally we want the author of the parent post to be able to delete too.
+      # however this is not possible right now as we don't know what the parent is.
+      if current_user.key == comment.author.key or current_user.key in project.owners:
+        comment.delete()
+        return jsonify(status="okay")
+      else:
+        return abort(403)
+
 CommentView.register(blueprint)
 
 class FeedView(FlaskView):
