@@ -56,11 +56,9 @@ Also we need email reminders.
 
 ### File upload ###
 
-File upload allows anyone to upload files (we should keep revisions). The files
-should have some rudimentary access control: only owners and creator can alter
-file details, delete, and upload new versions.
-
-This still needs to be worked on.
+File upload allows anyone to upload files (we should keep revisions). The
+current plan is to use WebDAV. However, the access control issue needs to
+looked into as I am not familiar with that.
 
 ### Schedules ###
 
