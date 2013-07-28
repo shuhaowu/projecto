@@ -33,6 +33,14 @@
           dataType: "json"
         });
       };
+
+      this.get = function(project, post) {
+        return $.ajax({
+          type: "GET",
+          url: apiUrl(project.key, post),
+          dataType: "json"
+        });
+      };
     }
   );
 })();

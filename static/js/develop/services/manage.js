@@ -4,7 +4,7 @@
   angular.module("projecto").service("ManageService", ["$http", function($http) {
 
     var apiUrl = function(project_id, postfix) {
-      return window.API_PREFIX + "/projects/" + project_id + (postfix ? "/" + postfix : "");
+      return window.API_PREFIX + "/projects/" + project_id + "/" + (postfix ? postfix : "");
     };
 
     this.listMembers = function(project) {

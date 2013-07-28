@@ -6,7 +6,7 @@ Jinja2==2.7
 MarkupSafe==0.18
 -e git://github.com/shuhaowu/werkzeug.git@ba2101628cbf55fb8265ca645addf2bce0df7cad#egg=Werkzeug-dev
 argparse==1.2.1
--e git://github.com/shuhaowu/leveldbkit.git@ebf3fb25ed24d0a4939f067a0d33b01db653de1b#egg=leveldbkit-dev
+-e git://github.com/shuhaowu/leveldbkit.git@e2d3a5414c09bbc8bbc891bf460712f38fe235ac#egg=leveldbkit-dev
 misaka==1.0.2
 requests==1.2.3
 ujson==1.33

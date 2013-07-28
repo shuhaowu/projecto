@@ -20,15 +20,18 @@ nav.top-bar li:hover { background-color: #222; }
 nav.top-bar li.name h1 a:hover { color: #DDD; }
 a#login-persona { color: orange; }
 
+/* comments */
+.comments h1 { font-size: 22px; }
+
 /* Footer */
 footer.row { text-align: center; font-size: 11px; color: #AAA; margin-top: 1em; height: 2em; line-height: 2em; }
 footer a:hover { text-decoration: underline; }
 
 /* feed */
 .feed-character-count { margin-right: 5px; color: #AAA; font-size: 0.8em; }
-.feed-avatar { margin-right: 10px; float: left; vertical-align: bottom; }
-.feed-date { font-size: 0.85em; float: right; line-height: 1.18em; }
-.feed-post { margin-bottom: 0.75em; clear: both; }
+.comment-avatar, .feed-avatar { margin-right: 10px; float: left; vertical-align: bottom; }
+.comment-date, .feed-date { font-size: 0.85em; float: right; line-height: 1.18em; }
+.comment-post, .feed-post { margin-bottom: 0.75em; clear: both; }
 
 /* profile */
 .profile-avatar { float: left; margin-right: 10px; }

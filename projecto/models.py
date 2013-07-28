@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from settings import DATABASES
 from flask.ext.login import UserMixin
-import os.path
 from hashlib import md5
 
 from leveldbkit import (
@@ -72,6 +71,13 @@ class FeedItem(Document, Content):
     archived_item.save()
     self.delete()
     return archived_item
+
+  def delete(self, *args, **kwargs):
+    """Overriden as we need to delete the children"""
+    for comment in Comment.index("parent", self.key):
+      comment.delete()
+
+    return Document.delete(self, *args, **kwargs)
 
 class Comment(Document, Content):
   pass

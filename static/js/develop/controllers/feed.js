@@ -1,7 +1,33 @@
 "use strict";
 
 (function() {
-  angular.module("projecto").controller(
+
+  var module = angular.module("projecto");
+
+  module.controller("FeedItemController", ["$scope", "FeedService", function($scope, FeedService) {
+    $scope.deletePost = function(post) {
+      if ($scope.currentProject) {
+        if (confirm("Are you sure you want to delete this post?")) {
+          FeedService.delete($scope.currentProject, post).done(function(){
+            for (var i=0; i<$scope.posts.length; i++) {
+              if ($scope.posts[i].key === post.key) {
+                $scope.$apply(function(){
+                  $scope.posts.splice(i, 1);
+                });
+                break;
+              }
+            }
+          }).fail(function(xhr){
+            $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
+          });
+        }
+      } else {
+        notLoaded();
+      }
+    };
+  }]);
+
+  module.controller(
     "FeedController", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
       $scope.posts = [];
       $scope.newpost = "";
@@ -31,27 +57,16 @@
         }
       };
 
-      $scope.deletePost = function(post) {
-        if ($scope.currentProject) {
-          console.log(post.author);
-          if (confirm("Are you sure you want to delete this post?")) {
-            FeedService.delete($scope.currentProject, post).done(function(){
-              for (var i=0; i<$scope.posts.length; i++) {
-                if ($scope.posts[i].key === post.key) {
-                  $scope.$apply(function(){
-                    $scope.posts.splice(i, 1);
-                  });
-                  break;
-                }
-              }
-            }).fail(function(xhr){
-              $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
-            });
-          }
-        } else {
-          notLoaded();
-        }
-      };
+      //   _________
+      //  /_  ___   \
+      // /@ \/@  \   \
+      // \__/\___/   /
+      //  \_\/______/
+      //  /     /\\\\\
+      // |     |\\\\\\\
+      //  \      \\\\\\\
+      //   \______/\\\\\\
+      //     _||_||_
 
       $scope.update = function() {
         if ($scope.currentProject){
@@ -78,6 +93,48 @@
     }]
   );
 
-  angular.module("projecto").controller("SingleFeedController", ["$scope", function($scope) {
+  module.controller("SingleFeedController", ["$scope", "$route", "title", "FeedService", "ProjectsService", "CommentsService", function($scope, $route, title, FeedService, ProjectsService, CommentsService) {
+    $scope.currentProject = null;
+
+    $scope.update = function() {
+      FeedService.get($scope.currentProject, $route.current.params.feedId).done(function(post) {
+        $scope.$apply(function() {
+          var t = post.content.slice(0, 20);
+          if (post.content.length > 20) {
+            t += " ...";
+          }
+
+          $scope.post = post;
+          title(t, $scope.currentProject);
+        });
+      });
+    };
+
+    $scope.deleteComment = function(comment) {
+      if (confirm("Are you sure you want to delete this comment?")) {
+        CommentsService.delete($scope.currentProject, $scope.post.key, comment).done(function(){
+          for (var i=0; i<$scope.post.children.length; i++) {
+            if ($scope.post.children[i].key === comment.key) {
+              $scope.$apply(function(){
+                $scope.post.children.splice(i, 1);
+              });
+              break;
+            }
+          }
+        }).fail(function(xhr){
+          $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
+        });
+      }
+    };
+
+    // so that feeditem.html knows what's going on.
+    $scope.hideComment = true;
+
+    ProjectsService.getCurrentProject().done(function(currentProject) {
+      $scope.currentProject = currentProject;
+      $scope.update();
+      $scope.$$phase || $scope.$apply();
+    });
   }]);
+
 })();
