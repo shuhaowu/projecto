@@ -29,9 +29,9 @@ footer a:hover { text-decoration: underline; }
 
 /* feed */
 .feed-character-count { margin-right: 5px; color: #AAA; font-size: 0.8em; }
-.feed-avatar { margin-right: 10px; float: left; vertical-align: bottom; }
-.feed-date { font-size: 0.85em; float: right; line-height: 1.18em; }
-.feed-post { margin-bottom: 0.75em; clear: both; }
+.comment-avatar, .feed-avatar { margin-right: 10px; float: left; vertical-align: bottom; }
+.comment-date, .feed-date { font-size: 0.85em; float: right; line-height: 1.18em; }
+.comment-post, .feed-post { margin-bottom: 0.75em; clear: both; }
 
 /* profile */
 .profile-avatar { float: left; margin-right: 10px; }

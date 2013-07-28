@@ -7,7 +7,7 @@ import math
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem, Todo, User
+from ..models import Project, FeedItem, Todo, User, Comment
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db, project_managers_required
 
 MODULE_NAME = "api_v1"
@@ -140,6 +140,21 @@ class ProjectsView(FlaskView):
     return jsonify(status="okay")
 
 ProjectsView.register(blueprint)
+
+class CommentView(FlaskView):
+  route_base = "/projects/<project_id>/comments/<parent_id>/"
+  decorators = [project_access_required]
+
+  @route("/", methods=["POST"])
+  @ensure_good_request({"content", "content"})
+  def post(self, project, parent_id):
+    comment = Comment(data=request.json)
+    comment.author = current_user._get_current_object()
+    comment.parent = parent_id
+    comment.save()
+    return jsonify(**comment.serialize(restricted=("title", "parent", "author"), include_key=True))
+
+CommentView.register(blueprint)
 
 class FeedView(FlaskView):
   route_base = "/projects/<project_id>/feed/"

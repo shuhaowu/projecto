@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from settings import DATABASES
 from flask.ext.login import UserMixin
-import os.path
 from hashlib import md5
 
 from leveldbkit import (
