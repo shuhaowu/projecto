@@ -124,3 +124,17 @@ class TestCommentsAPI(ProjectTestCase):
 
     # should not fail.
     comment.reload()
+
+  def test_delete_feeditem_deletes_comments(self):
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
+    comment = new_comment(self.user, feeditem.key, content="content", save=True)
+
+    self.login()
+    response, data = self.deleteJSON("/api/v1/projects/{}/feed/{}".format(self.project.key, feeditem.key))
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      feeditem.reload()
+
+    with self.assertRaises(NotFoundError):
+      comment.reload()
