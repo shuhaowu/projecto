@@ -23,8 +23,4 @@
 
   }]);
 
-  module.controller("CommentController", ["$scope", "CommentsService", function($scope, CommentsService) {
-
-  }]);
-
 })();

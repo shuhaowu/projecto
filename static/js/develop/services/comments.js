@@ -15,5 +15,13 @@
         data: JSON.stringify({content: commentText})
       });
     };
+
+    this.delete = function(project, parentId, comment) {
+      return $.ajax({
+        type: "DELETE",
+        url: apiUrl(project.key, parentId, comment.key),
+        dataType: "json"
+      });
+    };
   });
 })()
