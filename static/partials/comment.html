@@ -1,0 +1,10 @@
+<div class="panel comment" ng-controller="CommentController">
+  <img src="https://secure.gravatar.com/avatar/{[ comment.author.avatar ]}?s=50" class="comment-avatar" />
+  <span class="comment-date">
+  {[ comment.date | relativeTime ]} <a href="" ng-click="deleteComment(comment)" ng-show="currentProject.owner || comment.author.key == currentUser.key" title="Delete">&times;</a></span>
+  <p>
+    <strong>{[ comment.author.name ]}</strong>
+    <br />
+    {[ comment.content ]}
+  </p>
+</div>

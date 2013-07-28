@@ -20,6 +20,9 @@ nav.top-bar li:hover { background-color: #222; }
 nav.top-bar li.name h1 a:hover { color: #DDD; }
 a#login-persona { color: orange; }
 
+/* comments */
+.comments h1 { font-size: 22px; }
+
 /* Footer */
 footer.row { text-align: center; font-size: 11px; color: #AAA; margin-top: 1em; height: 2em; line-height: 2em; }
 footer a:hover { text-decoration: underline; }

@@ -1,0 +1,21 @@
+<div class="row">
+  <div class="twelve columns">
+    <ng-include src="'/static/partials/feeditem.html'"></ng-include>
+  </div>
+</div>
+
+<div class="row">
+  <div class="twelve columns">
+
+    <ng-include src="'/static/partials/comment.html'" ng-repeat="comment in post.children"></ng-include>
+
+    <div class="panel comment" ng-controller="NewCommentController">
+      <form ng-submit="post()">
+        <label>Leave a comment!</label>
+        <textarea ng-model="commentText"></textarea>
+        <button type="submit" class="small right">Comment</button>
+        <br class="clear" />
+      </form>
+    </div>
+  </div>
+</div>

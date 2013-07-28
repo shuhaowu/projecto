@@ -2,8 +2,9 @@
 
 (function() {
 
+  var module = angular.module("projecto");
 
-  angular.module("projecto").controller("FeedItemController", ["$scope", "FeedService", function($scope, FeedService) {
+  module.controller("FeedItemController", ["$scope", "FeedService", function($scope, FeedService) {
     $scope.deletePost = function(post) {
       if ($scope.currentProject) {
         if (confirm("Are you sure you want to delete this post?")) {
@@ -26,7 +27,7 @@
     };
   }]);
 
-  angular.module("projecto").controller(
+  module.controller(
     "FeedController", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
       $scope.posts = [];
       $scope.newpost = "";
@@ -56,6 +57,17 @@
         }
       };
 
+      //   _________
+      //  /_  ___   \
+      // /@ \/@  \   \
+      // \__/\___/   /
+      //  \_\/______/
+      //  /     /\\\\\
+      // |     |\\\\\\\
+      //  \      \\\\\\\
+      //   \______/\\\\\\
+      //     _||_||_
+
       $scope.update = function() {
         if ($scope.currentProject){
           title("Feed", $scope.currentProject);
@@ -81,8 +93,31 @@
     }]
   );
 
-  angular.module("projecto", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
+  module.controller("SingleFeedController", ["$scope", "$route", "title", "FeedService", "ProjectsService", function($scope, $route, title, FeedService, ProjectsService) {
+    $scope.currentProject = null;
 
+    $scope.update = function() {
+      FeedService.get($scope.currentProject, $route.current.params.feedId).done(function(post) {
+        $scope.$apply(function() {
+          var t = post.content.slice(0, 20);
+          if (post.content.length > 20) {
+            t += " ...";
+          }
+
+          $scope.post = post;
+          title(t, $scope.currentProject);
+        });
+      });
+    };
+
+    // so that feeditem.html knows what's going on.
+    $scope.singlePost = true;
+
+    ProjectsService.getCurrentProject().done(function(currentProject) {
+      $scope.currentProject = currentProject;
+      $scope.update();
+      $scope.$$phase || $scope.$apply();
+    });
   }]);
 
 })();
