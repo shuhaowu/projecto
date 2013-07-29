@@ -193,8 +193,12 @@ directory and type:
 
     $ make minify
 
+You need to now create a file named serversettings.py in the root projecto
+directory. You can simply copy and paste the devsettings.py file you already
+have and change the `DEBUG` in serversettings.py to be `True`
+
 Lastly, you need to either delete devsettings.py or change `DEBUG` to
-`True` in devsettings.py.
+`True` in devsettings.py. 
 
 Run the server and you should see:
 
