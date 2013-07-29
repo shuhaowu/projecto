@@ -151,6 +151,66 @@ Ignore the warning. We don't use store passwords so it is okay.
 
 Navigate to http://localhost:8800 to check out the site
 
+Testing out production install
+------------------------------
+
+The deployment process is still currently quite unclear. However, it is
+possible at this stage to take the production server for a spin to see what
+will happen (of course, this will be behind a reverse proxy in the real
+production mode). You might want to do this to see if minification happened
+correctly, or if there are any other issues.
+
+To do this, deactivate your development virtualenv and make a new virtualenv.
+In this new virtualenv, install leveldb like we did in the regular environment.
+
+Then, you need to install the production requirements. You need packages like
+build-essentials and python-dev. In Ubuntu and Debian, run the following:
+
+    # apt-get install build-essentials python-dev
+
+If you are using another distro, install the equivalent packages.
+
+Then, install the production requirements
+
+    $ pip install production-requirements.txt
+
+Now, you need to install Node and UglifyJS to minify files. Follow the
+instructions [here][node-install] for node or install it using your favorite
+method.
+
+[node-install]: https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
+
+To install uglify, simply execute:
+
+    $ npm install -g uglifyjs
+
+Make sure you can run uglifyjs by testing it with
+
+    $ uglifyjs -V
+
+Now, you need to minify the files. Do this by being in the root projecto
+directory and type:
+
+    $ make minify
+
+Lastly, you need to either delete devsettings.py or change `DEBUG` to
+`True` in devsettings.py.
+
+Run the server and you should see:
+
+    $ python server.py
+    ==================================================================
+    WARNING: BCRYPT NOT AVAILABLE. DO NOT USE IN PRODUCTION WITHOUT IT
+    ==================================================================
+
+Again, ignore the message. Now you can head to http://localhost:8800 to test
+out the production server.
+
+Deploying Projecto
+------------------
+
+Todo
+
 Tips for development
 --------------------
 
