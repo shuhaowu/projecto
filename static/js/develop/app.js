@@ -74,7 +74,7 @@
     $httpProvider.defaults.headers.common["X-CSRFToken"] = window.csrfToken;
   }]);
 
-  app.run(["$rootScope", "ProjectsService", function($rootScope, ProjectsService) {
+  app.run(["$rootScope", function($rootScope) {
     $rootScope.currentUser = window.currentUser;
   }]);
 })();

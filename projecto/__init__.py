@@ -4,7 +4,7 @@ from flask.ext.login import current_user
 from settings import STATIC_FOLDER, TEMPLATES_FOLDER, SECRET_KEY, MAX_CONTENT_LENGTH, TESTING
 from .blueprints import blueprints
 from .models import establish_connections
-from .utils import jsonify, get_all_script_paths
+from .utils import jsonify, get_all_script_paths, partials
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATES_FOLDER)
 app.secret_key = SECRET_KEY
@@ -44,6 +44,7 @@ establish_connections()
 @app.before_request
 def before_request():
   app.jinja_env.globals["scripts"] = get_all_script_paths()
+  app.jinja_env.globals["partials"] = partials
 
 # Here are just the pages.
 

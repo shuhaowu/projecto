@@ -8,23 +8,17 @@ def jsonify(**params):
   return response
 
 # Getting script to inject
-import os
-from settings import DEBUG, APP_FOLDER
+from settings import DEBUG, get_all_js_uncompiled, MINIFIED_JS_PATH, MINIFIED_PARTIALS_PATH
 
 if DEBUG:
-  def get_all_script_paths():
-    scripts = []
-    scripts.append("/static/js/develop/app.js")   # must be the 1st script
-    prefix_length = len(APP_FOLDER)
-    for root, subdirs, files in os.walk(os.path.join(APP_FOLDER, "static/js/develop")):
-      for fname in files:
-        if fname.endswith(".js") and fname != "app.js":
-          scripts.append(root[prefix_length:] + "/" + fname)
-
-    return scripts
+  get_all_script_paths = get_all_js_uncompiled
+  partials = None
 else:
   def get_all_script_paths():
-    return ["/static/js/app.js"]
+    return [MINIFIED_JS_PATH]
+
+  with open(MINIFIED_PARTIALS_PATH) as f:
+    partials = f.read()
 
 # CSRF reference
 from flask.ext.seasurf import SeaSurf

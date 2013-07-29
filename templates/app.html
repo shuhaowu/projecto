@@ -43,6 +43,11 @@
 {% endblock %}
 
 {% block end %}
+
+{% autoescape off %}
+{{ partials }}
+{% endautoescape %}
+
 <script src="/static/js/vendor/angular.min.js"></script>
 {% for script in scripts %}
 <script src="{{ script }}"></script>

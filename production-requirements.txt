@@ -9,7 +9,6 @@ Werkzeug==0.8.3
 argparse==1.2.1
 -e git://github.com/surfly/gevent.git@454a77ca561868854760b2d9cbfa3bf3bbd2e062#egg=gevent-dev
 greenlet==0.4.0
-leveldb==0.1
 -e git://github.com/shuhaowu/leveldbkit.git@e2d3a5414c09bbc8bbc891bf460712f38fe235ac#egg=leveldbkit-dev
 misaka==1.0.2
 requests==1.2.3
