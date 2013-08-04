@@ -1,3 +1,5 @@
+import os
+
 from flask import current_app, abort
 import ujson
 
@@ -8,7 +10,7 @@ def jsonify(**params):
   return response
 
 # Getting script to inject
-from settings import DEBUG, get_all_js_uncompiled, MINIFIED_JS_PATH, MINIFIED_PARTIALS_PATH
+from settings import DEBUG, get_all_js_uncompiled, MINIFIED_JS_PATH, MINIFIED_PARTIALS_PATH, APP_FOLDER
 
 if DEBUG:
   get_all_script_paths = get_all_js_uncompiled
@@ -17,7 +19,7 @@ else:
   def get_all_script_paths():
     return [MINIFIED_JS_PATH]
 
-  with open(MINIFIED_PARTIALS_PATH) as f:
+  with open(os.path.join(APP_FOLDER, MINIFIED_PARTIALS_PATH)) as f:
     partials = f.read()
 
 # CSRF reference
