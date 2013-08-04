@@ -1,6 +1,6 @@
 *.pyc
 *.komodoproject
-serversettings.py
+/serversettings.py
 databases/
 all_partials.html
 static/js/app.js
