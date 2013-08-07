@@ -45,7 +45,9 @@
 {% block end %}
 
 {% autoescape off %}
+{% if partials %}
 {{ partials }}
+{% endif %}
 {% endautoescape %}
 
 <script src="/static/js/vendor/angular.min.js"></script>
