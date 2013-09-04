@@ -1,8 +1,9 @@
 *.pyc
 *.komodoproject
-/serversettings.py
 /settings_local.py
 databases/
 all_partials.html
-static/js/app.js
+static/js/app.min.js
+static/css/app.min.css
+static/.webassets-cache/
 .vagrant
