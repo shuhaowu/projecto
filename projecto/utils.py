@@ -1,7 +1,6 @@
-import os
-
 from flask import current_app, abort
 import ujson
+
 
 # ujson for both speed and compactness
 def jsonify(**params):
@@ -9,22 +8,6 @@ def jsonify(**params):
   response.mimetype = "application/json"
   return response
 
-# Getting script to inject
-from settings import DEBUG, get_all_js_uncompiled, MINIFIED_JS_PATH, MINIFIED_PARTIALS_PATH, APP_FOLDER
-
-if DEBUG:
-  get_all_script_paths = get_all_js_uncompiled
-  partials = None
-else:
-  def get_all_script_paths():
-    return [MINIFIED_JS_PATH]
-
-  with open(os.path.join(APP_FOLDER, MINIFIED_PARTIALS_PATH)) as f:
-    partials = f.read()
-
-# CSRF reference
-from flask.ext.seasurf import SeaSurf
-csrf = SeaSurf()
 
 # Project access control helpers
 
@@ -32,6 +15,7 @@ from functools import wraps
 from leveldbkit import NotFoundError
 from flask.ext.login import current_user
 from .models import Project, User
+
 
 def hook_user_to_projects(user):
   for email in user.emails:
@@ -44,6 +28,7 @@ def hook_user_to_projects(user):
       project.unregistered_collaborators.remove(email)
       project.collaborators.append(user.key)
       project.save()
+
 
 def project_access_required(fn):
   """This will allow anyone who is currently registered in that project to

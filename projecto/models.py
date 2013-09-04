@@ -1,7 +1,10 @@
 from __future__ import absolute_import
-from settings import DATABASES
-from flask.ext.login import UserMixin
+
 from hashlib import md5
+
+from flask.ext.login import UserMixin
+
+from settings import DATABASES
 
 from leveldbkit import (
   Document, EmDocument,

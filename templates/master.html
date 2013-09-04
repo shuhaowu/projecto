@@ -6,8 +6,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
   <title>{% block title %}Projecto{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/base.css" />
-  <link rel="stylesheet" href="/static/css/app.css" />
+  {% assets "css_all" %}
+  <link rel="stylesheet" href="{{ ASSET_URL }}" />
+  {% endassets %}
   <script type="application/x-javascript">
     {% if current_user.is_authenticated() %}
     {% autoescape off %}
