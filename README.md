@@ -135,6 +135,19 @@ We need to now create a database folder:
 
     $ mkdir databases
 
+Lastly, we need a settings file. In the project root:
+
+    $ touch settings_local.py
+
+This file should have roughly this content:
+
+    DEBUG = True
+
+    SECRET_KEY = "{generate a random string please :)}"
+
+You can also override anything in settings.py here. However, you must have
+`SECRET_KEY` set.
+
 To start the server, run:
 
     $ python server.py
@@ -188,17 +201,7 @@ Make sure you can run uglifyjs by testing it with
 
     $ uglifyjs -V
 
-Now, you need to minify the files. Do this by being in the root projecto
-directory and type:
-
-    $ make minify
-
-You need to now create a file named serversettings.py in the root projecto
-directory. You can simply copy and paste the devsettings.py file you already
-have and change the `DEBUG` in serversettings.py to be `True`
-
-Lastly, you need to either delete devsettings.py or change `DEBUG` to
-`True` in devsettings.py.
+Now, go to you settings_local.py file and change `DEBUG` to `True`.
 
 Run the server and you should see:
 
@@ -213,11 +216,11 @@ out the production server.
 Deploying Projecto
 ------------------
 
-Todo
+Not available yet.
 
 Tips for development
 --------------------
 
  - Run all tests automagically: `python -m unittest discover`
- - Do `pip install pdbpp` and once you get into the debugger, type sticky and
+ - Do `pip install pdbpp` and once you get into the debugger, type `sticky` and
    hit enter.
