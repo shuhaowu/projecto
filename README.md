@@ -80,8 +80,25 @@ have to manage passwords. Projects that are serious about security could use
 their own domains and use their own authentication scheme according to the
 Mozilla Persona specs.
 
-Running this
-------------
+Running this (with vagrant!)
+----------------------------
+
+ 1. Go get [vagrant](http://www.vagrantup.com/).
+ 2. git clone this project
+ 3. cd into the project
+ 4. type `vagrant up`
+ 5. Wait...
+ 6. `vagrant ssh` and you have a working box!
+
+You can also add in `192.168.33.10 projecto` into your /etc/hosts file so you
+can access projecto directly via http://projecto on your host machine.
+
+Inside the VM, `s` will start the server and `t` will run the unittests.
+
+Running this (Manual)
+---------------------
+
+_**Note**: These are some older instructions. Now we use vagrant!_
 
 This project has a some weird dependencies (really.. all non-trivial apps have
 weird dependencies).
