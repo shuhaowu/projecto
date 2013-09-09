@@ -77,5 +77,18 @@ echo "cd /projecto" >> /home/vagrant/.bashrc
 echo "alias t='cd /projecto; python -m unittest discover'" >> /home/vagrant/.bashrc
 echo "alias s='cd /projecto; python server.py'" >> /home/vagrant/.bashrc
 
+# run the unittests!
+echo "All setup complete! Now running teh tests!"
+cd /projecto
+python -m unittest discover
+if [ $? -eq 0 ]; then
+    echo "Boom! all tests passed :D"
+else
+    echo "Uhoh. Something went wrong :("
+fi
+
 # make installed flag
 touch /home/vagrant/installed
+echo "Setup complete. Do 'vagrant ssh' and start playing!"
+echo "'s' starts the server"
+echo "'t' does the unittests"
