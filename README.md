@@ -86,9 +86,14 @@ Running this (with vagrant!)
  1. Go get [vagrant](http://www.vagrantup.com/).
  2. git clone this project
  3. cd into the project
- 4. type `vagrant up`
- 5. Wait...
- 6. `vagrant ssh` and you have a working box!
+ 4. Create a file called `settings_local.py`. In it, have:
+
+    DEBUG = True
+    SECRET_KEY = "replace with your own key here"
+
+ 5. type `vagrant up`
+ 6. Wait...
+ 7. `vagrant ssh` and you have a working box!
 
 You can also add in `192.168.33.10 projecto` into your /etc/hosts file so you
 can access projecto directly via http://projecto on your host machine.
