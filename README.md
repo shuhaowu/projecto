@@ -145,6 +145,8 @@ This file should have roughly this content:
 
     SECRET_KEY = "{generate a random string please :)}"
 
+Without this, you will not be able to run unittests.
+
 You can also override anything in settings.py here. However, you must have
 `SECRET_KEY` set.
 

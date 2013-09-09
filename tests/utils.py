@@ -5,16 +5,23 @@ from unittest import TestCase
 from flask.ext.login import test_login_user, test_logout_user
 
 from projecto import app
+from projecto.extensions import csrf
 from projecto.models import (User, Project, establish_connections,
                              close_connections, FeedItem, Todo, Comment)
 import settings
 
+CSRF_SET = False
+
 class FlaskTestCase(TestCase):
   def setUp(self):
+    global CSRF_SET
     self.loggedin = False
     self.app = app
     # Setting this will allow us to stop validating CSRF.
-    self.app.config["TESTING"] = True
+    self.app.config["CSRF_DISABLE"] = True
+    if not CSRF_SET:
+      csrf.init_app(self.app)
+      CSRF_SET = True
     self.client = app.test_client()
     # Sets up a context so the request don't get destroyed during the request
     # for things such as login.
