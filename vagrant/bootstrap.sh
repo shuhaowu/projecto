@@ -6,15 +6,21 @@ echo "Setup already completed.. skipping. To run this again, remove /home/vagran
 fi
 
 # getting required packages
-sudo apt-get update
-sudo apt-get install -y python-software-properties python g++ make python-pip
-sudo add-apt-repository ppa:chris-lea/node.js
-sudo apt-get update
-sudo apt-get install -y build-essential python-dev automake libtool autoconf pkg-config
-sudo apt-get install -y nodejs git subversion
+apt-get update
+apt-get install -y python-software-properties python g++ make
+add-apt-repository ppa:chris-lea/node.js
+apt-get update
+apt-get install -y build-essential python-dev automake libtool autoconf pkg-config
+apt-get install -y nodejs git subversion
 
 # Getting convenient packages
-sudo apt-get install -y nginx
+apt-get install -y nginx
+
+# Install pip
+cd /tmp
+wget http://python-distribute.org/distribute_setup.py
+python distribute_setup.py
+easy_install pip
 
 # Installing LevelDB as it is a bitch to do.
 cd /tmp
@@ -22,7 +28,7 @@ svn checkout http://py-leveldb.googlecode.com/svn/trunk/ py-leveldb-read-only
 cd py-leveldb-read-only
 ./compile_leveldb.sh
 python setup.py build
-sudo python setup.py install
+python setup.py install
 
 # Setup project directory.
 cd /projecto
@@ -30,7 +36,8 @@ mkdir -p databases
 mkdir -p userfiles
 
 # Install additional requirements
-sudo pip install -r requirements.txt
+cd /home/vagrant # weird pip src directory is interfering if we are in /projecto
+pip install -r /projecto/requirements.txt
 npm install -g uglify-js
 
 # Configuration for nginx. You can set the "projecto" to point to 192.168.33.10
@@ -69,8 +76,8 @@ server {
 EOL
 
 # Get nginx ready.
-sudo ln -s /etc/nginx/sites-available/projecto /etc/nginx/sites-enabled/projecto
-sudo service nginx restart
+ln -s /etc/nginx/sites-available/projecto /etc/nginx/sites-enabled/projecto
+service nginx restart
 
 # shortcuts
 echo "cd /projecto" >> /home/vagrant/.bashrc
