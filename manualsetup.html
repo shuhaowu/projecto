@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Manual Setup (NOT RECOMMENDED) &mdash; projecto 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="projecto 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Production System Requirements" href="prodsystemrequirements.html" />
+    <link rel="prev" title="Vagrant Setup (Recommended)" href="vagrantsetup.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="prodsystemrequirements.html" title="Production System Requirements"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vagrantsetup.html" title="Vagrant Setup (Recommended)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">projecto 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="manual-setup-not-recommended">
+<span id="manualsetup"></span><h1>Manual Setup (NOT RECOMMENDED)<a class="headerlink" href="#manual-setup-not-recommended" title="Permalink to this headline">¶</a></h1>
+<p><strong>Warning: This is not recommended. You should be using :ref:`vagrantsetup`
+instead. The instructions here may be outdated, break your setup, and so forth.
+Basically, by following this, you voided the warrenty. This is here for
+educational purposes.</strong></p>
+<p>This project has a some weird dependencies (really.. all non-trivial apps have
+weird dependencies).</p>
+<p>Before we can do anything, we must get a virtual environment setup. So please
+do that. Once that&#8217;s done, we need to install leveldb (for now, we will probably
+switch to <a class="reference external" href="https://github.com/shuhaowu/levelupdb">levelupdb</a> or Riak later).</p>
+<p>Installing leveldb is slightly tricky. So follow the following commands (make
+sure your virtual env is activated!):</p>
+<div class="highlight-python"><pre>svn checkout http://py-leveldb.googlecode.com/svn/trunk/ py-leveldb-read-only
+cd py-leveldb-read-only
+./compile_leveldb.sh
+python setup.py build
+python setup.py install</pre>
+</div>
+<p>This _should_ in theory install leveldb. To make sure, open up a python shell
+and do the following:</p>
+<div class="highlight-python"><pre>$ python
+Python 2.7.3 (default, Aug  1 2012, 05:14:39)
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; from leveldb import LevelDB
+&gt;&gt;&gt;</pre>
+</div>
+<p>If you get exactly that, you should be okay and can skip this section.
+If python complains with <cite>ImportError</cite>. There is an issue. Luckily we can
+try diagonising it. Still in your python shell:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">leveldb</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">leveldb</span><span class="p">)</span>
+<span class="go">[&#39;__doc__&#39;, &#39;__file__&#39;, &#39;__name__&#39;, &#39;__package__&#39;]</span>
+</pre></div>
+</div>
+<p>If you get something like this. I would go back and try to go back and try
+to do the <tt class="docutils literal"><span class="pre">./compile_leveldb.sh;</span> <span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">build</span></tt> step again.
+If python complains about leveldb not being available, check if your virtualenv
+is active when you did <tt class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></tt>.</p>
+<p>If you still have trouble, try doing <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">leveldb</span></tt>. And if you still
+have trouble, contact one of the developers.</p>
+<p>After install leveldb, you can use pip to install the rest via:</p>
+<div class="highlight-python"><pre>$ pip install -r requirements.txt</pre>
+</div>
+<p>This should take a little bit of time but should work without issues.</p>
+<p>We need to now create a database folder:</p>
+<div class="highlight-python"><pre>$ mkdir databases</pre>
+</div>
+<p>Lastly, we need a settings file. In the project root:</p>
+<div class="highlight-python"><pre>$ touch settings_local.py</pre>
+</div>
+<p>This file should have roughly this content:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&quot;{generate a random string please :)}&quot;</span>
+</pre></div>
+</div>
+<p>Without this, you will not be able to run unittests.</p>
+<p>You can also override anything in settings.py here. However, you must have
+<tt class="docutils literal"><span class="pre">SECRET_KEY</span></tt> set.</p>
+<p>To start the server, run:</p>
+<div class="highlight-python"><pre>$ python server.py
+==================================================================
+WARNING: BCRYPT NOT AVAILABLE. DO NOT USE IN PRODUCTION WITHOUT IT
+==================================================================
+ * Running on http://localhost:8800/
+ * Restarting with reloader
+==================================================================
+WARNING: BCRYPT NOT AVAILABLE. DO NOT USE IN PRODUCTION WITHOUT IT
+==================================================================</pre>
+</div>
+<p>Ignore the warning. We don&#8217;t use store passwords so it is okay.</p>
+<p>Navigate to <a class="reference external" href="http://localhost:8800">http://localhost:8800</a> to check out the site.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vagrantsetup.html"
+                        title="previous chapter">Vagrant Setup (Recommended)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="prodsystemrequirements.html"
+                        title="next chapter">Production System Requirements</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/manualsetup.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="prodsystemrequirements.html" title="Production System Requirements"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vagrantsetup.html" title="Vagrant Setup (Recommended)"
+             >previous</a> |</li>
+        <li><a href="index.html">projecto 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Projecto Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

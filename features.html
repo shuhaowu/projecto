@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Features &mdash; projecto 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="projecto 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Project Layout" href="projectlayouts.html" />
+    <link rel="prev" title="Welcome to projecto’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="projectlayouts.html" title="Project Layout"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to projecto’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">projecto 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="features">
+<h1>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h1>
+<p>This article loosely covers all the features that we have/plan to have in
+projecto.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Project management systems nowadays are too complicated for small-medium sized
+projects. Good ones costs money and offers the product as a service rather than
+a software package that you can host on your own server.</p>
+<p>Projecto offers four main features:</p>
+<ul class="simple">
+<li>Feed: for project updates</li>
+<li>Todos: managing tasks</li>
+<li>Files: file sharing</li>
+<li>Schedule: time  scheduling with people</li>
+</ul>
+</div>
+<div class="section" id="feed">
+<h2>Feed<a class="headerlink" href="#feed" title="Permalink to this headline">¶</a></h2>
+<p>Pretty much like twitter. Short messages are made here. Tasks done in other
+parts of the systems can be posted here and so forth. People can also comment
+on each feed items.</p>
+<p>Features that need work:</p>
+<ul class="simple">
+<li>Integration with other systems: such as tasks, files, and so forth</li>
+<li>RSS feed</li>
+</ul>
+</div>
+<div class="section" id="todos">
+<h2>Todos<a class="headerlink" href="#todos" title="Permalink to this headline">¶</a></h2>
+<p>Sort of like github issues. Has tags, assign, due date, and so forth. This is
+a place where people can use Markdown.</p>
+<p>Features that need work:</p>
+<ul class="simple">
+<li>Assignment of tasks, duedates</li>
+<li>Milestone</li>
+<li>Single todo view/commenting</li>
+</ul>
+</div>
+<div class="section" id="files">
+<h2>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h2>
+<p>Like a dropbox for the team. Has a straightforward and RESTful API to work
+with.</p>
+<p>This system needs to be coded.</p>
+<p>Features that need work:</p>
+<ul class="simple">
+<li>WebDAV integration</li>
+<li>Commenting on files</li>
+</ul>
+</div>
+<div class="section" id="schedule">
+<h2>Schedule<a class="headerlink" href="#schedule" title="Permalink to this headline">¶</a></h2>
+<p>A meeting calendar for the team.</p>
+<p>This system needs to be designed.</p>
+<p>Features that need work:</p>
+<ul class="simple">
+<li>CalDAV integration</li>
+<li>Commenting/voting on meeting times.
+- Integration with doodle?</li>
+</ul>
+</div>
+<div class="section" id="management">
+<h2>Management<a class="headerlink" href="#management" title="Permalink to this headline">¶</a></h2>
+<p>Management of projects. Adding/deleting contributors, admins, and so forth.</p>
+<p>Features that need work:</p>
+<ul class="simple">
+<li>Another class of users with readonly permission</li>
+<li>An owner that cannot be deleted by other admins</li>
+<li>Changing project name, and maybe have other attributes.</li>
+<li>Automatically add all users with a certain domain name for email address.</li>
+</ul>
+</div>
+<div class="section" id="users">
+<h2>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
+<p>Login system uses Mozilla Persona for easier integration. This means people can
+feel free to integrate LDAP by using a Mozilla Persona LDAP bridge for
+authentication.</p>
+<p>Gravatar for avatar, and other user profile features are currently minimal, but
+could be worked on.</p>
+</div>
+<div class="section" id="planned-features">
+<h2>Planned features<a class="headerlink" href="#planned-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Email integration: Sending emails to update the team. Let team use email to
+respond to the system.
+- There are security concerns here but there are ways to mitigate this.</li>
+<li>Standards, standards, standards.
+- Things like WebDAV and whatnot is essential in my view. Although it would be too much work to get an MVP out for now.</li>
+<li>Mobile clients
+- responsive site may not be possible. A mobile webapp seem to be the way to go as we do not want to support all the platforms.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Features</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#feed">Feed</a></li>
+<li><a class="reference internal" href="#todos">Todos</a></li>
+<li><a class="reference internal" href="#files">Files</a></li>
+<li><a class="reference internal" href="#schedule">Schedule</a></li>
+<li><a class="reference internal" href="#management">Management</a></li>
+<li><a class="reference internal" href="#users">Users</a></li>
+<li><a class="reference internal" href="#planned-features">Planned features</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to projecto&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="projectlayouts.html"
+                        title="next chapter">Project Layout</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/features.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="projectlayouts.html" title="Project Layout"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to projecto’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">projecto 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Projecto Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
