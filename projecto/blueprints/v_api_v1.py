@@ -7,7 +7,7 @@ import math
 
 from leveldbkit import NotFoundError
 
-from ..models import Project, FeedItem, Todo, User, Comment
+from ..models import Project, FeedItem, Todo, User, Comment, File
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db, project_managers_required
 
 MODULE_NAME = "api_v1"
@@ -139,7 +139,9 @@ class ProjectsView(FlaskView):
     project.save()
     return jsonify(status="okay")
 
+
 ProjectsView.register(blueprint)
+
 
 class CommentView(FlaskView):
   route_base = "/projects/<project_id>/comments/<parent_id>/"
@@ -169,7 +171,9 @@ class CommentView(FlaskView):
       else:
         return abort(403)
 
+
 CommentView.register(blueprint)
+
 
 class FeedView(FlaskView):
   route_base = "/projects/<project_id>/feed/"
@@ -235,9 +239,12 @@ class FeedView(FlaskView):
       else:
         return abort(403)
 
+
 FeedView.register(blueprint)
 
+
 class TodosView(FlaskView):
+
   route_base = "/projects/<project_id>/todos/"
   decorators = [project_access_required]
 
@@ -417,5 +424,86 @@ class ProfileView(FlaskView):
     current_user.save()
     return jsonify(status="okay")
 
+
 ProfileView.register(blueprint)
 
+
+class FilesView(FlaskView):
+  route_base = "/projects/<project_id>/files/"
+  decorators = [project_access_required]
+
+  @route("/", methods=["GET"])
+  def index(self, project):
+    files = []
+    # This only gets the root directories and files.
+    for f in File.index("parent", project.key):
+      files.append(f.serialize_for_client())
+
+    return jsonify(self={}, children=files)
+
+  @route("/<path:path>", methods=["GET"])
+  def get_item(self, project, path):
+    pass
+
+  @route("/<path:path>", methods=["POST"])
+  def create_item(self, project, path):
+    pass
+
+  @route("/<path:path>", methods=["PUT"])
+  def update_item(self, project, path):
+    pass
+
+  @route("/<path:path>", methods=["DELETE"])
+  def delete_item(self, project, path):
+    pass
+
+  @route("/<path:path>", methods=["GET"])
+  def get_path(self, project, path):
+    try:
+      f = File.get(File.resource_key(path))
+    except NotFoundError:
+      return abort(404)
+    else:
+      children = []
+      if f.is_directory:
+        for child_file in File.index("parent", f.path):
+          children.append(child_file.serialize_for_client())
+      else:
+        # TODO: one todo.
+        pass
+
+      return jsonify(self=f.serialize_for_client(), children=children)
+
+  @route("/<path:path>", methods=["POST"])
+  def create_item(self, project, path):
+    try:
+      File.get(File.resource_key(project, path))
+    except NotFoundError:
+      is_directory = request.args.get("directory", "0") == "1"
+      d = File.create(project,
+                      current_user._get_current_object(),
+                      path,
+                      is_directory=is_directory)
+      return jsonify(**d.serialize_for_client())
+    else:
+      return jsonify(status="failed", error="path already exists"), 400
+
+  @route("/<path:path>", methods=["DELETE"])
+  def delete_item(self, project, path):
+    try:
+      f = File.get(File.resource_key(project, path))
+    except NotFoundError:
+      return abort(404)
+    else:
+      f.delete()
+      return jsonify(status="okay"), 200
+
+  @route("/<path:path>", methods=["PUT"])
+  def update_item(self, project, path):
+    try:
+      f = File.get(File.resource_key(project, path))
+    except NotFoundError:
+      return abort(404)
+    else:
+      # TODO: update.
+      pass

@@ -1,14 +1,17 @@
+from cStringIO import StringIO
 import json
 import shutil
 from unittest import TestCase
 import os
 
 from flask.ext.login import test_login_user, test_logout_user
+from werkzeug.datastructures import FileStorage
 
 from projecto import app
 from projecto.extensions import csrf
 from projecto.models import (User, Project, establish_connections,
-                             close_connections, FeedItem, Todo, Comment)
+                             close_connections, FeedItem, Todo, Comment,
+                             File)
 import settings
 
 CSRF_SET = False
@@ -196,3 +199,26 @@ def new_todo(user, project, **kwargs):
   if save:
     t.save()
   return t
+
+def new_file(user, project, **kwargs):
+  save = kwargs.pop("save", False)
+  kwargs["author"] = user
+  kwargs["project"] = project
+  kwargs["path"] = kwargs.get("path", "/testfile.txt")
+  kwargs["file"] = kwargs.get("file", FileStorage(StringIO("hello world"), "testfile.txt"))
+  f = File.create(data=kwargs)
+
+  if save:
+    f.save()
+  return f
+
+def new_directory(user, project, **kwargs):
+  save = kwargs.pop("save", False)
+  kwargs["author"] = user
+  kwargs["project"] = project
+  kwargs["path"] = kwargs.get("path", "/testdir/")
+  f = File.create(data=kwargs)
+
+  if save:
+    f.save()
+  return f

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from datetime import datetime
 from hashlib import md5
 import os
 
@@ -108,7 +109,6 @@ class File(Document):
 
   author = ReferenceProperty(User)
   date = DateTimeProperty(default=lambda: None)
-  parent = StringProperty(index=True)
   project = ReferenceProperty(Project)
 
   def __init__(self, key=None, *args, **kwargs):
@@ -124,25 +124,23 @@ class File(Document):
     path = data["path"]
     f = data.pop("file", None)
 
-    key, is_directory = cls.parse_path(data["project"], path)
+    key = cls.keygen(data["project"], path)
     o = cls(key=key, data=data)
     o._content = f
-    o._is_directory = is_directory
     return o
 
   @classmethod
-  def parse_path(cls, project, path):
+  def keygen(cls, project, path):
     """Parses a path that is passed from the client securely.
 
     Returns a filesystem path as well as a key for db and if it is a directory.
     """
     path = path.lstrip("/")
-    is_directory = (path[-1] == "/")
     path = [werkzeug.utils.secure_filename(p.strip()) for p in path.split("/") if p.strip() not in ("..", ".")]
     path = "/".join(path)
 
     key = project.key + "`/" + path
-    return key, is_directory
+    return key
 
   @property
   def path(self):
@@ -160,24 +158,44 @@ class File(Document):
 
   @property
   def is_directory(self):
-    return self._is_directory
+    return self.path[-1] == "/"
 
   def save(self, *args, **kwargs):
     fspath = self.fspath
-    if os.path.exists(fspath):
-      raise IOError("Path {} already exists!".format(fspath))
+    if not os.path.exists(fspath):
+      # We have to do this.. Should PROBABLY move this to new_project
+      # TODO: move this to new project
+      safe_mkdirs(self.base_dir)
 
-    # We have to do this.. Should PROBABLY move this to new_project
-    # TODO: move this to new project
-    safe_mkdirs(self.base_dir)
-
-    if self._is_directory:
-      safe_mkdirs(fspath)
-    else:
-      # TODO: we need to worry about race conditions here as well.
-      self._content.save(fspath)
+      if self.is_directory:
+        safe_mkdirs(fspath)
+      else:
+        # TODO: we need to worry about race conditions here as well.
+        self._content.save(fspath)
 
     return Document.save(self, *args, **kwargs)
+
+  @property
+  def content(self):
+    if self.is_directory:
+      raise AttributeError("Directories do not have 'content'!")
+
+    with open(self.fspath) as f:
+      c = f.read()
+    return c
+
+  def update_content(self, content):
+    """Updates the actual file.
+
+    This method will call save and will immediately save the file"""
+    if self.is_directory:
+      raise AttributeError("Directories do not have 'content'!")
+
+    with open(self.fspath, "w") as f:
+      f.write(content)
+
+    self.date = datetime.now()
+    self.save()
 
   def delete(self, *args, **kwargs):
     fspath = self.fspath
@@ -198,21 +216,21 @@ class File(Document):
 
     return Document.delete(self, *args, **kwargs)
 
-  def list_children(self):
+  @property
+  def children(self):
     fspath = self.fspath
     if self.is_directory:
       base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
       l = len(base_dir) + 1
       for fname in os.listdir(fspath):
-        key = File._keygen(self.project, os.path.join(fspath, fname)[l:])
+        key = File.keygen(self.project, os.path.join(fspath, fname)[l:])
         yield File.get(key)
     else:
-      raise ValueError("{} is not a directory!".format(fspath))
+      raise AttributeError("Files do not have 'children'!")
 
   @classmethod
   def get_by_project_path(cls, project, path):
-    return cls.get(cls._keygen(project, path))
-
+    return cls.get(cls.keygen(project, path))
 
 ALL_MODELS = {
   User: "USERS",

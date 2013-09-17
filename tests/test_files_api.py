@@ -7,7 +7,7 @@ from werkzeug.datastructures import FileStorage
 
 from settings import APP_FOLDER
 from projecto.models import File, Project, User
-from .utils import ProjectTestCase
+from .utils import ProjectTestCase, new_file, new_directory
 
 test_file = lambda filename: (StringIO("hello world"), filename)
 
@@ -65,19 +65,63 @@ class FileModelTests(ProjectTestCase):
     self.assertEquals(os.path.join(File.FILES_FOLDER, self.project.key, "evil/path"), f.fspath)
 
   def test_get_file(self):
-    pass
+    f = new_file(self.user, self.project, save=True)
+
+    g = File.get_by_project_path(self.project, f.path)
+    self.assertEquals(f.key, g.key)
+    self.assertEquals(f.author.key, g.author.key)
+    self.assertEquals(f.project.key, g.project.key)
+    self.assertEquals(f.fspath, g.fspath)
+    self.assertEquals(f.path, g.path)
+    self.assertFalse(g.is_directory)
+
+    self.assertEquals("hello world", g.content)
 
   def test_get_directory(self):
-    pass
+    d = new_directory(self.user, self.project, save=True)
+    g = File.get_by_project_path(self.project, d.path)
 
-  def test_update_file(self):
-    pass
+    self.assertEquals(d.key, g.key)
+    self.assertEquals(d.author.key, g.author.key)
+    self.assertEquals(d.project.key, g.project.key)
+    self.assertEquals(d.fspath, g.fspath)
+    self.assertEquals(d.path, g.path)
+    self.assertTrue(g.is_directory)
 
-  def test_update_directory(self):
-    pass
+    with self.assertRaises(AttributeError):
+      g.content
+
+  def test_update_file_content(self):
+    f = new_file(self.user, self.project, save=True)
+    f.update_content("yay!")
+    now = f.date
+    g = File.get_by_project_path(self.project, f.path)
+
+    self.assertEquals("yay!", g.content)
+    self.assertNotEquals(now, g.date)
+
+  def test_list_directory(self):
+    d = new_directory(self.user, self.project, path="/directory/", save=True)
+    new_file(self.user, self.project, path="/directory/file1.txt", save=True)
+    new_file(self.user, self.project, path="/directory/file2.txt", save=True)
+    new_directory(self.user, self.project, path="/directory/d1/", save=True)
+
+    children = list(d.children)
+    self.assertEquals(3, len(children))
+
+    paths = [c.fspath for c in children]
+    self.assertTrue("/directory/d1/" in paths)
+    self.assertTrue("/directory/file1.txt" in paths)
+    self.assertTrue("/directory/file2.txt" in paths)
 
   def test_delete_file(self):
     pass
 
   def test_delete_directory(self):
+    pass
+
+  def test_rename_file(self):
+    pass
+
+  def test_rename_directory(self):
     pass
