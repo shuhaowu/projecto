@@ -1,6 +1,7 @@
 import json
 import shutil
 from unittest import TestCase
+import os
 
 from flask.ext.login import test_login_user, test_logout_user
 
@@ -115,7 +116,13 @@ class FlaskTestCase(TestCase):
       shutil.rmtree(settings.DATABASES[dbname][0])
       shutil.rmtree(settings.DATABASES[dbname][1])
 
-    establish_connections()
+    files_folder = os.path.join(settings.APP_FOLDER, "test_userfiles")
+    if os.path.exists(files_folder):
+      shutil.rmtree(files_folder)
+
+    os.mkdir(files_folder)
+
+    establish_connections(files_folder=files_folder)
     self.user = self.create_user("test@test.com")
 
 

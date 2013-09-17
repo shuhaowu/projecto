@@ -20,7 +20,8 @@ from .extensions import csrf
 csrf.init_app(app)
 
 # Database shit
-establish_connections()
+establish_connections(files_folder=app.config["FILES_FOLDER"])
+
 
 # asset stuffs
 register_assets(app)

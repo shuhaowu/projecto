@@ -8,14 +8,16 @@ APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
 STATIC_FOLDER = os.path.join(APP_FOLDER, "static")
 TEMPLATES_FOLDER = os.path.join(APP_FOLDER, "templates")
 DATABASES_FOLDER = os.path.join(APP_FOLDER, "databases")
+FILES_FOLDER = os.path.join(APP_FOLDER, "userfiles")
 
 DATABASE_NAMES = (
-    'USERS',
-    'PROJECTS',
-    'FEED',
-    'COMMENTS',
-    'TODOS',
-    'ARCHIVED_FEED'
+    "USERS",
+    "PROJECTS",
+    "FEED",
+    "COMMENTS",
+    "TODOS",
+    "ARCHIVED_FEED",
+    "FILES"
 )
 
 DATABASES = {

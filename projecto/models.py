@@ -1,11 +1,9 @@
 from __future__ import absolute_import
 
 from hashlib import md5
+import os
 
 from flask.ext.login import UserMixin
-
-from settings import DATABASES
-
 from leveldbkit import (
   Document, EmDocument,
   StringProperty,
@@ -15,6 +13,11 @@ from leveldbkit import (
   ReferenceProperty,
   ListProperty,
 )
+import werkzeug.utils
+
+from settings import DATABASES
+from .utils import safe_mkdirs
+
 
 class User(Document, UserMixin):
   name = StringProperty(default="Paranoid User")
@@ -96,18 +99,136 @@ class Todo(Document, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
+class File(Document):
+  # Only this user and root can read this!
+  MODE = 0600
+
+  # This must be set by some initialization!
+  FILES_FOLDER = None
+
+  author = ReferenceProperty(User)
+  date = DateTimeProperty(default=lambda: None)
+  parent = StringProperty(index=True)
+  project = ReferenceProperty(Project)
+
+  def __init__(self, key=None, *args, **kwargs):
+    if not key:
+      raise KeyError("You need to supply a key to the File model!")
+
+    self._content = None
+    self._is_directory = key.endswith("/")
+    Document.__init__(self, key=key, *args, **kwargs)
+
+  @classmethod
+  def create(cls, data):
+    path = data["path"]
+    f = data.pop("file", None)
+
+    key, is_directory = cls.parse_path(data["project"], path)
+    o = cls(key=key, data=data)
+    o._content = f
+    o._is_directory = is_directory
+    return o
+
+  @classmethod
+  def parse_path(cls, project, path):
+    """Parses a path that is passed from the client securely.
+
+    Returns a filesystem path as well as a key for db and if it is a directory.
+    """
+    path = path.lstrip("/")
+    is_directory = (path[-1] == "/")
+    path = [werkzeug.utils.secure_filename(p.strip()) for p in path.split("/") if p.strip() not in ("..", ".")]
+    path = "/".join(path)
+
+    key = project.key + "`/" + path
+    return key, is_directory
+
+  @property
+  def path(self):
+    return self.key.rsplit("`", 1)[1]
+
+  @property
+  def fspath(self):
+    # recall that self.path is the path displayed to the user, which starts with /
+    # if we use that, path.join will think it is an absolute path and fail
+    return os.path.join(self.base_dir, self.path[1:])
+
+  @property
+  def base_dir(self):
+    return os.path.join(File.FILES_FOLDER, self.project.key)
+
+  @property
+  def is_directory(self):
+    return self._is_directory
+
+  def save(self, *args, **kwargs):
+    fspath = self.fspath
+    if os.path.exists(fspath):
+      raise IOError("Path {} already exists!".format(fspath))
+
+    # We have to do this.. Should PROBABLY move this to new_project
+    # TODO: move this to new project
+    safe_mkdirs(self.base_dir)
+
+    if self._is_directory:
+      safe_mkdirs(fspath)
+    else:
+      # TODO: we need to worry about race conditions here as well.
+      self._content.save(fspath)
+
+    return Document.save(self, *args, **kwargs)
+
+  def delete(self, *args, **kwargs):
+    fspath = self.fspath
+    if not os.path.exists(fspath):
+      raise ValueError("{} not found!".format(fspath))
+
+    if self.is_directory:
+      base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
+      l = len(base_dir) + 1 # for the final "/"
+      for root, subdirs, filenames in os.walk(fspath):
+        for fname in filenames:
+          p = os.path.join(root, fname)
+          p = p[l:]
+          key = File._keygen(self.project, p)
+          File.get(key).delete()
+    else:
+      os.unlink(fspath)
+
+    return Document.delete(self, *args, **kwargs)
+
+  def list_children(self):
+    fspath = self.fspath
+    if self.is_directory:
+      base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
+      l = len(base_dir) + 1
+      for fname in os.listdir(fspath):
+        key = File._keygen(self.project, os.path.join(fspath, fname)[l:])
+        yield File.get(key)
+    else:
+      raise ValueError("{} is not a directory!".format(fspath))
+
+  @classmethod
+  def get_by_project_path(cls, project, path):
+    return cls.get(cls._keygen(project, path))
+
+
 ALL_MODELS = {
   User: "USERS",
   Project: "PROJECTS",
   FeedItem: "FEED",
   Comment: "COMMENTS",
   Todo: "TODOS",
-  ArchivedFeedItem: "ARCHIVED_FEED"
+  ArchivedFeedItem: "ARCHIVED_FEED",
+  File: "FILES"
 }
 
-def establish_connections():
+def establish_connections(files_folder):
   for model in ALL_MODELS:
     model.establish_connection()
+
+  File.FILES_FOLDER = files_folder
 
 def close_connections():
   """This method is named close_connections because if there is a LevelDB
