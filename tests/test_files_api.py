@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from cStringIO import StringIO
 import os
 
+from leveldbkit import NotFoundError
 from werkzeug.datastructures import FileStorage
 
 from settings import APP_FOLDER
@@ -109,19 +110,64 @@ class FileModelTests(ProjectTestCase):
     children = list(d.children)
     self.assertEquals(3, len(children))
 
-    paths = [c.fspath for c in children]
+    paths = [c.path for c in children]
     self.assertTrue("/directory/d1/" in paths)
     self.assertTrue("/directory/file1.txt" in paths)
     self.assertTrue("/directory/file2.txt" in paths)
 
   def test_delete_file(self):
-    pass
+    f = new_file(self.user, self.project, save=True)
+    fspath = f.fspath
+    self.assertTrue(os.path.exists(fspath))
+
+    f.delete()
+    self.assertFalse(os.path.exists(fspath))
+
+    with self.assertRaises(NotFoundError):
+      File.get(f.key)
 
   def test_delete_directory(self):
-    pass
+    d = new_directory(self.user, self.project, save=True)
+    fspath = d.fspath
+    self.assertTrue(os.path.exists(fspath))
+
+    d.delete()
+    self.assertFalse(os.path.exists(fspath))
+
+    with self.assertRaises(NotFoundError):
+      File.get(d.key)
+
+  def test_delete_directory_with_subtree(self):
+    d = new_directory(self.user, self.project, path="/directory/", save=True)
+    fspath = d.fspath
+    self.assertTrue(os.path.exists(fspath))
+
+    f1 = new_file(self.user, self.project, path="/directory/file1.txt", save=True)
+    f2 = new_file(self.user, self.project, path="/directory/file2.txt", save=True)
+    d1 = new_directory(self.user, self.project, path="/directory/d1/", save=True)
+
+    d.delete()
+    self.assertFalse(os.path.exists(f1.fspath))
+    self.assertFalse(os.path.exists(f2.fspath))
+    self.assertFalse(os.path.exists(d1.fspath))
+
+    with self.assertRaises(NotFoundError):
+      File.get(f1.key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(f2.key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(d1.key)
 
   def test_rename_file(self):
     pass
 
   def test_rename_directory(self):
+    pass
+
+  def test_mv_file(self):
+    pass
+
+  def test_mv_directory(self):
     pass

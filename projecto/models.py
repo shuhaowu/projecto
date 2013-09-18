@@ -17,7 +17,6 @@ from leveldbkit import (
 import werkzeug.utils
 
 from settings import DATABASES
-from .utils import safe_mkdirs
 
 
 class User(Document, UserMixin):
@@ -161,6 +160,8 @@ class File(Document):
     return self.path[-1] == "/"
 
   def save(self, *args, **kwargs):
+    # To prevent circular import.
+    from .utils import safe_mkdirs
     fspath = self.fspath
     if not os.path.exists(fspath):
       # We have to do this.. Should PROBABLY move this to new_project
@@ -198,6 +199,11 @@ class File(Document):
     self.save()
 
   def delete(self, *args, **kwargs):
+    """ Deletes from the file system too.
+
+    If you delete a directory, be careful that you don't use any file object
+    that's under that directory. That would cause a lot of errors.
+    """
     fspath = self.fspath
     if not os.path.exists(fspath):
       raise ValueError("{} not found!".format(fspath))
@@ -205,12 +211,19 @@ class File(Document):
     if self.is_directory:
       base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
       l = len(base_dir) + 1 # for the final "/"
-      for root, subdirs, filenames in os.walk(fspath):
+      for root, subdirs, filenames in os.walk(fspath, topdown=False):
         for fname in filenames:
           p = os.path.join(root, fname)
           p = p[l:]
-          key = File._keygen(self.project, p)
+          key = File.keygen(self.project, p)
           File.get(key).delete()
+
+        if root != fspath:
+          p = root[l:] + "/" # os walk does not have the trailing slash
+          key = File.keygen(self.project, p)
+          File.get(key).delete()
+
+      os.rmdir(fspath) # suppose to fail if it is not empty.
     else:
       os.unlink(fspath)
 
@@ -219,11 +232,16 @@ class File(Document):
   @property
   def children(self):
     fspath = self.fspath
+
     if self.is_directory:
       base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
       l = len(base_dir) + 1
       for fname in os.listdir(fspath):
-        key = File.keygen(self.project, os.path.join(fspath, fname)[l:])
+        path = os.path.join(fspath, fname)
+        if os.path.isdir(path):
+          path += "/"
+        path = path[l:]
+        key = File.keygen(self.project, path)
         yield File.get(key)
     else:
       raise AttributeError("Files do not have 'children'!")
