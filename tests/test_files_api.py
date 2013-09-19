@@ -14,6 +14,7 @@ test_file = lambda filename: (StringIO("hello world"), filename)
 class FileModelTests(ProjectTestCase):
 
   def tearDown(self):
+    # TODO: I'm slow and I'm bad. Use something different! D:
     self.reset_database()
     ProjectTestCase.tearDown(self)
 

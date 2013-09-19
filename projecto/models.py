@@ -13,6 +13,7 @@ from leveldbkit import (
   BooleanProperty,
   ReferenceProperty,
   ListProperty,
+  NotFoundError
 )
 import werkzeug.utils
 
@@ -209,7 +210,7 @@ class File(Document):
     db_only = kwargs.pop("db_only", False)
     fspath = self.fspath
     if not db_only and not os.path.exists(fspath):
-      raise ValueError("{} not found!".format(fspath))
+      raise NotFoundError("{} not found!".format(fspath))
 
     if self.is_directory:
       base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
