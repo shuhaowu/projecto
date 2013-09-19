@@ -213,7 +213,7 @@ class File(Document):
 
     if self.is_directory:
       base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
-      l = len(base_dir) + 1 # for the final "/"
+      l = len(base_dir)
       for root, subdirs, filenames in os.walk(fspath, topdown=False):
         for fname in filenames:
           p = os.path.join(root, fname)
@@ -226,8 +226,8 @@ class File(Document):
           key = File.keygen(self.project, p)
           File.get(key).delete(db_only=db_only)
 
-        if not db_only:
-          os.rmdir(fspath) # suppose to fail if it is not empty.
+      if not db_only:
+        os.rmdir(fspath) # suppose to fail if it is not empty.
     else:
       if not db_only:
         os.unlink(fspath)
@@ -240,7 +240,7 @@ class File(Document):
 
     if self.is_directory:
       base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
-      l = len(base_dir) + 1
+      l = len(base_dir)
       for fname in os.listdir(fspath):
         path = os.path.join(fspath, fname)
         if os.path.isdir(path):
@@ -255,7 +255,12 @@ class File(Document):
   def get_by_project_path(cls, project, path):
     return cls.get(cls.keygen(project, path))
 
-  def move(self, new_path):
+  def move(self, new_path, db_only=False):
+    """Remember.. when moving a directory it moves everything in the subdir.
+
+    Any existing file references to anything in the moved directory will stop
+    working.
+    """
     if self.is_directory:
       if not new_path.endswith("/"):
         raise ValueError("Directory moving must be moved to another path with / at the end.")
@@ -266,21 +271,34 @@ class File(Document):
     key = File.keygen(self.project, new_path)
     oldkey = self.key
     old_fspath = self.fspath
+    old_path = self.path
 
     self.key = key
     new_fspath = self.fspath
+    new_path = self.path
 
-    if os.path.exists(new_fspath):
-      return None
-
-    if self.is_directory:
-      # ogod. recursive move time...
-      pass
-    else:
-      self.save()
+    if not db_only:
+      if os.path.exists(new_fspath):
+        raise IOError("Destination already exists.")
       os.rename(old_fspath, new_fspath)
 
+    self.save()
     File.get(oldkey).delete(db_only=True)
+
+    if self.is_directory:
+      base_dir = os.path.join(File.FILES_FOLDER, self.project.key)
+      l = len(base_dir)
+
+      for fname in os.listdir(new_fspath):
+        p = os.path.join(new_fspath, fname)
+
+        if os.path.isdir(p):
+          p += "/"
+
+        p = p[l:]
+
+        key = File.keygen(self.project, p.replace(new_path, old_path, 1))
+        File.get(key).move(p, db_only=True)
 
 ALL_MODELS = {
   User: "USERS",

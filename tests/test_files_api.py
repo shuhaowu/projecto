@@ -6,7 +6,7 @@ import os
 from leveldbkit import NotFoundError
 from werkzeug.datastructures import FileStorage
 
-from projecto.models import File, Project, User
+from projecto.models import File
 from .utils import ProjectTestCase, new_file, new_directory
 
 test_file = lambda filename: (StringIO("hello world"), filename)
@@ -144,11 +144,13 @@ class FileModelTests(ProjectTestCase):
     f1 = new_file(self.user, self.project, path="/directory/file1.txt", save=True)
     f2 = new_file(self.user, self.project, path="/directory/file2.txt", save=True)
     d1 = new_directory(self.user, self.project, path="/directory/d1/", save=True)
+    f3 = new_file(self.user, self.project, path="/directory/d1/file3.txt", save=True)
 
     d.delete()
     self.assertFalse(os.path.exists(f1.fspath))
     self.assertFalse(os.path.exists(f2.fspath))
     self.assertFalse(os.path.exists(d1.fspath))
+    self.assertFalse(os.path.exists(f3.fspath))
 
     with self.assertRaises(NotFoundError):
       File.get(f1.key)
@@ -158,6 +160,9 @@ class FileModelTests(ProjectTestCase):
 
     with self.assertRaises(NotFoundError):
       File.get(d1.key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(f3.key)
 
   def test_move_file(self):
     f = new_file(self.user, self.project, save=True)
@@ -188,4 +193,59 @@ class FileModelTests(ProjectTestCase):
     self.assertFalse(os.path.exists(old_fspath))
     self.assertTrue(os.path.exists(new_fspath))
     self.assertTrue(os.path.isdir(new_fspath))
+
+  def test_move_directory_with_subtree(self):
+    d = new_directory(self.user, self.project, path="/directory1/", save=True)
+    f1 = new_file(self.user, self.project, path="/directory1/file1.txt", save=True)
+    f2 = new_file(self.user, self.project, path="/directory1/file2.txt", save=True)
+    d1 = new_directory(self.user, self.project, path="/directory1/d1/", save=True)
+    f3 = new_file(self.user, self.project, path="/directory1/d1/file3.txt", save=True)
+
+    old_key = d.key
+    old_fspath = d.fspath
+
+    d.move("/moved_directory1/")
+
+    self.assertNotEquals(old_fspath, d.fspath)
+    self.assertNotEquals(old_key, d.key)
+
+    self.assertFalse(os.path.exists(old_fspath))
+    self.assertFalse(os.path.exists(f1.fspath))
+    self.assertFalse(os.path.exists(f2.fspath))
+    self.assertFalse(os.path.exists(d1.fspath))
+    self.assertFalse(os.path.exists(f3.fspath))
+
+    with self.assertRaises(NotFoundError):
+      File.get(old_key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(f1.key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(f2.key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(d1.key)
+
+    with self.assertRaises(NotFoundError):
+      File.get(f3.key)
+
+    f1 = File.get_by_project_path(d.project, "/moved_directory1/file1.txt")
+    f2 = File.get_by_project_path(d.project, "/moved_directory1/file2.txt")
+    d1 = File.get_by_project_path(d.project, "/moved_directory1/d1/")
+    f3 = File.get_by_project_path(d.project, "/moved_directory1/d1/file3.txt")
+
+    self.assertTrue(os.path.exists(f1.fspath))
+    self.assertTrue(os.path.exists(f2.fspath))
+    self.assertTrue(os.path.exists(d1.fspath))
+    self.assertTrue(os.path.exists(f3.fspath))
+
+    with open(f1.fspath) as f:
+      self.assertEquals("hello world", f.read().strip())
+
+    with open(f2.fspath) as f:
+      self.assertEquals("hello world", f.read().strip())
+
+    with open(f3.fspath) as f:
+      self.assertEquals("hello world", f.read().strip())
 
