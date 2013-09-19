@@ -6,7 +6,6 @@ import os
 from leveldbkit import NotFoundError
 from werkzeug.datastructures import FileStorage
 
-from settings import APP_FOLDER
 from projecto.models import File, Project, User
 from .utils import ProjectTestCase, new_file, new_directory
 
@@ -160,14 +159,33 @@ class FileModelTests(ProjectTestCase):
     with self.assertRaises(NotFoundError):
       File.get(d1.key)
 
-  def test_rename_file(self):
-    pass
+  def test_move_file(self):
+    f = new_file(self.user, self.project, save=True)
+    old_fspath = f.fspath
+    self.assertTrue(os.path.exists(old_fspath))
 
-  def test_rename_directory(self):
-    pass
+    f.move("/moved_file.txt")
+    new_fspath = f.fspath
+    self.assertNotEquals(old_fspath, new_fspath)
+    self.assertEquals(os.path.join(File.FILES_FOLDER, self.project.key, "moved_file.txt"), new_fspath)
+    self.assertFalse(os.path.exists(old_fspath))
+    self.assertTrue(os.path.exists(new_fspath))
 
-  def test_mv_file(self):
-    pass
+    with open(new_fspath) as f:
+      c = f.read().strip()
 
-  def test_mv_directory(self):
-    pass
+    self.assertEquals("hello world", c)
+
+  def test_move_directory(self):
+    d = new_directory(self.user, self.project, save=True)
+    old_fspath = d.fspath
+    self.assertTrue(os.path.exists(old_fspath))
+
+    d.move("/moved_directory/")
+    new_fspath = d.fspath
+    self.assertNotEquals(old_fspath, new_fspath)
+    self.assertEquals(os.path.join(File.FILES_FOLDER, self.project.key, "moved_directory/"), new_fspath)
+    self.assertFalse(os.path.exists(old_fspath))
+    self.assertTrue(os.path.exists(new_fspath))
+    self.assertTrue(os.path.isdir(new_fspath))
+

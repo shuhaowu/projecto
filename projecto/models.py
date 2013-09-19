@@ -172,7 +172,8 @@ class File(Document):
         safe_mkdirs(fspath)
       else:
         # TODO: we need to worry about race conditions here as well.
-        self._content.save(fspath)
+        if self._content:
+          self._content.save(fspath)
 
     return Document.save(self, *args, **kwargs)
 
@@ -204,8 +205,10 @@ class File(Document):
     If you delete a directory, be careful that you don't use any file object
     that's under that directory. That would cause a lot of errors.
     """
+    # This is for moving only. In that we already removed that path.
+    db_only = kwargs.pop("db_only", False)
     fspath = self.fspath
-    if not os.path.exists(fspath):
+    if not db_only and not os.path.exists(fspath):
       raise ValueError("{} not found!".format(fspath))
 
     if self.is_directory:
@@ -216,16 +219,18 @@ class File(Document):
           p = os.path.join(root, fname)
           p = p[l:]
           key = File.keygen(self.project, p)
-          File.get(key).delete()
+          File.get(key).delete(db_only=db_only)
 
         if root != fspath:
           p = root[l:] + "/" # os walk does not have the trailing slash
           key = File.keygen(self.project, p)
-          File.get(key).delete()
+          File.get(key).delete(db_only=db_only)
 
-      os.rmdir(fspath) # suppose to fail if it is not empty.
+        if not db_only:
+          os.rmdir(fspath) # suppose to fail if it is not empty.
     else:
-      os.unlink(fspath)
+      if not db_only:
+        os.unlink(fspath)
 
     return Document.delete(self, *args, **kwargs)
 
@@ -249,6 +254,33 @@ class File(Document):
   @classmethod
   def get_by_project_path(cls, project, path):
     return cls.get(cls.keygen(project, path))
+
+  def move(self, new_path):
+    if self.is_directory:
+      if not new_path.endswith("/"):
+        raise ValueError("Directory moving must be moved to another path with / at the end.")
+    else:
+      if new_path.endswith("/"):
+        raise ValueError("File moving must not end with a /.")
+
+    key = File.keygen(self.project, new_path)
+    oldkey = self.key
+    old_fspath = self.fspath
+
+    self.key = key
+    new_fspath = self.fspath
+
+    if os.path.exists(new_fspath):
+      return None
+
+    if self.is_directory:
+      # ogod. recursive move time...
+      pass
+    else:
+      self.save()
+      os.rename(old_fspath, new_fspath)
+
+    File.get(oldkey).delete(db_only=True)
 
 ALL_MODELS = {
   User: "USERS",
