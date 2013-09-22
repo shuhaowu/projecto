@@ -163,6 +163,7 @@ class File(Document):
   def save(self, *args, **kwargs):
     # To prevent circular import.
     from .utils import safe_mkdirs
+    self.date = datetime.now()
     fspath = self.fspath
     if not os.path.exists(fspath):
       # We have to do this.. Should PROBABLY move this to new_project
@@ -256,7 +257,7 @@ class File(Document):
   def get_by_project_path(cls, project, path):
     return cls.get(cls.keygen(project, path))
 
-  def move(self, new_path, db_only=False):
+  def move(self, new_path, new_author=None, db_only=False):
     """Remember.. when moving a directory it moves everything in the subdir.
 
     Any existing file references to anything in the moved directory will stop
@@ -281,7 +282,7 @@ class File(Document):
     if not db_only:
       if os.path.exists(new_fspath):
         raise IOError("Destination already exists.")
-      os.rename(old_fspath, new_fspath)
+      os.renames(old_fspath, new_fspath)
 
     self.save()
     File.get(oldkey).delete(db_only=True)
@@ -300,6 +301,16 @@ class File(Document):
 
         key = File.keygen(self.project, p.replace(new_path, old_path, 1))
         File.get(key).move(p, db_only=True)
+
+    new_path = new_path.strip("/").split("/")[:-1]
+    for i, potential_dir in enumerate(new_path):
+      potential = "/".join(new_path[:i] + [potential_dir])
+      potential = "/" + potential + "/"
+      try:
+        File.get_by_project_path(self.project, potential)
+      except NotFoundError:
+        f = File.create({"author": new_author or self.author, "path": potential, "project": self.project})
+        f.save()
 
 ALL_MODELS = {
   User: "USERS",

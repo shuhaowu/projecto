@@ -250,3 +250,12 @@ class FileModelTests(ProjectTestCase):
     with open(f3.fspath) as f:
       self.assertEquals("hello world", f.read().strip())
 
+  def test_move_directory_with_same_prefix(self):
+    d = new_directory(self.user, self.project, path="/directory/d/", save=True)
+    f = new_file(self.user, self.project, path="/directory/d/file1.txt", save=True)
+
+    d.move("/directory/directory/")
+
+    self.assertEquals("/directory/directory/", d.path)
+    self.assertFalse(os.path.exists(f.fspath))
+    self.assertTrue(os.path.exists(os.path.join(File.FILES_FOLDER, self.project.key, "directory/directory/file1.txt")))
