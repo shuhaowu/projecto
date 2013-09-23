@@ -1,4 +1,4 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, abort, send_file
 from flask.ext.login import login_required, current_user
 from flask.ext.classy import FlaskView, route
 import settings
@@ -433,77 +433,84 @@ class FilesView(FlaskView):
   decorators = [project_access_required]
 
   @route("/", methods=["GET"])
-  def index(self, project):
-    files = []
-    # This only gets the root directories and files.
-    for f in File.index("parent", project.key):
-      files.append(f.serialize_for_client())
+  def get_item(self, project):
+    path = request.args.get("path", None)
+    if path is None:
+      return abort(400)
 
-    return jsonify(self={}, children=files)
-
-  @route("/<path:path>", methods=["GET"])
-  def get_item(self, project, path):
-    pass
-
-  @route("/<path:path>", methods=["POST"])
-  def create_item(self, project, path):
-    pass
-
-  @route("/<path:path>", methods=["PUT"])
-  def update_item(self, project, path):
-    pass
-
-  @route("/<path:path>", methods=["DELETE"])
-  def delete_item(self, project, path):
-    pass
-
-  @route("/<path:path>", methods=["GET"])
-  def get_path(self, project, path):
     try:
-      f = File.get(File.resource_key(path))
+      f = File.get_by_project_path(project, path)
     except NotFoundError:
       return abort(404)
     else:
-      children = []
-      if f.is_directory:
-        for child_file in File.index("parent", f.path):
-          children.append(child_file.serialize_for_client())
+      if not request.args.get("download", False):
+        return jsonify(**f.serialize_for_client())
       else:
-        # TODO: one todo.
-        pass
+        return send_file(f.fspath, as_attachment=True)
 
-      return jsonify(self=f.serialize_for_client(), children=children)
+  @route("/", methods=["POST"])
+  def create_item(self, project):
+    path = request.args.get("path", None)
+    if path is None:
+      return abort(400)
 
-  @route("/<path:path>", methods=["POST"])
-  def create_item(self, project, path):
     try:
-      File.get(File.resource_key(project, path))
+      File.get_by_project_path(project, path)
     except NotFoundError:
-      is_directory = request.args.get("directory", "0") == "1"
-      d = File.create(project,
-                      current_user._get_current_object(),
-                      path,
-                      is_directory=is_directory)
-      return jsonify(**d.serialize_for_client())
-    else:
-      return jsonify(status="failed", error="path already exists"), 400
+      is_directory = path.strip().endswith("/")
+      data = {"path": path}
+      if not is_directory:
+        data["file"] = request.files.get("file", None)
+        if not data["file"]:
+          return abort(400)
 
-  @route("/<path:path>", methods=["DELETE"])
-  def delete_item(self, project, path):
+      data["project"] = project
+      data["author"] = current_user._get_current_object()
+      f = File.create(data=data)
+      f.save()
+      return jsonify(**f.serialize_for_client())
+    else:
+      return jsonify(error="That path already exists!"), 400
+
+  @route("/", methods=["PUT"])
+  @ensure_good_request({}, {"path"})
+  def update_item(self, project):
+    path = request.args.get("path", None)
+    if path is None:
+      return abort(400)
+
     try:
-      f = File.get(File.resource_key(project, path))
+      f = File.get_by_project_path(project, path)
+    except NotFoundError:
+      return abort(404)
+    else:
+      if request.args.get("move", True):
+        try:
+          f.move(request.json["path"], current_user._get_current_object())
+        except IOError as e:
+          return {"error": str(e)}, 400
+      else:
+        # TODO: if files gets more meta data, we can update them here.
+        # Otherwise we only need to update the content.
+        if request.files.get("file", None) and not f.is_directory:
+          f.update_content(request.files["file"].read())
+          request.files["file"].close()
+
+      return jsonify(**f.serialize_for_client())
+
+  @route("/", methods=["DELETE"])
+  def delete_item(self, project):
+    path = request.args.get("path", None)
+    if path is None:
+      return abort(400)
+
+    try:
+      f = File.get_by_project_path(project, path)
     except NotFoundError:
       return abort(404)
     else:
       f.delete()
-      return jsonify(status="okay"), 200
+      return jsonify(status="okay")
 
-  @route("/<path:path>", methods=["PUT"])
-  def update_item(self, project, path):
-    try:
-      f = File.get(File.resource_key(project, path))
-    except NotFoundError:
-      return abort(404)
-    else:
-      # TODO: update.
-      pass
+
+FilesView.register(blueprint)

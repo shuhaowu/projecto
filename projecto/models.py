@@ -56,7 +56,7 @@ class Content(EmDocument):
   parent = StringProperty(index=True)
 
   def serialize_for_client(self, include_comments="expand"):
-    item = self.serialize(restricted=("parent"), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])
+    item = self.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])
     if include_comments == "expand":
       item["children"] = children = []
       for comment in Comment.index("parent", self.key):
@@ -126,6 +126,7 @@ class File(Document):
 
     key = cls.keygen(data["project"], path)
     o = cls(key=key, data=data)
+    o.date = datetime.now()
     o._content = f
     return o
 
@@ -159,6 +160,21 @@ class File(Document):
   @property
   def is_directory(self):
     return self.path[-1] == "/"
+
+  def serialize_for_client(self, recursive=True):
+    item = self.serialize(restricted=("project", ), expand=[{"restricted": ("emails", ), "include_key": True}])
+    item["path"] = self.path
+
+    # recursive is a lie. It only goes down one level! :D
+    if recursive and self.is_directory:
+      item["children"] = children = []
+      fspath = self.fspath
+      root = os.path.join(File.FILES_FOLDER, self.project.key)
+      l = len(root) + 1
+      for fname in os.listdir(fspath):
+        path = os.path.join(fspath, fname)[l:]
+        children.append(File.get_by_project_path(self.project, path).serialize_for_client(recursive=False))
+    return item
 
   def save(self, *args, **kwargs):
     # To prevent circular import.
@@ -211,6 +227,11 @@ class File(Document):
     db_only = kwargs.pop("db_only", False)
     fspath = self.fspath
     if not db_only and not os.path.exists(fspath):
+      try:
+        Document.delete(self, *args, **kwargs)
+      except:
+        pass
+
       raise NotFoundError("{} not found!".format(fspath))
 
     if self.is_directory:

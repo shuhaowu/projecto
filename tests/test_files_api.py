@@ -259,3 +259,75 @@ class FileModelTests(ProjectTestCase):
     self.assertEquals("/directory/directory/", d.path)
     self.assertFalse(os.path.exists(f.fspath))
     self.assertTrue(os.path.exists(os.path.join(File.FILES_FOLDER, self.project.key, "directory/directory/file1.txt")))
+
+
+class TestFilesAPI(ProjectTestCase):
+  def base_url(self, path):
+    return "/api/v1/projects/{}/files/?path={}".format(self.project.key, path)
+
+  def test_create_file(self):
+    self.login()
+    response = self.post(self.base_url("/test_file.txt"), data={"file": test_file("meh")})
+    _, data = self._get_json_from_response(response)
+
+    self.assertStatus(200, response)
+    self.assertTrue("date" in data)
+
+    fspath = os.path.join(File.FILES_FOLDER, self.project.key, "test_file.txt")
+    self.assertTrue(os.path.exists(fspath))
+    with open(fspath) as f:
+      self.assertEquals("hello world", f.read())
+
+    f = File.get_by_project_path(self.project, "/test_file.txt")
+    self.assertEquals(self.user.key, f.author.key)
+    self.assertEquals(self.project.key, f.project.key)
+    f.delete() # Clean up required?
+
+  def test_create_directory(self):
+    pass
+
+  def test_create_file_reject_badrequest(self):
+    pass
+
+  def test_create_file_reject_permission(self):
+    pass
+
+  def test_create_file_reject_exists(self):
+    pass
+
+  def test_get_file(self):
+    f = new_file(self.user, self.project, path="/newfile.txt", save=True)
+    self.login()
+    response, data = self.getJSON(self.base_url("/newfile.txt"))
+
+    self.assertStatus(200, response)
+
+    self.assertTrue("path" in data)
+    self.assertEquals(f.path, data["path"])
+
+    self.assertTrue("author" in data)
+    self.assertEquals(self.user.key, data["author"]["key"])
+
+    self.assertTrue("date" in data)
+
+  def test_get_file_content(self):
+    pass
+
+  def test_get_directory(self):
+    pass
+
+  def test_get_file_reject_notfound(self):
+    pass
+
+  def test_get_file_reject_permission(self):
+    pass
+
+  def test_delete_file(self):
+    pass
+
+  def test_delete_file_reject_notfound(self):
+    pass
+
+  def test_delete_file_reject_permission(self):
+    pass
+
