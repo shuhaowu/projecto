@@ -262,12 +262,22 @@ class FileModelTests(ProjectTestCase):
 
 
 class TestFilesAPI(ProjectTestCase):
-  def base_url(self, path):
-    return "/api/v1/projects/{}/files/?path={}".format(self.project.key, path)
+  def setUp(self):
+    ProjectTestCase.setUp(self)
+    self._c = []
+
+  def tearDown(self):
+    # TODO: Is this safe?
+    for c in self._c:
+      c.delete()
+    ProjectTestCase.tearDown(self)
+
+  def base_url(self):
+    return "/api/v1/projects/{}/files/".format(self.project.key)
 
   def test_create_file(self):
     self.login()
-    response = self.post(self.base_url("/test_file.txt"), data={"file": test_file("meh")})
+    response = self.post(self.base_url(), query_string={"path": "/test_file.txt"}, data={"file": test_file("meh")})
     _, data = self._get_json_from_response(response)
 
     self.assertStatus(200, response)
@@ -279,9 +289,9 @@ class TestFilesAPI(ProjectTestCase):
       self.assertEquals("hello world", f.read())
 
     f = File.get_by_project_path(self.project, "/test_file.txt")
+    self._c.append(f)
     self.assertEquals(self.user.key, f.author.key)
     self.assertEquals(self.project.key, f.project.key)
-    f.delete() # Clean up required?
 
   def test_create_directory(self):
     pass
@@ -297,8 +307,9 @@ class TestFilesAPI(ProjectTestCase):
 
   def test_get_file(self):
     f = new_file(self.user, self.project, path="/newfile.txt", save=True)
+    self._c.append(f)
     self.login()
-    response, data = self.getJSON(self.base_url("/newfile.txt"))
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/newfile.txt"})
 
     self.assertStatus(200, response)
 
@@ -310,8 +321,19 @@ class TestFilesAPI(ProjectTestCase):
 
     self.assertTrue("date" in data)
 
+
   def test_get_file_content(self):
-    pass
+    f = new_file(self.user, self.project, path="/newfile.txt", save=True)
+    self._c.append(f)
+    self.login()
+
+    response = self.get(self.base_url(), query_string={"path": "/newfile.txt", "download": "true"})
+
+    self.assertStatus(200, response)
+    self.assertTrue("Content-Disposition" in response.headers)
+    self.assertTrue("attachment" in response.headers["Content-Disposition"])
+    self.assertTrue("newfile.txt" in response.headers["Content-Disposition"])
+    self.assertTrue("hello world", response.data)
 
   def test_get_directory(self):
     pass
@@ -330,4 +352,3 @@ class TestFilesAPI(ProjectTestCase):
 
   def test_delete_file_reject_permission(self):
     pass
-
