@@ -100,6 +100,8 @@ class Todo(Document, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
+class CannotMoveToDestination(IOError): pass
+
 class File(Document):
   # Only this user and root can read this!
   MODE = 0600
@@ -172,7 +174,11 @@ class File(Document):
       root = os.path.join(File.FILES_FOLDER, self.project.key)
       l = len(root) + 1
       for fname in os.listdir(fspath):
-        path = os.path.join(fspath, fname)[l:]
+        path = os.path.join(fspath, fname)
+        if os.path.isdir(path):
+          path += "/"
+        path = path[l:]
+
         children.append(File.get_by_project_path(self.project, path).serialize_for_client(recursive=False))
     return item
 
@@ -302,7 +308,11 @@ class File(Document):
 
     if not db_only:
       if os.path.exists(new_fspath):
-        raise IOError("Destination already exists.")
+        raise CannotMoveToDestination("Destination already exists.")
+
+      if new_fspath.startswith(old_fspath):
+        raise CannotMoveToDestination("Cannot move directory into itself.")
+
       os.renames(old_fspath, new_fspath)
 
     self.save()
@@ -322,16 +332,6 @@ class File(Document):
 
         key = File.keygen(self.project, p.replace(new_path, old_path, 1))
         File.get(key).move(p, db_only=True)
-
-    new_path = new_path.strip("/").split("/")[:-1]
-    for i, potential_dir in enumerate(new_path):
-      potential = "/".join(new_path[:i] + [potential_dir])
-      potential = "/" + potential + "/"
-      try:
-        File.get_by_project_path(self.project, potential)
-      except NotFoundError:
-        f = File.create({"author": new_author or self.author, "path": potential, "project": self.project})
-        f.save()
 
 ALL_MODELS = {
   User: "USERS",

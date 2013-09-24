@@ -65,6 +65,9 @@ class FileModelTests(ProjectTestCase):
 
     self.assertEquals(os.path.join(File.FILES_FOLDER, self.project.key, "evil/path"), f.fspath)
 
+  def test_create_file_missing_intermediate_directories(self):
+    pass
+
   def test_get_file(self):
     f = new_file(self.user, self.project, save=True)
 
@@ -250,15 +253,10 @@ class FileModelTests(ProjectTestCase):
     with open(f3.fspath) as f:
       self.assertEquals("hello world", f.read().strip())
 
-  def test_move_directory_with_same_prefix(self):
-    d = new_directory(self.user, self.project, path="/directory/d/", save=True)
-    f = new_file(self.user, self.project, path="/directory/d/file1.txt", save=True)
-
-    d.move("/directory/directory/")
-
-    self.assertEquals("/directory/directory/", d.path)
-    self.assertFalse(os.path.exists(f.fspath))
-    self.assertTrue(os.path.exists(os.path.join(File.FILES_FOLDER, self.project.key, "directory/directory/file1.txt")))
+  def test_move_fail_with_non_existing_directories(self):
+    d = new_directory(self.user, self.project, path="/dir/", save=True)
+    d1 = new_directory(self.user, self.project, path="/dir/d1/", save=True)
+    d2 = new_directory(self.user, self.project, path="/dir/d1/test.txt", save=True)
 
 
 class TestFilesAPI(ProjectTestCase):
@@ -321,7 +319,6 @@ class TestFilesAPI(ProjectTestCase):
 
     self.assertTrue("date" in data)
 
-
   def test_get_file_content(self):
     f = new_file(self.user, self.project, path="/newfile.txt", save=True)
     self._c.append(f)
@@ -336,7 +333,47 @@ class TestFilesAPI(ProjectTestCase):
     self.assertTrue("hello world", response.data)
 
   def test_get_directory(self):
-    pass
+    d = new_directory(self.user, self.project, path="/directory/", save=True)
+    self._c.append(d)
+    self.login()
+
+    # Just one directory
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/directory/"})
+
+    self.assertStatus(200, response)
+
+    self.assertTrue("path" in data)
+    self.assertEquals(d.path, data["path"])
+
+    self.assertTrue("author" in data)
+    self.assertEquals(self.user.key, data["author"]["key"])
+
+    self.assertTrue("date" in data)
+
+    self.assertTrue("children" in data)
+    self.assertEquals([], data["children"])
+
+    # Test with a file inside
+    f = new_file(self.user, self.project, path="/directory/file1.txt", save=True)
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/directory/"})
+
+    self.assertStatus(200, response)
+
+    self.assertEquals(1, len(data["children"]))
+    self.assertEquals(f.path, data["children"][0]["path"])
+
+    # Test with a file and a directory with a file inside
+    d = new_directory(self.user, self.project, path="/directory/directory/", save=True)
+    new_file(self.user, self.project, path="/directory/directory/file1.txt", save=True)
+
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/directory/"})
+
+    self.assertStatus(200, response)
+    self.assertEquals(2, len(data["children"]))
+    data["children"].sort(key=lambda x: len(x["path"]))
+    self.assertEquals(f.path, data["children"][0]["path"])
+    self.assertEquals(d.path, data["children"][1]["path"])
+    self.assertTrue("children" not in data["children"][1])
 
   def test_get_file_reject_notfound(self):
     pass
