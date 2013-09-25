@@ -66,7 +66,7 @@ class FileModelTests(ProjectTestCase):
     self.assertEquals(os.path.join(File.FILES_FOLDER, self.project.key, "evil/path"), f.fspath)
 
   def test_create_file_missing_intermediate_directories(self):
-    pass
+    raise NotImplementedError
 
   def test_get_file(self):
     f = new_file(self.user, self.project, save=True)
@@ -292,16 +292,16 @@ class TestFilesAPI(ProjectTestCase):
     self.assertEquals(self.project.key, f.project.key)
 
   def test_create_directory(self):
-    pass
+    raise NotImplementedError
 
   def test_create_file_reject_badrequest(self):
-    pass
+    raise NotImplementedError
 
   def test_create_file_reject_permission(self):
-    pass
+    raise NotImplementedError
 
   def test_create_file_reject_exists(self):
-    pass
+    raise NotImplementedError
 
   def test_get_file(self):
     f = new_file(self.user, self.project, path="/newfile.txt", save=True)
@@ -376,16 +376,17 @@ class TestFilesAPI(ProjectTestCase):
     self.assertTrue("children" not in data["children"][1])
 
   def test_get_file_reject_notfound(self):
-    pass
+    raise NotImplementedError
 
   def test_get_file_reject_permission(self):
-    pass
+    raise NotImplementedError
 
   def test_delete_file(self):
-    pass
+    raise NotImplementedError
 
   def test_delete_file_reject_notfound(self):
-    pass
+    raise NotImplementedError
 
   def test_delete_file_reject_permission(self):
-    pass
+    raise NotImplementedError
+
