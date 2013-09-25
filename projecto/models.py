@@ -182,11 +182,22 @@ class File(Document):
         children.append(File.get_by_project_path(self.project, path).serialize_for_client(recursive=False))
     return item
 
+  def _ensure_base_dir_exists(self, fspath):
+    if not fspath.startswith("/"):
+      raise ValueError("Ensuring base dir only works on absolute path!")
+    fspath = fspath.rstrip("/").rsplit("/", 1);
+    fspath = fspath[0] + "/"
+    return fspath.endswith(self.project.key + "/") or os.path.exists(fspath)
+
   def save(self, *args, **kwargs):
     # To prevent circular import.
     from .utils import safe_mkdirs
     self.date = datetime.now()
     fspath = self.fspath
+
+    if not self._ensure_base_dir_exists(fspath):
+      raise NotFoundError("Base dir is not found for {}".format(fspath))
+
     if not os.path.exists(fspath):
       # We have to do this.. Should PROBABLY move this to new_project
       # TODO: move this to new project
@@ -305,6 +316,10 @@ class File(Document):
     self.key = key
     new_fspath = self.fspath
     new_path = self.path
+
+    if not self._ensure_base_dir_exists(new_fspath):
+      self.key = oldkey
+      raise NotFoundError("Base dir is not found for {}".format(new_path))
 
     if not db_only:
       if os.path.exists(new_fspath):

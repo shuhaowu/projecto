@@ -66,7 +66,11 @@ class FileModelTests(ProjectTestCase):
     self.assertEquals(os.path.join(File.FILES_FOLDER, self.project.key, "evil/path"), f.fspath)
 
   def test_create_file_missing_intermediate_directories(self):
-    raise NotImplementedError
+    with self.assertRaises(NotFoundError):
+      new_file(self.user, self.project, path="/does/not/exist.txt", save=True)
+
+    with self.assertRaises(NotFoundError):
+      File.get_by_project_path(self.project, "/does/not/exists.txt")
 
   def test_get_file(self):
     f = new_file(self.user, self.project, save=True)
@@ -253,11 +257,40 @@ class FileModelTests(ProjectTestCase):
     with open(f3.fspath) as f:
       self.assertEquals("hello world", f.read().strip())
 
-  def test_move_fail_with_non_existing_directories(self):
-    d = new_directory(self.user, self.project, path="/dir/", save=True)
-    d1 = new_directory(self.user, self.project, path="/dir/d1/", save=True)
-    d2 = new_directory(self.user, self.project, path="/dir/d1/test.txt", save=True)
+  def test_move_within_directory(self):
+    new_directory(self.user, self.project, path="/dir/", save=True)
+    d1 = new_directory(self.user, self.project, path="/dir/one/", save=True)
 
+    old_fspath = d1.fspath
+    d1.move("/dir/two/")
+
+    with self.assertRaises(NotFoundError):
+      File.get_by_project_path(self.project, "/dir/one/")
+
+    self.assertFalse(os.path.exists(old_fspath))
+    self.assertTrue(os.path.exists(d1.fspath))
+
+    d1_g = File.get_by_project_path(self.project, "/dir/two/")
+    self.assertEquals(d1.fspath, d1_g.fspath)
+
+  def test_move_fail_with_non_existing_directories(self):
+    new_directory(self.user, self.project, path="/dir/", save=True)
+    d1 = new_directory(self.user, self.project, path="/dir/d1/", save=True)
+    new_file(self.user, self.project, path="/dir/d1/test.txt", save=True)
+
+    with self.assertRaises(NotFoundError):
+      d1.move("/dir/not/d2/")
+
+    self.assertTrue("d2" not in d1.fspath)
+
+    d11 = File.get_by_project_path(self.project, "/dir/d1/")
+    self.assertTrue(os.path.exists(d11.fspath))
+
+    with self.assertRaises(NotFoundError):
+      File.get_by_project_path(self.project, "/dir1/d2/")
+
+    with self.assertRaises(NotFoundError):
+      File.get_by_project_path(self.project, "/dir1/d2/test.txt")
 
 class TestFilesAPI(ProjectTestCase):
   def setUp(self):
