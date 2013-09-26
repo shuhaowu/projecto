@@ -293,6 +293,18 @@ class FileModelTests(ProjectTestCase):
     with self.assertRaises(NotFoundError):
       File.get_by_project_path(self.project, "/dir1/d2/test.txt")
 
+  def test_lsroot(self):
+    new_directory(self.user, self.project, path="/dir1/", save=True)
+    new_file(self.user, self.project, path="/test.file", save=True)
+    new_file(self.user, self.project, path="/dir1/test1.txt", save=True)
+
+    children = list(File.lsroot(self.project))
+    self.assertEquals(2, len(children))
+
+    paths = [c.path for c in children]
+    self.assertTrue("/dir1/" in paths)
+    self.assertTrue("/test.file" in paths)
+
 class TestFilesAPI(ProjectTestCase):
   def setUp(self):
     ProjectTestCase.setUp(self)
@@ -599,4 +611,22 @@ class TestFilesAPI(ProjectTestCase):
       self.assertStatus(403, response)
 
     def test_get_index(self):
-      raise NotImplementedError
+      self.login()
+      response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
+      self.assertStatus(200, response)
+
+      self.assertTrue("children" in data)
+      self.assertEquals([], data["children"])
+
+      self._c.append(new_file(self.user, self.project, path="/test.txt", save=True))
+      self._c.append(new_directory(self.user, self.project, "/dir/"))
+
+      response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
+      self.assertStatus(200, response)
+
+      self.assertTrue("children" in data)
+      self.assertEquals(2, len(data["children"]))
+      paths = [c["path"] for c in data["children"]]
+
+      self.assertTrue("/dir/" in paths)
+      self.assertTrue("/test.txt" in paths)

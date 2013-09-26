@@ -291,6 +291,19 @@ class File(Document):
     else:
       raise AttributeError("Files do not have 'children'!")
 
+  @staticmethod
+  def lsroot(project):
+    base_dir = os.path.join(File.FILES_FOLDER, project.key)
+    l = len(base_dir)
+
+    for fname in os.listdir(base_dir):
+      path = os.path.join(base_dir, fname)
+      if os.path.isdir(path):
+        path += "/"
+      path = path[l:]
+      key = File.keygen(project, path)
+      yield File.get(key)
+
   @classmethod
   def get_by_project_path(cls, project, path):
     return cls.get(cls.keygen(project, path))

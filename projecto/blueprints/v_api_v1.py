@@ -438,15 +438,21 @@ class FilesView(FlaskView):
     if path is None:
       return abort(400)
 
-    try:
-      f = File.get_by_project_path(project, path)
-    except NotFoundError:
-      return abort(404)
+    if path == "/":
+      r = {"path": "/"}
+      r["children"] = children = []
+      for f in File.lsroot(project):
+        children.append(f.serialize_for_client(recursive=False))
     else:
-      if not request.args.get("download", False):
-        return jsonify(**f.serialize_for_client())
+      try:
+        f = File.get_by_project_path(project, path)
+      except NotFoundError:
+        return abort(404)
       else:
-        return send_file(f.fspath, as_attachment=True)
+        if not request.args.get("download", False):
+          return jsonify(**f.serialize_for_client())
+        else:
+          return send_file(f.fspath, as_attachment=True)
 
   @route("/", methods=["POST"])
   def create_item(self, project):
