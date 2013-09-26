@@ -467,7 +467,11 @@ class FilesView(FlaskView):
       data["project"] = project
       data["author"] = current_user._get_current_object()
       f = File.create(data=data)
-      f.save()
+      try:
+        f.save()
+      except NotFoundError:
+        return abort(404)
+
       return jsonify(**f.serialize_for_client())
     else:
       return jsonify(error="That path already exists!"), 400
@@ -505,5 +509,23 @@ class FilesView(FlaskView):
       f.delete()
       return jsonify(status="okay")
 
+  @route("/move", methods=["PUT"])
+  @ensure_good_request({"path"})
+  def move_item(self, project):
+    path = request.args.get("path", None)
+    if path is None:
+      return abort(400)
+
+    try:
+      f = File.get_by_project_path(project, path)
+    except NotFoundError:
+      return abort(404)
+    else:
+      try:
+        f.move(request.json["path"], current_user._get_current_object())
+      except NotFoundError:
+        return abort(404)
+
+      return jsonify(status="okay")
 
 FilesView.register(blueprint)

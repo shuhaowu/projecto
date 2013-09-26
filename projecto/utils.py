@@ -10,7 +10,7 @@ def safe_mkdirs(path):
     return
 
   try:
-    os.makedirs(path)
+    os.mkdir(path)
   except OSError as e:
     # Check for race conditions. If for some reason two threads/greenlets/whatever
     # tries to create the same dir at the same time, we will have an error thrown.

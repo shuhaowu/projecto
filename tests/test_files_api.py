@@ -282,7 +282,7 @@ class FileModelTests(ProjectTestCase):
     with self.assertRaises(NotFoundError):
       d1.move("/dir/not/d2/")
 
-    self.assertTrue("d2" not in d1.fspath)
+    self.assertTrue(d1.fspath.rstrip("/").endswith("d1"))
 
     d11 = File.get_by_project_path(self.project, "/dir/d1/")
     self.assertTrue(os.path.exists(d11.fspath))
@@ -304,8 +304,8 @@ class TestFilesAPI(ProjectTestCase):
       c.delete()
     ProjectTestCase.tearDown(self)
 
-  def base_url(self):
-    return "/api/v1/projects/{}/files/".format(self.project.key)
+  def base_url(self, postfix=""):
+    return "/api/v1/projects/{}/files/".format(self.project.key) + postfix
 
   def test_create_file(self):
     self.login()
@@ -538,3 +538,65 @@ class TestFilesAPI(ProjectTestCase):
 
     response = self.put(self.base_url(), query_string={"path": "/test.txt"}, data={"file": (StringIO("abc"), "meh")})
     self.assertStatus(403, response)
+
+    def test_move_file(self):
+      f = new_file(self.user, self.project, path="/test.txt", save=True)
+
+      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/test_moved.txt"})
+      self.assertStatus(200, response)
+
+      with self.assertRaises(NotFoundError):
+        f.reload()
+
+      self.assertFalse(os.path.exists(f.fspath))
+
+      fspath = os.path.join(File.FILES_FOLDER, self.project.key, "test_moved.txt")
+      self.assertTrue(os.path.exists(fspath))
+
+      f = File.get_by_project_path(self.project, "/test_moved.txt")
+      self._c.append(f)
+
+    def test_move_directory(self):
+      d = new_file(self.user, self.project, path="/dir/", save=True)
+      f = new_file(self.user, self.project, path="/dir/f1.txt", save=True)
+
+      self.login()
+      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+
+      with self.assertRaises(NotFoundError):
+        f.reload()
+
+      with self.assertRaises(NotFoundError):
+        d.reload()
+
+      self.assertFalse(f.fspath)
+      self.assertFalse(d.fspath)
+
+      d = File.get_by_project_path(self.project, "/moved_dir/")
+      f = File.get_by_project_path(self.project, "/moved_dir/f1.txt")
+      self._c.append(d)
+      self._c.append(f)
+
+      self.assertEquals(1, len(d.children))
+      self.assertEquals("hello world", f.content)
+
+    def test_move_file_reject_notfound(self):
+      self.login()
+      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+      self.assertStatus(404, response)
+
+    def test_move_file_reject_permission(self):
+      f = new_file(self.user, self.project, path="/dir/f1.txt", save=True)
+      self._c.append(f)
+
+      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+      self.assertStatus(403, response)
+
+      user2 = self.create_user("wut@wut.com")
+      self.login(user2)
+
+      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+      self.assertStatus(403, response)
+
+    def test_get_index(self):
+      raise NotImplementedError
