@@ -4,6 +4,7 @@ from cStringIO import StringIO
 import os
 
 from leveldbkit import NotFoundError
+import ujson as json
 from werkzeug.datastructures import FileStorage
 
 from projecto.models import File
@@ -325,16 +326,50 @@ class TestFilesAPI(ProjectTestCase):
     self.assertEquals(self.project.key, f.project.key)
 
   def test_create_directory(self):
-    raise NotImplementedError
+    self.login()
+    response = self.post(self.base_url(), query_string={"path": "/test_dir/"})
+    _, data = self._get_json_from_response(response)
+
+    self.assertStatus(200, response)
+
+    d = File.get_by_project_path(self.project, "/test_dir/")
+    self._c.append(d)
+    self.assertTrue(os.path.exists(d.fspath))
+    self.assertEquals(self.user.key, d.author.key)
+    self.assertEquals(self.project.key, d.project.key)
 
   def test_create_file_reject_badrequest(self):
-    raise NotImplementedError
+    self.login()
+    response = self.post(self.base_url(), query_string={})
+    self.assertStatus(400, response)
+
+    # no file content!
+    response = self.post(self.base_url(), query_string={"path": "/testfile.txt"})
+    self.assertStatus(400, response)
 
   def test_create_file_reject_permission(self):
-    raise NotImplementedError
+    response = self.post(self.base_url(), query_string={"path": "testfile.txt"}, data={"file": test_file("mew")})
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("mew@mew.com")
+    self.login(user2)
+
+    response = self.post(self.base_url(), query_string={"path": "/testfile.txt"}, data={"file": test_file("mew")})
+    self.assertStatus(403, response)
 
   def test_create_file_reject_exists(self):
-    raise NotImplementedError
+    new_file(self.user, self.project, path="/testfile.txt", save=True)
+    self.login()
+    response = self.post(self.base_url(), query_string={"path": "/testfile.txt"}, data={"file": test_file("mew")})
+    self.assertStatus(400, response)
+    _, data = self._get_json_from_response(response)
+    data = json.loads(data)
+    self.assertTrue("error" in data)
+    self.assertEquals("That path already exists!", data["error"])
+
+    new_directory(self.user, self.project, path="/testdir/", save=True)
+    response = self.post(self.base_url(), query_string={"path": "/testdir/"})
+    self.assertStatus(400, response)
 
   def test_get_file(self):
     f = new_file(self.user, self.project, path="/newfile.txt", save=True)
@@ -365,6 +400,16 @@ class TestFilesAPI(ProjectTestCase):
     self.assertTrue("newfile.txt" in response.headers["Content-Disposition"])
     self.assertTrue("hello world", response.data)
 
+    self.logout()
+
+    user2 = self.create_user("test2@test.com")
+    self.project.collaborators.append(user2.key)
+    self.project.save()
+
+    self.login(user2)
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/newfile.txt"})
+    self.assertStatus(200, response)
+
   def test_get_directory(self):
     d = new_directory(self.user, self.project, path="/directory/", save=True)
     self._c.append(d)
@@ -372,7 +417,6 @@ class TestFilesAPI(ProjectTestCase):
 
     # Just one directory
     response, data = self.getJSON(self.base_url(), query_string={"path": "/directory/"})
-
     self.assertStatus(200, response)
 
     self.assertTrue("path" in data)
@@ -408,18 +452,71 @@ class TestFilesAPI(ProjectTestCase):
     self.assertEquals(d.path, data["children"][1]["path"])
     self.assertTrue("children" not in data["children"][1])
 
+    self.logout()
+
+    user2 = self.create_user("test2@test.com")
+    self.project.collaborators.append(user2.key)
+    self.project.save()
+
+    self.login(user2)
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/directory/"})
+    self.assertStatus(200, response)
+
   def test_get_file_reject_notfound(self):
-    raise NotImplementedError
+    self.login()
+    response, _ = self.getJSON(self.base_url(), query_string={"path": "/dir/"})
+    self.assertStatus(404, response)
 
   def test_get_file_reject_permission(self):
-    raise NotImplementedError
+    new_file(self.user, self.project, path="/test.txt", save=True)
+    response = self.get(self.base_url(), query_string={"path": "/dir/"})
+    self.assertStatus(403, response)
+
+    response = self.get(self.base_url(), query_string={"path": "/dir/", "download": "true"})
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("yay@yay.com")
+    self.login(user2)
+
+    response = self.get(self.base_url(), query_string={"path": "/dir/"})
+    self.assertStatus(403, response)
+
+    response = self.get(self.base_url(), query_string={"path": "/dir/", "download": "true"})
+    self.assertStatus(403, response)
 
   def test_delete_file(self):
-    raise NotImplementedError
+    f = new_file(self.user, self.project, path="/test.txt", save=True)
+    self.login()
+    response = self.delete(self.base_url(), query_string={"path": "/test.txt"})
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      f.reload()
+
+    self.assertFalse(os.path.exists(f.fspath))
 
   def test_delete_file_reject_notfound(self):
-    raise NotImplementedError
+    self.login()
+    response = self.delete(self.base_url(), query_string={"path": "/wut.txt"})
+    self.assertStatus(404, response)
 
   def test_delete_file_reject_permission(self):
+    f = new_file(self.user, self.project, path="/test.txt", save=True)
+    self._c.append(f)
+
+    response = self.delete(self.base_url(), query_string={"path": "/test.txt"})
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("user1@user1.com")
+    self.login(user2)
+    response = self.delete(self.base_url(), query_string={"path": "/test.txt"})
+    self.assertStatus(403, response)
+
+  def test_update_file(self):
     raise NotImplementedError
 
+  def test_update_file_reject_notfound(self):
+    raise NotImplementedError
+
+  def test_update_file_reject_permission(self):
+    raise NotImplementedError
