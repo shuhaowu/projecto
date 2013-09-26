@@ -513,10 +513,28 @@ class TestFilesAPI(ProjectTestCase):
     self.assertStatus(403, response)
 
   def test_update_file(self):
-    raise NotImplementedError
+    f = new_file(self.user, self.project, path="/test.txt", save=True)
+    self._c.append(f)
+
+    self.login()
+    response = self.put(self.base_url(), query_string={"path": "/test.txt"}, data={"file": (StringIO("abc"), "meh")})
+    self.assertStatus(200, response)
+    self.assertEquals("abc", f.content)
 
   def test_update_file_reject_notfound(self):
-    raise NotImplementedError
+    self.login()
+    response = self.put(self.base_url(), query_string={"path": "/test.txt"}, data={"file": (StringIO("abc"), "meh")})
+    self.assertStatus(404, response)
 
   def test_update_file_reject_permission(self):
-    raise NotImplementedError
+    f = new_file(self.user, self.project, path="/test.txt", save=True)
+    self._c.append(f)
+
+    response = self.put(self.base_url(), query_string={"path": "/test.txt"}, data={"file": (StringIO("abc"), "meh")})
+    self.assertStatus(403, response)
+
+    user2 = self.create_user("meh@meh.com")
+    self.login(user2)
+
+    response = self.put(self.base_url(), query_string={"path": "/test.txt"}, data={"file": (StringIO("abc"), "meh")})
+    self.assertStatus(403, response)

@@ -473,7 +473,6 @@ class FilesView(FlaskView):
       return jsonify(error="That path already exists!"), 400
 
   @route("/", methods=["PUT"])
-  @ensure_good_request({}, {"path"})
   def update_item(self, project):
     path = request.args.get("path", None)
     if path is None:
@@ -484,17 +483,11 @@ class FilesView(FlaskView):
     except NotFoundError:
       return abort(404)
     else:
-      if request.args.get("move", True):
-        try:
-          f.move(request.json["path"], current_user._get_current_object())
-        except IOError as e:
-          return {"error": str(e)}, 400
-      else:
-        # TODO: if files gets more meta data, we can update them here.
-        # Otherwise we only need to update the content.
-        if request.files.get("file", None) and not f.is_directory:
-          f.update_content(request.files["file"].read())
-          request.files["file"].close()
+      # TODO: if files gets more meta data, we can update them here.
+      # Otherwise we only need to update the content.
+      if request.files.get("file", None) and not f.is_directory:
+        f.update_content(request.files["file"].read())
+        request.files["file"].close()
 
       return jsonify(**f.serialize_for_client())
 
