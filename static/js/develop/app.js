@@ -10,7 +10,13 @@
     var todosPage = {
       templateUrl: "/static/partials/todos.html",
       controller: "TodosController"
-    }
+    };
+
+    var filesTreePage = {
+      templateUrl: "/static/partials/filestree.html",
+      controller: "FilesTreeController"
+    };
+
     $routeProvider.when("/projects/:id/", feedPage);
     $routeProvider.when("/projects/:id/feed/", feedPage);
     $routeProvider.when("/projects/:id/feed/:feedId", {
@@ -24,6 +30,8 @@
       templateUrl: "/static/partials/singletodo.html",
       controller: "SingleTodoController"
     });
+
+    $routeProvider.when("/projects/:id/files/", filesTreePage);
 
     $routeProvider.when("/projects/:id/manage", {
       templateUrl: "/static/partials/manage.html",
