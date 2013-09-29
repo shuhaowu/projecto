@@ -9,9 +9,11 @@
     </div>
   </div>
 
-  <div class="row">
+  <div class="row" ng-hide="notFound">
     <div class="large-12 columns">
       <div class="files-action-buttons">
+        <button class="small alert" ng-click="deleteDirectory()"><i class="icon icon-white icon-remove"></i> Delete This Folder</button>
+        <button class="small" ng-click="moveDirectory()"><i class="icon icon-white icon-move"></i> Move Folder</button>
         <button class="small success" ng-click="newDirectory()"><i class="icon-white icon icon-folder-close"></i> New Folder</button>
         <button class="small success" ng-click="newFile()"><i class="icon icon-white icon-file"></i> New File</button>
       </div>
@@ -26,10 +28,10 @@
             <i class="icon icon-file" ng-hide="f.is_directory"></i>
             <i class="icon icon-folder-close" ng-show="f.is_directory"></i>
             <p>
-              <a ng-href="#/projects/{[ currentProject.key ]}/view_file/{[ f.path ]}/" ng-hide="f.is_directory">{[ f.filename ]}</a>
-              <a ng-href="#/projects/{[ currentProject.key ]}/files/{[ f.path ]}" ng-show="f.is_directory">{[ f.filename ]}</a>
+              <a ng-href="#/projects/{[ currentProject.key ]}/view_file{[ f.path ]}/" ng-hide="f.is_directory">{[ f.name ]}</a>
+              <a ng-href="#/projects/{[ currentProject.key ]}/files{[ f.path ]}" ng-show="f.is_directory">{[ f.name ]}</a>
+              <span class="author">| {[ f.author.name ]}</span>
               <span class="date">{[ f.date|relativeTime ]}</span>
-              <span class="author">{[ f.author.name ]}</span>
             </p>
           </li>
         </ul>

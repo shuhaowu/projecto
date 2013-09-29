@@ -6,14 +6,6 @@
       return window.API_PREFIX + "/projects/" + project_id + "/files/" + (postfix ? postfix : "");
     };
 
-    this.ls = function(project, path) {
-
-    };
-
-    this.showFileDetails = function(project, path) {
-
-    };
-
     this.get = function(project, path) {
       return $http({
         method: "GET",
@@ -26,12 +18,19 @@
 
     };
 
-    this.createFile = function(project, path) {
+    this.newFile = function(project, path) {
 
     };
 
-    this.createDirectory = function(project, path) {
+    this.newDirectory = function(project, path, name) {
+      path = this.trimSlashes(path);
+      path = "/" + path + "/" + name + "/";
 
+      return $http({
+        method: "POST",
+        url: apiUrl(project.key),
+        params: {path: path}
+      });
     };
 
     this.updateFile = function(project, path) {
@@ -40,6 +39,10 @@
 
     this.move = function(project, path) {
 
+    };
+
+    this.trimSlashes = function(p) {
+      return p.replace(/^[\s\/]+/, "").replace(/[\s\/]+$/, "");
     };
 
   }]);
