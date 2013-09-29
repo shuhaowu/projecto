@@ -296,6 +296,9 @@ class File(Document):
     base_dir = os.path.join(File.FILES_FOLDER, project.key)
     l = len(base_dir)
 
+    if not os.path.exists(base_dir):
+      os.mkdir(base_dir)
+
     for fname in os.listdir(base_dir):
       path = os.path.join(base_dir, fname)
       if os.path.isdir(path):

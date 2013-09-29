@@ -32,6 +32,7 @@
     });
 
     $routeProvider.when("/projects/:id/files/", filesTreePage);
+    $routeProvider.when("/projects/:id/files/*path", filesTreePage);
 
     $routeProvider.when("/projects/:id/manage", {
       templateUrl: "/static/partials/manage.html",

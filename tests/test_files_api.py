@@ -630,3 +630,12 @@ class TestFilesAPI(ProjectTestCase):
 
       self.assertTrue("/dir/" in paths)
       self.assertTrue("/test.txt" in paths)
+
+    def test_index_root_without_creation(self):
+      self.login()
+
+      response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
+      self.assertStatus(200, response)
+
+      self.assertTrue("children" in data)
+      self.assertEquals([], data["children"])

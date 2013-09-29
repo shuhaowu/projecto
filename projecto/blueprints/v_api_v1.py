@@ -443,6 +443,7 @@ class FilesView(FlaskView):
       r["children"] = children = []
       for f in File.lsroot(project):
         children.append(f.serialize_for_client(recursive=False))
+      return jsonify(**r)
     else:
       try:
         f = File.get_by_project_path(project, path)
