@@ -359,6 +359,10 @@ class TestFilesAPI(ProjectTestCase):
     response = self.post(self.base_url(), query_string={"path": "/testfile.txt"})
     self.assertStatus(400, response)
 
+    # Try to create index
+    response = self.post(self.base_url(), query_string={"path": "/"})
+    self.assertStatus(400, response)
+
   def test_create_file_reject_permission(self):
     response = self.post(self.base_url(), query_string={"path": "testfile.txt"}, data={"file": test_file("mew")})
     self.assertStatus(403, response)
@@ -507,6 +511,12 @@ class TestFilesAPI(ProjectTestCase):
 
     self.assertFalse(os.path.exists(f.fspath))
 
+  def test_delete_file_reject_badrequest(self):
+    self.login()
+    # try to delete index
+    response = self.delete(self.base_url(), query_string={"path": "/"})
+    self.assertStatus(400, response)
+
   def test_delete_file_reject_notfound(self):
     self.login()
     response = self.delete(self.base_url(), query_string={"path": "/wut.txt"})
@@ -551,91 +561,102 @@ class TestFilesAPI(ProjectTestCase):
     response = self.put(self.base_url(), query_string={"path": "/test.txt"}, data={"file": (StringIO("abc"), "meh")})
     self.assertStatus(403, response)
 
-    def test_move_file(self):
-      f = new_file(self.user, self.project, path="/test.txt", save=True)
+  def test_update_file_reject_bad_request(self):
+    self.login()
+    response = self.put(self.base_url(), query_string={"path": "/"})
+    self.assertStatus(400, response)
 
-      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/test_moved.txt"})
-      self.assertStatus(200, response)
+  def test_move_file(self):
+    f = new_file(self.user, self.project, path="/test.txt", save=True)
 
-      with self.assertRaises(NotFoundError):
-        f.reload()
+    self.login()
+    response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/test_moved.txt"})
+    self.assertStatus(200, response)
 
-      self.assertFalse(os.path.exists(f.fspath))
+    with self.assertRaises(NotFoundError):
+      f.reload()
 
-      fspath = os.path.join(File.FILES_FOLDER, self.project.key, "test_moved.txt")
-      self.assertTrue(os.path.exists(fspath))
+    self.assertFalse(os.path.exists(f.fspath))
 
-      f = File.get_by_project_path(self.project, "/test_moved.txt")
-      self._c.append(f)
+    fspath = os.path.join(File.FILES_FOLDER, self.project.key, "test_moved.txt")
+    self.assertTrue(os.path.exists(fspath))
 
-    def test_move_directory(self):
-      d = new_file(self.user, self.project, path="/dir/", save=True)
-      f = new_file(self.user, self.project, path="/dir/f1.txt", save=True)
+    f = File.get_by_project_path(self.project, "/test_moved.txt")
+    self._c.append(f)
 
-      self.login()
-      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+  def test_move_directory(self):
+    d = new_file(self.user, self.project, path="/dir/", save=True)
+    f = new_file(self.user, self.project, path="/dir/f1.txt", save=True)
 
-      with self.assertRaises(NotFoundError):
-        f.reload()
+    self.login()
+    response, data = self.putJSON(self.base_url("move"), query_string={"path": "/dir/"}, data={"path": "/moved_dir/"})
+    self.assertStatus(200, response)
 
-      with self.assertRaises(NotFoundError):
-        d.reload()
+    with self.assertRaises(NotFoundError):
+      f.reload()
 
-      self.assertFalse(f.fspath)
-      self.assertFalse(d.fspath)
+    with self.assertRaises(NotFoundError):
+      d.reload()
 
-      d = File.get_by_project_path(self.project, "/moved_dir/")
-      f = File.get_by_project_path(self.project, "/moved_dir/f1.txt")
-      self._c.append(d)
-      self._c.append(f)
+    self.assertFalse(os.path.exists(f.fspath))
+    self.assertFalse(os.path.exists(d.fspath))
 
-      self.assertEquals(1, len(d.children))
-      self.assertEquals("hello world", f.content)
+    d = File.get_by_project_path(self.project, "/moved_dir/")
+    f = File.get_by_project_path(self.project, "/moved_dir/f1.txt")
+    self._c.append(d)
 
-    def test_move_file_reject_notfound(self):
-      self.login()
-      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
-      self.assertStatus(404, response)
+    self.assertEquals(1, len(list(d.children)))
+    self.assertEquals("hello world", f.content)
 
-    def test_move_file_reject_permission(self):
-      f = new_file(self.user, self.project, path="/dir/f1.txt", save=True)
-      self._c.append(f)
+    self.assertTrue(os.path.exists(d.fspath))
+    self.assertTrue(os.path.exists(f.fspath))
 
-      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
-      self.assertStatus(403, response)
+  def test_move_file_reject_notfound(self):
+    self.login()
+    response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+    self.assertStatus(404, response)
 
-      user2 = self.create_user("wut@wut.com")
-      self.login(user2)
+  def test_move_file_reject_permission(self):
+    new_directory(self.user, self.project, path="/dir/", save=True)
+    f = new_file(self.user, self.project, path="/dir/f1.txt", save=True)
+    self._c.append(f)
 
-      response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
-      self.assertStatus(403, response)
+    response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+    self.assertStatus(403, response)
 
-    def test_get_index(self):
-      self.login()
-      response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
-      self.assertStatus(200, response)
+    user2 = self.create_user("wut@wut.com")
+    self.login(user2)
 
-      self.assertTrue("children" in data)
-      self.assertEquals([], data["children"])
+    response, data = self.putJSON(self.base_url("move"), query_string={"path": "/test.txt"}, data={"path": "/moved_dir/"})
+    self.assertStatus(403, response)
 
-      self._c.append(new_file(self.user, self.project, path="/test.txt", save=True))
-      self._c.append(new_directory(self.user, self.project, "/dir/"))
+  def test_get_index(self):
+    self.login()
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
+    self.assertStatus(200, response)
 
-      response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
-      self.assertStatus(200, response)
+    self.assertTrue("children" in data)
+    self.assertEquals([], data["children"])
 
-      self.assertTrue("children" in data)
-      self.assertEquals(2, len(data["children"]))
-      paths = [c["path"] for c in data["children"]]
+    self._c.append(new_file(self.user, self.project, path="/test.txt", save=True))
+    self._c.append(new_directory(self.user, self.project, path="/dir/", save=True))
 
-      self.assertTrue("/dir/" in paths)
-      self.assertTrue("/test.txt" in paths)
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
+    self.assertStatus(200, response)
 
-    def test_index_root_without_creation(self):
-      self.login()
+    self.assertTrue("children" in data)
+    self.assertEquals(2, len(data["children"]))
+    paths = [c["path"] for c in data["children"]]
 
-      response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
-      self.assertStatus(200, response)
+    self.assertTrue("/dir/" in paths)
+    self.assertTrue("/test.txt" in paths)
 
-      self.assertTrue("children" in data)
-      self.assertEquals([], data["children"])
+  def test_index_root_without_creation(self):
+    self.login()
+
+    response, data = self.getJSON(self.base_url(), query_string={"path": "/"})
+    self.assertStatus(200, response)
+
+    self.assertTrue("children" in data)
+    self.assertEquals([], data["children"])
+

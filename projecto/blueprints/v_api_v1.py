@@ -432,6 +432,17 @@ class FilesView(FlaskView):
   route_base = "/projects/<project_id>/files/"
   decorators = [project_access_required]
 
+  def _get_path(self):
+    path = request.args.get("path", None)
+    if path is None:
+      return None, abort(400)
+
+    path = path.strip()
+    if path == "/":
+      return None, abort(400)
+
+    return path, None
+
   @route("/", methods=["GET"])
   def get_item(self, project):
     path = request.args.get("path", None)
@@ -457,9 +468,9 @@ class FilesView(FlaskView):
 
   @route("/", methods=["POST"])
   def create_item(self, project):
-    path = request.args.get("path", None)
-    if path is None:
-      return abort(400)
+    path, err = self._get_path()
+    if err:
+      return err
 
     try:
       File.get_by_project_path(project, path)
@@ -485,9 +496,9 @@ class FilesView(FlaskView):
 
   @route("/", methods=["PUT"])
   def update_item(self, project):
-    path = request.args.get("path", None)
-    if path is None:
-      return abort(400)
+    path, err = self._get_path()
+    if err:
+      return err
 
     try:
       f = File.get_by_project_path(project, path)
@@ -504,9 +515,9 @@ class FilesView(FlaskView):
 
   @route("/", methods=["DELETE"])
   def delete_item(self, project):
-    path = request.args.get("path", None)
-    if path is None:
-      return abort(400)
+    path, err = self._get_path()
+    if err:
+      return err
 
     try:
       f = File.get_by_project_path(project, path)
@@ -519,9 +530,9 @@ class FilesView(FlaskView):
   @route("/move", methods=["PUT"])
   @ensure_good_request({"path"})
   def move_item(self, project):
-    path = request.args.get("path", None)
-    if path is None:
-      return abort(400)
+    path, err = self._get_path()
+    if err:
+      return err
 
     try:
       f = File.get_by_project_path(project, path)
