@@ -18,9 +18,6 @@ DATABASE_NAMES = (
     'ARCHIVED_FEED'
 )
 
-DATABASES = {
-  dbname: (os.path.join(DATABASES_FOLDER, dbname.lower()), os.path.join(DATABASES_FOLDER, dbname.lower() + ".indexes")) for dbname in DATABASE_NAMES
-}
 
 MAX_CONTENT_LENGTH = 20 * 1024 * 1024
 SECRET_KEY = None
@@ -29,3 +26,8 @@ try:
   from settings_local import *
 except ImportError:
   pass
+
+DATABASES = {
+  dbname: (os.path.join(DATABASES_FOLDER, dbname.lower()), os.path.join(DATABASES_FOLDER, dbname.lower() + ".indexes")) for dbname in DATABASE_NAMES
+}
+
