@@ -107,7 +107,7 @@ def project_managers_required(fn):
 from flask import request
 from leveldbkit import ValidationError
 
-def ensure_good_request(required_parameters, accepted_parameters=None):
+def ensure_good_request(required_parameters, accepted_parameters=None, allow_json_none=False):
   """Ensure that the request is good. aborts with 400 otherwise.
 
   accepted_parameters and required_parameters are both sets. If accepted_parameters is None,
@@ -120,12 +120,16 @@ def ensure_good_request(required_parameters, accepted_parameters=None):
   def decorator(f):
     @wraps(f)
     def fn(*args, **kwargs):
-      if not request.json or len(request.json) > len(accepted_parameters) or len(request.json) < len(required_parameters):
-        return abort(400)
+      if request.json:
+        if len(request.json) > len(accepted_parameters) or len(request.json) < len(required_parameters):
+          return abort(400)
 
-      parameters_provided = set(request.json.keys())
-      if not (parameters_provided >= required_parameters) or not (parameters_provided <= accepted_parameters):
-        return abort(400)
+        parameters_provided = set(request.json.keys())
+        if not (parameters_provided >= required_parameters) or not (parameters_provided <= accepted_parameters):
+          return abort(400)
+      else:
+        if not allow_json_none:
+          return abort(400)
 
       try:
         return f(*args, **kwargs)

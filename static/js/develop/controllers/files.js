@@ -5,6 +5,14 @@
   angular.module("projecto").controller("FilesTreeController", ["$scope", "$route", "title", "FilesService", "ProjectsService", function($scope, $route, title, FilesService, ProjectsService) {
     title("Files", $scope.currentProject);
 
+    var files = [];
+    $scope.$on("files-added", function(e, element, fs) {
+      for (var i=0; i<fs.length; i++) {
+        files.push(fs[i]);
+      }
+    });
+
+
     $scope.currentProject = null;
 
     $("body").statusmsg("open", "Loading...");
@@ -28,7 +36,18 @@
     };
 
     $scope.newFile = function() {
+      if (files.length === 0) {
+        $("body").statusmsg("open", "You need to select a file!", {type: "warning", autoclose: 1500});
+      } else {
+        var req = FilesService.newFile($scope.currentProject, $route.current.params.path || "/", files[0]);
+        req.success(function() {
+          console.log("yay!")
+        });
 
+        req.error(function() {
+          console.log("nooo!");
+        });
+      }
     };
 
     $scope.update = function() {

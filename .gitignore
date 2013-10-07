@@ -9,4 +9,5 @@ static/.webassets-cache/
 .vagrant
 docs/_build
 test_userfiles
+userfiles/
 

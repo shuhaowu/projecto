@@ -467,6 +467,7 @@ class FilesView(FlaskView):
           return send_file(f.fspath, as_attachment=True)
 
   @route("/", methods=["POST"])
+  @ensure_good_request(set(), allow_json_none=True)
   def create_item(self, project):
     path, err = self._get_path()
     if err:
@@ -495,6 +496,7 @@ class FilesView(FlaskView):
       return jsonify(error="That path already exists!"), 400
 
   @route("/", methods=["PUT"])
+  @ensure_good_request(set(), allow_json_none=True)
   def update_item(self, project):
     path, err = self._get_path()
     if err:
@@ -514,6 +516,7 @@ class FilesView(FlaskView):
       return jsonify(**f.serialize_for_client())
 
   @route("/", methods=["DELETE"])
+  @ensure_good_request(set(), allow_json_none=True)
   def delete_item(self, project):
     path, err = self._get_path()
     if err:

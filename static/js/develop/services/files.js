@@ -7,6 +7,9 @@
     };
 
     this.get = function(project, path) {
+      if (path[0] !== "/") {
+        path = "/" + path;
+      }
       return $http({
         method: "GET",
         url: apiUrl(project.key),
@@ -18,8 +21,18 @@
 
     };
 
-    this.newFile = function(project, path) {
-
+    this.newFile = function(project, directory, file) {
+      var path = directory + file.name;
+      var fd = new FormData();
+      fd.append("file", file);
+      return $http({
+        method: "POST",
+        url: apiUrl(project.key),
+        params: {path: path},
+        headers: {"Content-Type": false},
+        data: fd,
+        transformRequest: function(data) { return data; }
+      });
     };
 
     this.newDirectory = function(project, path, name) {
@@ -33,8 +46,17 @@
       });
     };
 
-    this.updateFile = function(project, path) {
-
+    this.updateFile = function(project, path, file) {
+      var fd = new FormData();
+      fd.append("file", file);
+      return $http({
+        method: "POST",
+        url: apiUrl(project.key),
+        params: {path: path},
+        headers: {"Content-Type": false},
+        data: fd,
+        transformRequest: function(data) { return data; }
+      });
     };
 
     this.move = function(project, path) {
