@@ -7,6 +7,7 @@
 
     var files = [];
     $scope.$on("files-added", function(e, element, fs) {
+      files = [];
       for (var i=0; i<fs.length; i++) {
         files.push(fs[i]);
       }
@@ -35,17 +36,33 @@
       }
     };
 
+    var resetFileUploads = function() {
+      files = [];
+      document.getElementById("files-file-upload").value = "";
+    };
+
     $scope.newFile = function() {
       if (files.length === 0) {
         $("body").statusmsg("open", "You need to select a file!", {type: "warning", autoclose: 1500});
       } else {
         var req = FilesService.newFile($scope.currentProject, $route.current.params.path || "/", files[0]);
-        req.success(function() {
-          console.log("yay!")
+        req.success(function(data, status, headers, config) {
+          $("body").statusmsg("open", "File added!", {type: "success", autoclose: 1500});
+          $scope.update();
+          $("#files-new-file-modal").foundation("reveal", "close");
+          resetFileUploads();
         });
 
-        req.error(function() {
-          console.log("nooo!");
+        req.error(function(data, status, headers, config) {
+          var message = "";
+          if (data && data.error) {
+            message = data.error;
+          } else {
+            message = status;
+          }
+          $("body").statusmsg("open", "Error adding file: " + message, {autoclose: false, type: "alert"});
+          console.log("Error adding files", data, status);
+          resetFileUploads();
         });
       }
     };
