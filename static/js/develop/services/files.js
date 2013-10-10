@@ -17,6 +17,17 @@
       });
     };
 
+    this.delete = function(project, path) {
+      if (path[0] !== "/") {
+        path = "/" + path;
+      }
+      return $http({
+        method: "DELETE",
+        url: apiUrl(project.key),
+        params: {path: path}
+      });
+    };
+
     this.newFile = function(project, directory, file) {
       var path = directory + file.name;
       var fd = new FormData();
@@ -52,14 +63,6 @@
         headers: {"Content-Type": false},
         data: fd,
         transformRequest: function(data) { return data; }
-      });
-    };
-
-    this.getFileInfo = function(project, path) {
-      return $http({
-        method: "GET",
-        url: apiUrl(project.key),
-        params: {path: path}
       });
     };
 

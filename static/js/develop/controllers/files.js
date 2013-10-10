@@ -130,7 +130,28 @@
   }]);
 
 
-  module.controller("FileViewController", ["$scope", "$route", "title", "FilesService", "ProjectsService", function($scope, $route, title, FilesService, ProjectsService) {
+  module.controller("FileViewController", ["$scope", "$route", "$location", "title", "FilesService", "ProjectsService", function($scope, $route, $location, title, FilesService, ProjectsService) {
+
+    $scope.delete = function() {
+      var req = FilesService.delete($scope.currentProject, $scope.path);
+      req.success(function() {
+        $("body").statusmsg("open", "File deleted.", {type: "success", autoclose: 1500});
+        var oneLevelUp = $scope.path.split("/");
+        oneLevelUp.pop();
+        if (oneLevelUp.length > 0) {
+          oneLevelUp = oneLevelUp.join("/");
+          oneLevelUp = "/" + oneLevelUp + "/";
+        } else {
+          oneLevelUp = "/";
+        }
+        $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
+        $location.replace();
+      });
+
+      req.error(function(data, status) {
+        $("body").statusmsg("open", "Error deleting file " + status, {type: "alert", closable: true});
+      });
+    };
 
     $scope.update = function() {
       if ($scope.currentProject) {
@@ -139,7 +160,7 @@
         var path = $route.current.params.path;
         [$scope.currentDirectoryList, $scope.path] = FilesService.breadcrumbify(path);
         $scope.filename = $scope.currentDirectoryList[$scope.currentDirectoryList.length-1].name;
-        var req = FilesService.getFileInfo($scope.currentProject, $scope.path);
+        var req = FilesService.get($scope.currentProject, $scope.path);
         req.success(function(data, status, headers, config) {
           $scope.author = data.author;
           $scope.updated = data.date;
