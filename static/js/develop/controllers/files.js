@@ -2,7 +2,9 @@
 
 (function() {
 
-  angular.module("projecto").controller("FilesTreeController", ["$scope", "$route", "title", "FilesService", "ProjectsService", function($scope, $route, title, FilesService, ProjectsService) {
+  var module = angular.module("projecto");
+
+  module.controller("FilesTreeController", ["$scope", "$route", "title", "FilesService", "ProjectsService", function($scope, $route, title, FilesService, ProjectsService) {
     title("Files", $scope.currentProject);
 
     var files = [];
@@ -12,7 +14,6 @@
         files.push(fs[i]);
       }
     });
-
 
     $scope.currentProject = null;
 
@@ -74,24 +75,8 @@
         var path = $route.current.params.path;
 
         // This is for parsing for the breadcrumbs.
-        $scope.currentDirectoryList = [{path: "/", name: "Root", last: true}];
-        if (!path) {
-          path = "/";
-        } else {
-          // stripping / from beginning and end of the path ..
-          $scope.currentDirectoryList[0].last = false;
-          var tmp = FilesService.trimSlashes(path).split("/");
-          var currentPath;
-          for (var i=0; i<tmp.length; i++) {
-            currentPath = tmp.slice(0, i+1);
-            currentPath = "/" + currentPath.join("/") + "/";
-            $scope.currentDirectoryList.push({
-              path: currentPath,
-              name: tmp[i],
-              last: i == tmp.length - 1
-            });
-          }
-        }
+        [$scope.currentDirectoryList, path] = FilesService.breadcrumbify(path);
+
         var req = FilesService.get($scope.currentProject, path);
         req.success(function(data, status, headers, config) {
           $("body").statusmsg("close");
@@ -131,6 +116,39 @@
             $scope.notFound = true;
           } else {
             $("body").statusmsg("open", "List directory failed (" + status + ")!", {type: "error", closable: true});
+          }
+        });
+      }
+    };
+
+    ProjectsService.getCurrentProject().done(function(currentProject){
+      $scope.currentProject = currentProject;
+      $scope.update();
+
+      $scope.$$phase || $scope.$apply();
+    });
+  }]);
+
+
+  module.controller("FileViewController", ["$scope", "$route", "title", "FilesService", "ProjectsService", function($scope, $route, title, FilesService, ProjectsService) {
+
+    $scope.update = function() {
+      if ($scope.currentProject) {
+        $scope.notFound = false;
+        title("Files", $scope.currentProject);
+        var path = $route.current.params.path;
+        [$scope.currentDirectoryList, $scope.path] = FilesService.breadcrumbify(path);
+        $scope.filename = $scope.currentDirectoryList[$scope.currentDirectoryList.length-1].name;
+        var req = FilesService.getFileInfo($scope.currentProject, $scope.path);
+        req.success(function(data, status, headers, config) {
+          $scope.author = data.author;
+          $scope.updated = data.date;
+        });
+
+        req.error(function(data, status, headers, config) {
+          $scope.notFound = true;
+          if (status !== 404) {
+            $("body").statusmsg("open", "Cannot get file info " + status, {type: "error", closable: true});
           }
         });
       }
