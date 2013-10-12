@@ -132,6 +132,15 @@
 
   module.controller("FileViewController", ["$scope", "$route", "$location", "title", "FilesService", "ProjectsService", function($scope, $route, $location, title, FilesService, ProjectsService) {
 
+    // TODO: Really could use some refactoring...
+    var files = [];
+    $scope.$on("files-added", function(e, element, fs) {
+      files = [];
+      for (var i=0; i<fs.length; i++) {
+        files.push(fs[i]);
+      }
+    });
+
     $scope.delete = function() {
       var req = FilesService.delete($scope.currentProject, $scope.path);
       req.success(function() {
