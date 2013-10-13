@@ -21,8 +21,8 @@
   <div class="row" ng-hide="notFound">
     <div class="large-12 columns">
       <div class="files-action-buttons">
-        <button class="small alert" ng-click="deleteDirectory()"><i class="icon icon-white icon-remove"></i> Delete This Folder</button>
-        <button class="small" ng-click="moveDirectory()"><i class="icon icon-white icon-move"></i> Move Folder</button>
+        <button class="small alert" ng-click="deleteDirectory()" ng-hide="path == '/'"><i class="icon icon-white icon-remove"></i> Delete This Folder</button>
+        <button class="small" ng-click="moveDirectory()" ng-hide="path == '/'"><i class="icon icon-white icon-move"></i> Move Folder</button>
         <button class="small success" ng-click="newDirectory()"><i class="icon-white icon icon-folder-close"></i> New Folder</button>
         <button class="small success" data-reveal-id="files-new-file-modal"><i class="icon icon-white icon-file"></i> New File</button>
       </div>

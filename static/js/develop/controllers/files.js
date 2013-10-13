@@ -4,7 +4,7 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FilesTreeController", ["$scope", "$route", "title", "FilesService", "ProjectsService", function($scope, $route, title, FilesService, ProjectsService) {
+  module.controller("FilesTreeController", ["$scope", "$route", "$location", "title", "FilesService", "ProjectsService", function($scope, $route, $location, title, FilesService, ProjectsService) {
     title("Files", $scope.currentProject);
 
     var files = [];
@@ -68,6 +68,30 @@
       }
     };
 
+    $scope.deleteDirectory = function() {
+      if (confirm("Are you sure you want to delete this folder?")) {
+        var req = FilesService.delete($scope.currentProject, $scope.path);
+        req.success(function() {
+          $("body").statusmsg("open", "Folder deleted.", {type: "success", autoclose: 1500});
+          var oneLevelUp = $scope.path.substring(0, $scope.path.length - 1).split("/");
+          oneLevelUp.pop();
+          if (oneLevelUp.length > 0) {
+            oneLevelUp = oneLevelUp.join("/");
+            oneLevelUp = "/" + oneLevelUp + "/";
+          } else {
+            oneLevelUp = "/";
+          }
+          console.log(oneLevelUp);
+          $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
+          $location.replace();
+        });
+
+        req.error(function(data, status) {
+          $("body").statusmsg("open", "Error deleting folder " + status, {type: "alert", closable: true});
+        });
+      }
+    };
+
     $scope.update = function() {
       if ($scope.currentProject) {
         $scope.notFound = false;
@@ -76,6 +100,13 @@
 
         // This is for parsing for the breadcrumbs.
         [$scope.currentDirectoryList, path] = FilesService.breadcrumbify(path);
+        $scope.path = path;
+        if ($scope.path.charAt($scope.path.length - 1) !== "/") {
+          // TODO: this is what i mean that we need to combine view_file with file.
+          // Having two is incredibly inefficient and causes duplicate code and things like this.
+          $location.path("/projects/" + $scope.currentProject.key + "/view_file/" + $scope.path);
+          $location.replace();
+        }
 
         var req = FilesService.get($scope.currentProject, path);
         req.success(function(data, status, headers, config) {
@@ -112,7 +143,7 @@
         });
         req.error(function(data, status, headers, config) {
           if (status === 404) {
-            $("body").statusmsg("open", "This directory is not found!", {type: "error", closable: true});
+            $("body").statusmsg("open", "This directory cannot be found!", {type: "error", closable: true});
             $scope.notFound = true;
           } else {
             $("body").statusmsg("open", "List directory failed (" + status + ")!", {type: "error", closable: true});
@@ -132,7 +163,8 @@
 
   module.controller("FileViewController", ["$scope", "$route", "$location", "title", "FilesService", "ProjectsService", function($scope, $route, $location, title, FilesService, ProjectsService) {
 
-    // TODO: Really could use some refactoring...
+    // TODO: Really could use some refactoring with the FilesTreeController
+    // Perhaps it is possible to reduce both of those things into a single controller
     var files = [];
     $scope.$on("files-added", function(e, element, fs) {
       files = [];
@@ -141,25 +173,58 @@
       }
     });
 
-    $scope.delete = function() {
-      var req = FilesService.delete($scope.currentProject, $scope.path);
-      req.success(function() {
-        $("body").statusmsg("open", "File deleted.", {type: "success", autoclose: 1500});
-        var oneLevelUp = $scope.path.split("/");
-        oneLevelUp.pop();
-        if (oneLevelUp.length > 0) {
-          oneLevelUp = oneLevelUp.join("/");
-          oneLevelUp = "/" + oneLevelUp + "/";
-        } else {
-          oneLevelUp = "/";
-        }
-        $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
-        $location.replace();
-      });
+    var resetFileUploads = function() {
+      files = [];
+      document.getElementById("files-file-upload").value = "";
+    };
 
-      req.error(function(data, status) {
-        $("body").statusmsg("open", "Error deleting file " + status, {type: "alert", closable: true});
-      });
+    $scope.updateFile = function() {
+      if (files.length === 0) {
+        $("body").statusmsg("open", "You need to select a file!", {type: "warning", autoclose: 1500});
+      } else {
+        var req = FilesService.updateFile($scope.currentProject, $route.current.params.path, files[0]);
+        req.success(function(data, status, headers, config) {
+          $("body").statusmsg("open", "File updated!", {type: "success", autoclose: 1500});
+          $scope.update();
+          $("#files-update-file-modal").foundation("reveal", "close");
+          resetFileUploads();
+        });
+
+        req.error(function(data, status, headers, config) {
+          var message = "";
+          if (data && data.error) {
+            message = data.error;
+          } else {
+            message = status;
+          }
+          $("body").statusmsg("open", "Error updating file: " + message, {autoclose: false, type: "alert"});
+          console.log("Error updating files", data, status);
+          resetFileUploads();
+        });
+      }
+    };
+
+    $scope.delete = function() {
+      if (confirm("Are you sure you want to delete this file?")) {
+        var req = FilesService.delete($scope.currentProject, $scope.path);
+        req.success(function() {
+          $("body").statusmsg("open", "File deleted.", {type: "success", autoclose: 1500});
+          var oneLevelUp = $scope.path.split("/");
+          oneLevelUp.pop();
+          if (oneLevelUp.length > 0) {
+            oneLevelUp = oneLevelUp.join("/");
+            oneLevelUp = "/" + oneLevelUp + "/";
+          } else {
+            oneLevelUp = "/";
+          }
+          $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
+          $location.replace();
+        });
+
+        req.error(function(data, status) {
+          $("body").statusmsg("open", "Error deleting file " + status, {type: "alert", closable: true});
+        });
+      }
     };
 
     $scope.update = function() {

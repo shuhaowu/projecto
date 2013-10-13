@@ -512,6 +512,8 @@ class FilesView(FlaskView):
       if request.files.get("file", None) and not f.is_directory:
         f.update_content(request.files["file"].read())
         request.files["file"].close()
+      else:
+        return abort(400)
 
       return jsonify(**f.serialize_for_client())
 

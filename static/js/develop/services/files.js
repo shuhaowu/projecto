@@ -57,7 +57,7 @@
       var fd = new FormData();
       fd.append("file", file);
       return $http({
-        method: "POST",
+        method: "PUT",
         url: apiUrl(project.key),
         params: {path: path},
         headers: {"Content-Type": false},

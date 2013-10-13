@@ -566,6 +566,12 @@ class TestFilesAPI(ProjectTestCase):
     response = self.put(self.base_url(), query_string={"path": "/"})
     self.assertStatus(400, response)
 
+    d = new_directory(self.user, self.project, path="/directory/", save=True)
+    self._c.append(d)
+
+    response = self.put(self.base_url(), query_string={"path": "/directory/"}, data={"file": (StringIO("abc"), "meh")})
+    self.assertStatus(400, response)
+
   def test_move_file(self):
     f = new_file(self.user, self.project, path="/test.txt", save=True)
 
