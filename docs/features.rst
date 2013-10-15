@@ -2,7 +2,7 @@
 Features
 ========
 
-This article loosely covers all the features that we have/plan to have in 
+This article loosely covers all the features that we have/plan to have in
 projecto.
 
 Overview
@@ -12,7 +12,7 @@ Project management systems nowadays are too complicated for small-medium sized
 projects. Good ones costs money and offers the product as a service rather than
 a software package that you can host on your own server.
 
-Projecto offers four main features: 
+Projecto offers four main features:
 
 - Feed: for project updates
 - Todos: managing tasks
@@ -22,7 +22,7 @@ Projecto offers four main features:
 Feed
 ====
 
-Pretty much like twitter. Short messages are made here. Tasks done in other 
+Pretty much like twitter. Short messages are made here. Tasks done in other
 parts of the systems can be posted here and so forth. People can also comment
 on each feed items.
 
@@ -35,7 +35,7 @@ Todos
 =====
 
 Sort of like github issues. Has tags, assign, due date, and so forth. This is
-a place where people can use Markdown.
+a place where people can use Markdown for description, as well.
 
 Features that need work:
 
@@ -46,24 +46,23 @@ Features that need work:
 Files
 =====
 
-Like a dropbox for the team. Has a straightforward and RESTful API to work 
-with. 
+A simulated file systems for file sharing. Straight forward and simple.
 
-This system needs to be coded.
+This system is currently minimally viable. More features will be added soonish.
 
-Features that need work:
+Wishlist:
 
-- WebDAV integration
-- Commenting on files
+- WebDAV
+- Integration with things like Dropbox
 
 Schedule
 ========
 
-A meeting calendar for the team. 
+A meeting calendar for the team.
 
 This system needs to be designed.
 
-Features that need work:
+Wishlist:
 
 - CalDAV integration
 - Commenting/voting on meeting times.
@@ -101,4 +100,3 @@ Planned features
   - Things like WebDAV and whatnot is essential in my view. Although it would be too much work to get an MVP out for now.
 - Mobile clients
   - responsive site may not be possible. A mobile webapp seem to be the way to go as we do not want to support all the platforms.
-
