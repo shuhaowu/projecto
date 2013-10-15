@@ -53,7 +53,13 @@
   <div class="section" id="vagrant-setup-recommended">
 <span id="vagrantsetup"></span><h1>Vagrant Setup (Recommended)<a class="headerlink" href="#vagrant-setup-recommended" title="Permalink to this headline">¶</a></h1>
 <p>After you get everything from <a class="reference internal" href="devsystemrequirements.html#devsystemrequirements"><em>Dev System Requirements</em></a>, clone the git
-repository and cd into it and type:</p>
+repository and cd into it and create a file named settings_local.py with
+the following content:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&quot;&lt;some random string here&gt;&quot;</span>
+</pre></div>
+</div>
+<p>Save the file. In the project directory, type:</p>
 <div class="highlight-python"><pre>$ vagrant up</pre>
 </div>
 <p>Wait about 10 minutes while everything setup. You must have a working
@@ -63,14 +69,33 @@ internet connection.</p>
 in a directory called /projecto. This is synced with your project dir via NFS.</p>
 <p>Some convenience aliases has been set in the VM. Type <tt class="docutils literal"><span class="pre">s</span></tt> to start the dev
 server and <tt class="docutils literal"><span class="pre">t</span></tt> to unittest.</p>
+<p>Note that unittests will fail if <tt class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span></tt>. This is an issue currently
+under investigation.</p>
 <p>The ip of the box is set to 192.168.33.10. Going to <a class="reference external" href="http://192.168.33.10:8800">http://192.168.33.10:8800</a>
 on your machine should get to projecto.</p>
 <p>Another convenience thing that was added is an nginx reverse proxy. You can add
 the entry:</p>
 <div class="highlight-python"><pre>192.168.33.10 projecto</pre>
 </div>
-<p>into your /etc/hosts file and go to <a class="reference external" href="http://projecto">http://projecto</a> to get to the projecto dev
-server (after it is booted, of course)</p>
+<p>into your /etc/hosts (or whereever the host file of your OS is) file and
+go to <a class="reference external" href="http://projecto">http://projecto</a> to get to the projecto dev server (after it is
+running, of course).</p>
+<div class="section" id="windows-notes">
+<h2>Windows Notes<a class="headerlink" href="#windows-notes" title="Permalink to this headline">¶</a></h2>
+<p>(This may or may not be broken with the new files feature).</p>
+<p>The lack of NFS on Windows is a big deal. So what we can do is redirect the
+<tt class="docutils literal"><span class="pre">DATABASE_FOLDER</span></tt> to be something different. The recommended place is your
+home directory, which is /home/vagrant.</p>
+<p>So, create a database folder in /home/vagrant:</p>
+<div class="highlight-python"><pre>$ mkdir /home/vagrant/databases</pre>
+</div>
+<p>Your settings_local.py file should have the extra line:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">DATABASES_FOLDER</span> <span class="o">=</span> <span class="s">&quot;/home/vagrant/databases&quot;</span>
+</pre></div>
+</div>
+<p>After this, your unittests should pass. You can also remove the databases folder
+inside your directory.</p>
+</div>
 </div>
 
 
@@ -79,6 +104,14 @@ server (after it is booted, of course)</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Vagrant Setup (Recommended)</a><ul>
+<li><a class="reference internal" href="#windows-notes">Windows Notes</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="devsystemrequirements.html"
                         title="previous chapter">Dev System Requirements</a></p>
