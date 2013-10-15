@@ -11,7 +11,7 @@ argparse==1.2.1
 cssmin==0.1.4
 -e git://github.com/surfly/gevent.git@454a77ca561868854760b2d9cbfa3bf3bbd2e062#egg=gevent-dev
 greenlet==0.4.0
--e git://github.com/shuhaowu/leveldbkit.git@e2d3a5414c09bbc8bbc891bf460712f38fe235ac#egg=leveldbkit-dev
+leveldbkit==0.1.3b
 misaka==1.0.2
 requests==1.2.3
 ujson==1.33

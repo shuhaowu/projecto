@@ -1,6 +1,21 @@
+import errno
+import os
+
 from flask import current_app, abort
 import ujson
+import werkzeug.utils
 
+def safe_mkdirs(path):
+  if os.path.exists(path):
+    return
+
+  try:
+    os.mkdir(path)
+  except OSError as e:
+    # Check for race conditions. If for some reason two threads/greenlets/whatever
+    # tries to create the same dir at the same time, we will have an error thrown.
+    if not (e.errno == errno.EEXIST and os.path.isdir(path)):
+      raise
 
 # ujson for both speed and compactness
 def jsonify(**params):
@@ -92,7 +107,7 @@ def project_managers_required(fn):
 from flask import request
 from leveldbkit import ValidationError
 
-def ensure_good_request(required_parameters, accepted_parameters=None):
+def ensure_good_request(required_parameters, accepted_parameters=None, allow_json_none=False):
   """Ensure that the request is good. aborts with 400 otherwise.
 
   accepted_parameters and required_parameters are both sets. If accepted_parameters is None,
@@ -105,12 +120,16 @@ def ensure_good_request(required_parameters, accepted_parameters=None):
   def decorator(f):
     @wraps(f)
     def fn(*args, **kwargs):
-      if not request.json or len(request.json) > len(accepted_parameters) or len(request.json) < len(required_parameters):
-        return abort(400)
+      if request.json:
+        if len(request.json) > len(accepted_parameters) or len(request.json) < len(required_parameters):
+          return abort(400)
 
-      parameters_provided = set(request.json.keys())
-      if not (parameters_provided >= required_parameters) or not (parameters_provided <= accepted_parameters):
-        return abort(400)
+        parameters_provided = set(request.json.keys())
+        if not (parameters_provided >= required_parameters) or not (parameters_provided <= accepted_parameters):
+          return abort(400)
+      else:
+        if not allow_json_none:
+          return abort(400)
 
       try:
         return f(*args, **kwargs)
@@ -130,3 +149,32 @@ def markdown_to_html(s):
 
 def markdown_to_db(s):
   return {"markdown": s, "html": markdown_to_html(s)}
+
+
+def parse_path(path, project_key):
+  """Parses a path that is passed from the client securely.
+
+  Returns a filesystem path as well as a key for db and if it is a directory.
+  """
+  path = path.lstrip("/")
+  is_directory = (path[-1] == "")
+  path = [werkzeug.utils.secure_filename(p.strip()) for p in path.split("/") if p.strip() not in ("..", ".")]
+  if is_directory:
+    path += "/"
+
+  fspath = os.join(current_app.config["APP_FOLDER"], project_key, path)
+  key = project_key + "`/" + path
+  return key, fspath, is_directory
+
+def secure_path(path):
+  # SECURITY: please review
+  path = path.lstrip(os.path.sep)
+
+  temp = []
+  for p in path.split(os.path.sep):
+    p = werkzeug.utils.secure_filename(p)
+    if p:
+      temp.append(p)
+
+  path = os.path.join(*temp)
+  return path

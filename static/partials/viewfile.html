@@ -1,0 +1,53 @@
+<div id="files-update-file-modal" class="small reveal-modal">
+  <h4>Upload File</h4>
+  <form ng-submit="updateFile()">
+    <input type="file" uploader id="files-file-upload" />
+    <button type="submit">Submit</button>
+  </form>
+   <a class="close-reveal-modal">&#215;</a>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="large-12 columns">
+      <ul class="breadcrumbs">
+        <li ng-repeat="dir in currentDirectoryList" ng-class="{current: dir.last}">
+          <a ng-href="#/projects/{[ currentProject.key ]}/files{[ dir.path ]}">{[ dir.name ]}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row" ng-hide="notFound">
+    <div class="large-12 columns">
+      <div class="files-action-buttons">
+        <button class="small alert" ng-click="delete()"><i class="icon icon-white icon-remove"></i> Delete</button>
+        <button class="small" data-reveal-id="files-update-file-modal"><i class="icon icon-white icon-upload"></i> Update</button>
+        <a class="button small success" href="/api/v1/projects/{[ currentProject.key ]}/files/?path={[ path ]}&download=true" target="_blank"><i class="icon icon-white icon-download"></i> Download</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" ng-hide="notFound">
+    <div class="large-12 columns">
+      <div class="panel">
+        <h4 class="text-center">{[ filename ]}</h4>
+        <div class="row">
+          <div class="large-6 columns">
+            <p class="text-center">Owner: {[ author.name ]}</p>
+          </div>
+          <div class="large-6 columns">
+            <p class="text-center">Updated: {[ updated|relativeTime ]}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" ng-show="notFound">
+    <div class="large-12 columns">
+      <p class="text-center" ng-show="notFound">This file does not exist.</p>
+    </div>
+  </div>
+
+</div>

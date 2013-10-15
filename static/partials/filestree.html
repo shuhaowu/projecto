@@ -1,0 +1,52 @@
+<div id="files-new-file-modal" class="small reveal-modal">
+  <h4>New File</h4>
+  <form ng-submit="newFile()">
+    <input type="file" uploader id="files-file-upload" />
+    <button type="submit">Submit</button>
+  </form>
+   <a class="close-reveal-modal">&#215;</a>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="large-12 columns">
+      <ul class="breadcrumbs">
+        <li ng-repeat="dir in currentDirectoryList" ng-class="{current: dir.last}">
+          <a ng-href="#/projects/{[ currentProject.key ]}/files{[ dir.path ]}">{[ dir.name ]}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row" ng-hide="notFound">
+    <div class="large-12 columns">
+      <div class="files-action-buttons">
+        <button class="small alert" ng-click="deleteDirectory()" ng-hide="path == '/'"><i class="icon icon-white icon-remove"></i> Delete This Folder</button>
+        <!-- <button class="small" ng-click="moveDirectory()" ng-hide="path == '/'"><i class="icon icon-white icon-move"></i> Move Folder</button> -->
+        <button class="small success" ng-click="newDirectory()"><i class="icon-white icon icon-folder-close"></i> New Folder</button>
+        <button class="small success" data-reveal-id="files-new-file-modal"><i class="icon icon-white icon-file"></i> New File</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="large-12 columns">
+      <div class="panel">
+        <ul class="files" ng-hide="notFound || files.length == 0">
+          <li ng-repeat="f in files">
+            <i class="icon icon-file" ng-hide="f.is_directory"></i>
+            <i class="icon icon-folder-close" ng-show="f.is_directory"></i>
+            <p>
+              <a ng-href="#/projects/{[ currentProject.key ]}/view_file{[ f.path ]}" ng-hide="f.is_directory">{[ f.name ]}</a>
+              <a ng-href="#/projects/{[ currentProject.key ]}/files{[ f.path ]}" ng-show="f.is_directory">{[ f.name ]}</a>
+              <span class="author">| {[ f.author.name ]}</span>
+              <span class="date">{[ f.date|relativeTime ]}</span>
+            </p>
+          </li>
+        </ul>
+        <p class="text-center" ng-show="notFound">This directory does not exist.</p>
+        <p class="text-center" ng-show="files.length == 0">This directory is empty. Create some files!</p>
+      </div>
+    </div>
+  </div>
+</div>
