@@ -61,7 +61,7 @@
           } else {
             message = status;
           }
-          $("body").statusmsg("open", "Error adding file: " + message, {autoclose: false, type: "alert"});
+          $("body").statusmsg("open", "Error adding file: " + message, {autoclose: false, type: "error"});
           console.log("Error adding files", data, status);
           resetFileUploads();
         });
@@ -87,7 +87,7 @@
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Error deleting folder " + status, {type: "alert", closable: true});
+          $("body").statusmsg("open", "Error deleting folder " + status, {type: "error", closable: true});
         });
       }
     };
@@ -197,7 +197,7 @@
           } else {
             message = status;
           }
-          $("body").statusmsg("open", "Error updating file: " + message, {autoclose: false, type: "alert"});
+          $("body").statusmsg("open", "Error updating file: " + message, {autoclose: false, type: "error"});
           console.log("Error updating files", data, status);
           resetFileUploads();
         });
@@ -222,7 +222,7 @@
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Error deleting file " + status, {type: "alert", closable: true});
+          $("body").statusmsg("open", "Error deleting file " + status, {type: "error", closable: true});
         });
       }
     };

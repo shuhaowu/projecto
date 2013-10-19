@@ -1,0 +1,58 @@
+<div class="panel" ng-controller="TodoItemController">
+  <form class="custom">
+    <span class="custom checkbox todos-todo-donebox" ng-class="{checked: todo.done}" ng-click="markDone(todo)"></span>
+    <span class="todos-control">
+      <span class="radius label" ng-show="todo.due">Due {[ todo.due | relativeTime ]}</span>
+      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-hide="hideCommentLink">
+        <ng-pluralize count="todo.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
+      </a>
+      <span ng-show="currentProject.owner || currentUser.key == todo.author.key">
+        <span ng-hide="hideCommentLink">| </span>
+        <a href="" title="Edit" ng-click="editTodo(todo, $index)">Edit</a> |
+        <a href="" title="Delete" ng-click="deleteTodo(todo, $index)">Delete</a>
+      </span>
+    </span>
+    <div class="todos-todo-title">
+      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.done}" ng-click="toggleTodo(todo, $event)">{[ todo.title ]}</a>
+    </div>
+  </form>
+
+
+  <div class="todos-todo-body" id="todo-{[ todo.key ]}">
+    <!-- view mode -->
+    <div ng-hide="todoDraft">
+      <div ng-show="todo.content.markdown" class="todos-todo-content" ng-bind-html-unsafe="todo.content.html">
+      </div>
+      <div ng-hide="todo.content.markdown" class="todos-todo-content" >
+        <p>No description provided.</p>
+      </div>
+      <div class="todos-todo-info">
+        <span class="right">
+          <span class="radius label todos-todo-tag" ng-repeat="tag in todo.tags">{[ tag ]}</span>
+        </span>
+        Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
+      </div>
+    </div>
+
+    <!-- edit mode -->
+    <div ng-show="todoDraft">
+      <form ng-submit="saveTodo(todo.key)">
+        <input type="text" ng-model="todoDraft.title" placeholder="Title" />
+        <textarea ng-model="todoDraft.content.markdown" rows="5" placeholder="Description">
+        </textarea>
+        <input type="text" ng-model="todoDraft.tags" placeholder="Tags (separate with ,)" />
+        <div class="left" style="margin-right: 5px;">
+          <input type="text" ng-model="todoDraft.assigned" placeholder="Assigned" />
+        </div>
+        <div class="left">
+          <input type="text" ng-model="todoDraft.due" placeholder="Due (YYYY-MM-DD)" />
+        </div>
+        <div class="right">
+          <a class="small secondary button" ng-click="cancelEdit(todo.key)">Cancel</a>
+          <button class="small success" type="submit">Save</button>
+        </div>
+        <br class="clear" />
+      </form>
+    </div>
+  </div>
+</div>

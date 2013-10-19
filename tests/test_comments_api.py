@@ -125,6 +125,20 @@ class TestCommentsAPI(ProjectTestCase):
     # should not fail.
     comment.reload()
 
+  def test_delete_comment_reject_notfound(self):
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
+    comment = new_comment(self.user, feeditem.key, content="content", save=True)
+
+    self.login()
+    response, data = self.deleteJSON(self.base_url(feeditem.key, "wrongkey"))
+    self.assertStatus(404, response)
+
+    response, data = self.deleteJSON(self.base_url("wrongkey", comment.key))
+    self.assertStatus(404, response)
+
+    # Should not fail
+    comment.reload()
+
   def test_delete_feeditem_deletes_comments(self):
     feeditem = new_feeditem(self.user, self.project, content="content", save=True)
     comment = new_comment(self.user, feeditem.key, content="content", save=True)

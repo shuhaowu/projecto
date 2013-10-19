@@ -1,27 +1,24 @@
 "use strict";
 
 (function() {
-  angular.module("projecto").service("CommentsService", function() {
+  angular.module("projecto").service("CommentsService", ["$http", function($http) {
     var apiUrl = function(projectId, parentId, postfix) {
       return window.API_PREFIX + "/projects/" + projectId + "/comments/" + parentId + "/" + (postfix ?  postfix : "");
     };
 
     this.post = function(project, parentId, commentText) {
-      return $.ajax({
-        type: "POST",
+      return $http({
+        method: "POST",
         url: apiUrl(project.key, parentId),
-        dataType: "json",
-        contentType: "application/json",
-        data: JSON.stringify({content: commentText})
+        data: {content: commentText}
       });
     };
 
     this.delete = function(project, parentId, comment) {
-      return $.ajax({
-        type: "DELETE",
-        url: apiUrl(project.key, parentId, comment.key),
-        dataType: "json"
+      return $http({
+        method: "DELETE",
+        url: apiUrl(project.key, parentId, comment.key)
       });
     };
-  });
-})()
+  }]);
+})();

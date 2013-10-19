@@ -1,22 +1,180 @@
 "use strict";
 
 (function(){
-  angular.module("projecto").controller(
-    "TodosController", ["$scope", "$filter", "$route", "title", "TodosService", "ProjectsService", function($scope, $filter, $route, title, TodosService, ProjectsService){
 
+  /*
+   * So the structure is designed as follows:
+   *
+   * TodoItemController
+   *   Controls a single item for the todo item. Handles the edit mode for
+   *   a single todo. Handles showing and hiding the todo.
+   * TodosController
+   *   Controls a bunch of a TodoItemControllers. Has pagination, filtering,
+   *   and creating new todos.
+   * SingleTodoController
+   *   Controls a single TodoItemController. Has commenting. Otherwise does
+   *   not do much.
+   */
+
+  var module = angular.module("projecto");
+
+  var toggleTodo = function(todo, force) {
+    // TODO: All of this needs to be moved into a directive.
+    var bodyElement = $("#todo-" + todo.key);
+    if (bodyElement.css("display") === "none") {
+      if (force != "close")
+        bodyElement.slideDown();
+    } else {
+      if (force != "open")
+        bodyElement.slideUp();
+    }
+  };
+
+  var extractTags = function(tagstr) {
+    if ($.type(tagstr) === "array")
+      return tagstr;
+
+    var tags = tagstr.split(",");
+    for (var i=0; i<tags.length; i++) {
+      tags[i] = $.trim(tags[i], " ");
+      if (!tags[i]) {
+        tags.splice(i, 1);
+        i--;
+      }
+    }
+    console.log(tags);
+    return tags;
+  };
+
+  module.controller("TodoItemController", ["$scope", "$filter", "$location", "TodosService", function($scope, $filter, $location, TodosService) {
+    $scope.todoDraft = null;
+
+    $scope.toggleTodo = function(todo, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleTodo(todo);
+    };
+
+    $scope.markDone = function(todo) {
+      var req = TodosService.markDone($scope.currentProject, todo);
+      req.success(function(data) {
+        todo.done = !todo.done;
+      });
+
+      req.error(function(data, status) {
+        $("body").statusmsg("open", "Marking done failed: " + status, {type: "error", closable: true});
+      });
+    };
+
+    $scope.editTodo = function(todo, i) {
+      if ($scope.todoDraft) {
+        $scope.cancelEdit(todo.key);
+      } else {
+        toggleTodo(todo, "open");
+        $scope.todoDraft = angular.copy(todo);
+        $scope.todoDraft.due = $filter("absoluteTime")(todo["due"]);
+        // For restoring in the correct order later if we are on TodosController
+        $scope.todoDraft._index = i;
+
+        // In a truly concurrent program I would be concerned. However...
+        $scope.$emit("enterEdit", todo.key, i);
+      }
+    };
+
+    $scope.deleteTodo = function(todo, i) {
+      if (!confirm("Are you sure you want to delete this todo item?"))
+        return;
+
+      if ($scope.currentProject) {
+        var req = TodosService.delete($scope.currentProject, todo);
+
+        req.success(function() {
+          $("body").statusmsg("open", "Deleted", {type: "success", autoclose: 2000});
+          $scope.$emit("deleted", todo.key, i);
+        });
+
+        req.error(function(data, status) {
+          $("body").statusmsg("open", "Deleting todo failed: " + status, {type: "error", closable: true});
+        });
+
+      } else {
+        window.notLoaded();
+      }
+    };
+
+    $scope.saveTodo = function(todo, event) {
+      if (!$scope.todoDraft) {
+        $("body").statusmsg("open", "Something has gone wrong... Please refresh the page.", {type: "error"});
+        return;
+      }
+
+      if ($scope.currentProject) {
+        $scope.todoDraft.tags = extractTags($scope.todoDraft.tags);
+        var req = TodosService.put($scope.currentProject, $scope.todoDraft);
+
+        req.success(function(data) {
+          $scope.$emit("saved", data, $scope.todoDraft._index)
+          $scope.cancelEdit($scope.todoDraft.key, true);
+
+          $("body").statusmsg("open", "Saved", {type: "success", autoclose: 2000});
+          toggleTodo(data, "open");
+        });
+
+        req.error(function(data, status) {
+          $("body").statusmsg("open", "Saving error: " + status, {type: "error", closable: true});
+        });
+      } else {
+        window.notLoaded();
+      }
+    };
+
+    $scope.cancelEdit = function(todoKey, justDoIt) { // Nike.
+      if (justDoIt || confirm("Are you sure you want to cancel? You will lose all changes!")) {
+        $scope.$emit("exitEdit", $scope.todoDraft.key, $scope.todoDraft._index);
+        $scope.todoDraft = null;
+        $scope.currentlyEditing--;
+      }
+    };
+
+  }]);
+
+  module.controller(
+    "TodosController", ["$scope", "$route", "title", "TodosService", "ProjectsService", function($scope, $route, title, TodosService, ProjectsService){
       $scope.newtodoitem = {};
       $scope.todos = [];
       $scope.tags = [];
       $scope.tagsFiltered = {};
       $scope.showdone = "0";
       $scope.shownotdone = "1";
-      $scope.editMode = {};
 
       $scope.currentPage = null;
       $scope.totalPages = null;
       $scope.todosPerPage = null;
       $scope.totalTodos = 0;
       $scope.pages = [];
+
+      // Managed via the event enterEdit, exitEdit, new Todo's save success, and in Expand all.
+      var currentlyEditing = [];
+
+      $scope.$on("enterEdit", function(e, todoKey, i) {
+        if (currentlyEditing.indexOf(todoKey) === -1)
+          currentlyEditing.push(todoKey);
+      });
+
+      $scope.$on("exitEdit", function(e, todoKey, i) {
+        var j = currentlyEditing.indexOf(todoKey);
+        if (j >= 0)
+          currentlyEditing.splice(j, 1);
+      });
+
+      $scope.$on("deleted", function(e, todoKey, i) {
+        $scope.todos.splice(i, 1);
+        $scope.totalTodos--;
+      });
+
+      $scope.$on("saved", function(e, newTodo, i) {
+        $scope.todos[i] = newTodo;
+      });
 
       var recomputePages = function(totalTodos, todosPerPage) {
         $scope.totalTodos = totalTodos;
@@ -44,33 +202,6 @@
         });
       };
 
-      var extractTags = function(tagstr) {
-        if ($.type(tagstr) === "array")
-          return tagstr;
-
-        var tags = tagstr.split(",");
-        for (var i=0; i<tags.length; i++) {
-          tags[i] = $.trim(tags[i], " ");
-          if (!tags[i]) {
-            tags.splice(i, 1);
-            i--;
-          }
-        }
-        console.log(tags);
-        return tags;
-      };
-
-      var toggleTodo = function(todo, force) {
-        // TODO: All of this needs to be moved into a directive.
-        var bodyElement = $("#todo-" + todo.key);
-        if (bodyElement.css("display") === "none") {
-          if (force != "close")
-            bodyElement.slideDown();
-        } else {
-          if (force != "open")
-            bodyElement.slideUp();
-        }
-      };
 
       $scope.expandTodos = function(e) {
         if ($(e.target).text() === "Expand All") {
@@ -81,6 +212,7 @@
         } else {
           for (var i=0; i<$scope.todos.length; i++) {
             toggleTodo($scope.todos[i], "close");
+            currentlyEditing = [];
           }
           $(e.target).text("Expand All");
         }
@@ -99,7 +231,22 @@
         }
       };
 
+      var cancelAction = function(action) {
+        if (currentlyEditing.length > 0) {
+          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
+          msg += "This action will reload the todo items, but you have items currently open for editing. ";
+          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
+          if (!window.confirm(msg)) {
+            return true;
+          }
+          currentlyEditing = [];
+        }
+        return false;
+      };
+
       $scope.createTodo = function() {
+        if (cancelAction("create a new todo")) return;
+
         if ($scope.newtodoitem.title) {
           if ($scope.newtodoitem.tags)
             $scope.newtodoitem.tags = extractTags($scope.newtodoitem.tags);
@@ -107,6 +254,7 @@
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
             $scope.update("Created");
             $scope.newTodo(); // hack. Closes the "New Todo" form.
+            currentlyEditing = [];
           }).fail(function(xhr){
             $("body").statusmsg("open", "Posting failed: " + xhr.status, {type: "error", closable: true});
           });
@@ -166,16 +314,6 @@
           });
       };
 
-      $scope.markDone = function(todo) {
-        TodosService.markDone($scope.currentProject, todo).done(function(data) {
-          $scope.$apply(function() {
-            todo.done = !todo.done;
-          });
-        }).fail(function(xhr) {
-          $("body").statusmsg("open", "Marking done failed: " + xhr.status, {type: "error", closable: true});
-        });
-      };
-
       $scope.clearDone = function(todo) {
         TodosService.clearDone($scope.currentProject).done(function(data) {
           $scope.$apply(function() {
@@ -192,112 +330,6 @@
       };
 
 
-      $scope.showTodo = function(todo, $event) {
-        $event.preventDefault();
-        $event.stopPropagation();
-
-        toggleTodo(todo);
-      };
-
-      $scope.editTodo = function(todo, index) {
-        var bodyElement = $("#todo-"+todo.key);
-        if ($scope.editMode[todo.key]) {
-          delete $scope.editMode[todo.key];
-        } else {
-          if (bodyElement.css("display") === "none")
-            bodyElement.slideDown();
-
-          $scope.editMode[todo.key] = angular.copy(todo);
-          $scope.editMode[todo.key]["due"] = $filter("absoluteTime")(todo["due"]);
-          $scope.editMode[todo.key]["_index"] = index; // For restoring later when we save
-        }
-      };
-
-      $scope.cancelEdit = function(todoKey) {
-        if ($scope.editMode[todoKey])
-          delete $scope.editMode[todoKey];
-      };
-
-      var currentlyEditing = function() {
-        for (var key in $scope.editMode) {
-          if ($scope.editMode.hasOwnProperty(key)) {
-            // a key is present, so a todo is currently being edited.
-            return true;
-          }
-        }
-        return false;
-      };
-
-      var cancelAction = function(action) {
-        if (currentlyEditing()) {
-          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
-          msg += "This action will reload the todo items, but you have items currently open for editing. ";
-          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
-          if (!window.confirm(msg)) {
-            return true;
-          }
-        }
-        return false;
-      };
-
-      $scope.saveTodo = function(todoKey) {
-        if (!$scope.editMode[todoKey]) {
-          $("body").statusmsg("open", "Something has gone wrong... Please refresh the page.", {type: "error"});
-          return;
-        }
-
-        if ($scope.currentProject) {
-          var tags = $scope.editMode[todoKey].tags;
-
-          $scope.editMode[todoKey].tags = extractTags(tags);
-
-          TodosService.put($scope.currentProject, $scope.editMode[todoKey]).done(function(data) {
-            $scope.$apply(function() {
-              var msg = "Saved";
-              var i = $scope.editMode[todoKey]._index;
-              delete $scope.editMode[todoKey];
-              if (!currentlyEditing()) {
-                $scope.update(msg);
-              }
-              else {
-                $scope.todos[i] = data;
-                $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
-              }
-            });
-            toggleTodo(data, "open");
-
-          }).fail(function(xhr) {
-            $("body").statusmsg("open", "Saving error: " + xhr.status, {type: "error", closable: true});
-          });
-        } else {
-          window.notLoaded();
-        }
-      };
-
-      $scope.deleteTodo = function(todo, i) {
-        if (!confirm("Are you sure you want to delete this todo item?"))
-          return;
-
-        if ($scope.currentProject) {
-          TodosService["delete"]($scope.currentProject, todo).done(function() {
-            var msg = "Deleted";
-            if (!currentlyEditing()) {
-              $scope.update(msg);
-            }
-            else {
-              $scope.$apply(function() {
-                $scope.todos.splice(i, 1);
-                $scope.totalTodos--;
-                $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
-              });
-            }
-          }).fail(function(xhr) {
-            $("body").statusmsg("open", "Deletion failed: " + xhr.status, {type: "error", closable: true});
-          });
-        } else {
-          window.notLoaded();
-        }
-      };
 
       $scope.checkTagFilter = function(tag) {
         if (cancelAction("change the filters")) return;
@@ -332,22 +364,49 @@
     }]
   );
 
-  angular.module("projecto").controller(
-    "SingleTodoController", ["$scope", "$route", "title", "TodosService", "ProjectsService", function($scope, $route, title, TodosService, ProjectsService) {
+  module.controller(
+    "SingleTodoController", ["$scope", "$route", "$location", "$timeout", "title", "TodosService", "ProjectsService", function($scope, $route, $location, $timeout, title, TodosService, ProjectsService) {
       $scope.currentProject = null;
       $scope.todo = {};
+      $scope.hideCommentLink = true;
       $("body").statusmsg("open", "Loading your page...");
+
+      var setupCommentStuff = function() {
+        $scope.comments = $scope.todo.children;
+        $scope.commentsParent = $scope.todo;
+      };
+
+      $scope.$on("deleted", function(e, todoKey) {
+        $location.path("/projects/" + $scope.currentProject.key + "/todos");
+        $location.replace();
+      });
+
+      $scope.$on("saved", function(e, newTodo) {
+        $scope.todo = newTodo;
+        setupCommentStuff();
+      });
+
+      $scope.update = function() {
+        var req = TodosService.get($scope.currentProject, $route.current.params.todoId);
+
+        req.success(function(data) {
+          $("body").statusmsg("close");
+          $scope.todo = data;
+          setupCommentStuff();
+
+          // TODO: this is broken. It only sometimes works.
+          toggleTodo($scope.todo);
+        });
+
+        req.error(function(data, status) {
+          $("body").statusmsg("open", "Loading todo failed: " + status, {type: "error", closable: true});
+        });
+      };
 
       ProjectsService.getCurrentProject().done(function(currentProject) {
         $scope.currentProject = currentProject;
-        TodosService.get(currentProject, $route.current.params.todoId).done(function(todo) {
-          title(todo.title, currentProject);
-          $("body").statusmsg("close");
-          $scope.todo = todo;
-          $scope.$$phase || $scope.$apply();
-        }).fail(function(xhr) {
-          $("body").statusmsg("open", "Loading todo failed: " + xhr.status, {type: "error", closable: true});
-        });
+        $scope.update();
+        $scope.$$phase || $scope.$apply();
       }).fail(function(xhr) {
         $("body").statusmsg("open", "Loading page failed on getting current project: " + xhr.status, {type: "error", closable: true});
       });

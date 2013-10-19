@@ -1,49 +1,15 @@
 <div class="row">
   <div class="large-12 columns">
-    <a href="" ng-click="newTodo()" class="small right button" id="todos-new-todo-btn">Back</a>
     <a href="#/projects/{[ currentProject.key ]}/todos/" class="small secondary button">All Todos</a>
-    <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a>
+    <!-- <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a> -->
     <hr />
   </div>
 </div>
 
 <div class="row">
   <div class="large-12 columns">
-    <div class="panel">
-      <form class="custom">
-        <span ng-class="{custom: true, checkbox: true, checked: todo.done, 'todos-todo-donebox': true}" ng-click="markDone(todo)"></span>
-        <span class="todos-control">
-          <span class="radius label" ng-show="todo.due">Due {[ todo.due | relativeTime ]}</span>
-          <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}">
-            <span ng-show="todo.children.length > 0">{[ todo.children.length ]} comment<span ng-show="todo-children.length != 1">s</span></span>
-            <span ng-show="todo.children.length == 0">Comment</span>
-          </a>
-          <span ng-show="currentProject.owner || currentUser.key == todo.author.key">
-            | <a href="" titile="Edit" ng-click="editTodo(todo, $index)">Edit</a> |
-            <a href="" title="Delete" ng-click="deleteTodo(todo, $index)">Delete</a>
-          </span>
-        </span>
-        <div class="todos-todo-title">
-          <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-click="showTodo(todo, $event)">{[ todo.title ]}</a>
-        </div>
-      </form>
-      <div class="todos-todo-body show" id="todo-{[ todo.key ]}">
-        <div class="todos-todo-content" ng-bind-html-unsafe="todo.content.html" ng-show="todo.content.markdown">
-        </div>
-        <div class="todos-todo-content" ng-show="!todo.content.markdown">
-          <p>No description provided.</p>
-        </div>
-        <div class="todos-todo-info">
-          <span class="right">
-            <span class="radius label todos-todo-tag" ng-repeat="tag in todo.tags">{[ tag ]}</span>
-          </span>
-          Filed by {[ todo.author.name ]} on {[ todo.date | absoluteTime ]} | Assigned to {[ ((todo.assigned) && todo.assigned.name || "no one") ]}
-        </div>
-      </div>
-    </div>
-    <hr />
-    <h5 class="text-right">Comments</h5>
-    <div class="panel">
-    </div>
+    <ng-include src="'/static/partials/todoitem.html'"></ng-include>
   </div>
 </div>
+
+<ng-include src="'/static/partials/standardcomments.html'"></ng-include>
