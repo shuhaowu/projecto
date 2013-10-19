@@ -43,10 +43,9 @@
       };
 
       this.get = function(project, todoId) {
-        return $.ajax({
-          type: "GET",
-          url: apiUrl(project.key, todoId),
-          dataType: "json"
+        return $http({
+          method: "GET",
+          url: apiUrl(project.key, todoId)
         });
       };
 

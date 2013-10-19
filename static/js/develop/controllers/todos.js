@@ -365,7 +365,7 @@
   );
 
   module.controller(
-    "SingleTodoController", ["$scope", "$route", "$location", "title", "TodosService", "ProjectsService", function($scope, $route, $location, title, TodosService, ProjectsService) {
+    "SingleTodoController", ["$scope", "$route", "$location", "$timeout", "title", "TodosService", "ProjectsService", function($scope, $route, $location, $timeout, title, TodosService, ProjectsService) {
       $scope.currentProject = null;
       $scope.todo = {};
       $scope.hideCommentLink = true;
@@ -380,19 +380,26 @@
         $scope.todo = newTodo;
       });
 
+      $scope.update = function() {
+        var req = TodosService.get($scope.currentProject, $route.current.params.todoId);
+
+        req.success(function(data) {
+          $("body").statusmsg("close");
+          $scope.todo = data;
+
+          // TODO: this is broken. It only sometimes works.
+          toggleTodo($scope.todo);
+        });
+
+        req.error(function(data, status) {
+          $("body").statusmsg("open", "Loading todo failed: " + status, {type: "error", closable: true});
+        });
+      };
+
       ProjectsService.getCurrentProject().done(function(currentProject) {
         $scope.currentProject = currentProject;
-        TodosService.get(currentProject, $route.current.params.todoId).done(function(todo) {
-          title(todo.title, currentProject);
-          $("body").statusmsg("close");
-          $scope.todo = todo;
-          $scope.$$phase || $scope.$apply();
-
-          // Initial state is open.
-          toggleTodo(todo);
-        }).fail(function(xhr) {
-          $("body").statusmsg("open", "Loading todo failed: " + xhr.status, {type: "error", closable: true});
-        });
+        $scope.update();
+        $scope.$$phase || $scope.$apply();
       }).fail(function(xhr) {
         $("body").statusmsg("open", "Loading page failed on getting current project: " + xhr.status, {type: "error", closable: true});
       });
