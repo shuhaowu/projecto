@@ -104,27 +104,11 @@
             t += " ...";
           }
 
-          $scope.post = post;
+          $scope.post = $scope.commentsParent = post;
+          $scope.comments = $scope.post.children;
           title(t, $scope.currentProject);
         });
       });
-    };
-
-    $scope.deleteComment = function(comment) {
-      if (confirm("Are you sure you want to delete this comment?")) {
-        CommentsService.delete($scope.currentProject, $scope.post.key, comment).done(function(){
-          for (var i=0; i<$scope.post.children.length; i++) {
-            if ($scope.post.children[i].key === comment.key) {
-              $scope.$apply(function(){
-                $scope.post.children.splice(i, 1);
-              });
-              break;
-            }
-          }
-        }).fail(function(xhr){
-          $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
-        });
-      }
     };
 
     // so that feeditem.html knows what's going on.
