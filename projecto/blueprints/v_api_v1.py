@@ -163,6 +163,9 @@ class CommentView(FlaskView):
     except NotFoundError:
       return abort(404)
     else:
+      if comment.parent != parent_id:
+        return abort(404)
+
       # Note that ideally we want the author of the parent post to be able to delete too.
       # however this is not possible right now as we don't know what the parent is.
       if current_user.key == comment.author.key or current_user.key in project.owners:
