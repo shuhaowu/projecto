@@ -371,6 +371,11 @@
       $scope.hideCommentLink = true;
       $("body").statusmsg("open", "Loading your page...");
 
+      var setupCommentStuff = function() {
+        $scope.comments = $scope.todo.children;
+        $scope.commentsParent = $scope.todo;
+      };
+
       $scope.$on("deleted", function(e, todoKey) {
         $location.path("/projects/" + $scope.currentProject.key + "/todos");
         $location.replace();
@@ -378,6 +383,7 @@
 
       $scope.$on("saved", function(e, newTodo) {
         $scope.todo = newTodo;
+        setupCommentStuff();
       });
 
       $scope.update = function() {
@@ -386,6 +392,7 @@
         req.success(function(data) {
           $("body").statusmsg("close");
           $scope.todo = data;
+          setupCommentStuff();
 
           // TODO: this is broken. It only sometimes works.
           toggleTodo($scope.todo);
