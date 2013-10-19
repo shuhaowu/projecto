@@ -8,11 +8,12 @@
       <a href="" ng-click="newTodo()" class="small success button" id="todos-new-todo-btn">New Todo</a>
     </div>
     <a href="#/projects/{[ currentProject.key ]}/todos/" class="small secondary button">All Todos</a>
-    <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a>
+    <!--
+    <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a> -->
 
     <!-- "New Todo" form -->
     <div class="panel" id="todos-new-todo">
-      <h5>New Todo</h5>
+
       <form ng-submit="createTodo()">
         <div class="row">
           <div class="large-12 columns">

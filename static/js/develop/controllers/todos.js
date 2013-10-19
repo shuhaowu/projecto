@@ -75,6 +75,9 @@
         $scope.todoDraft.due = $filter("absoluteTime")(todo["due"]);
         // For restoring in the correct order later if we are on TodosController
         $scope.todoDraft._index = i;
+
+        // In a truly concurrent program I would be concerned. However...
+        $scope.$emit("enterEdit", todo.key, i);
       }
     };
 
@@ -86,22 +89,8 @@
         var req = TodosService.delete($scope.currentProject, todo);
 
         req.success(function() {
-          var msg = "Deleted!";
-          if (!$scope.todos) {
-            // This means we are in the single todo page.
-            // We want to redirect user back to the Todos page.
-            $location.path("/projects/" + $scope.currentProject.key + "/todos");
-            $location.replace();
-            $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
-          } else {
-            if (!$scope.todoDraft) {
-              $scope.update(msg);
-            } else {
-              $scope.todos.splice(i, 1);
-              $scope.totalTodos--;
-              $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
-            }
-          }
+          $("body").statusmsg("open", "Deleted", {type: "success", autoclose: 2000});
+          $scope.$emit("deleted", todo.key, i);
         });
 
         req.error(function(data, status) {
@@ -124,16 +113,10 @@
         var req = TodosService.put($scope.currentProject, $scope.todoDraft);
 
         req.success(function(data) {
-          var msg = "Saved!";
-          var index = $scope.todoDraft._index;
-          $scope.todoDraft = null;
-          if (!$scope.todos) {
-            // Again. Single todo page.
-            $scope.todo = data;
-          } else {
-            $scope.todos[index] = data;
-          }
-          $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
+          $scope.$emit("saved", data, $scope.todoDraft._index)
+          $scope.cancelEdit($scope.todoDraft.key, true);
+
+          $("body").statusmsg("open", "Saved", {type: "success", autoclose: 2000});
           toggleTodo(data, "open");
         });
 
@@ -145,9 +128,12 @@
       }
     };
 
-    $scope.cancelEdit = function(todoKey) {
-      if (confirm("Are you sure you want to cancel? You will lose all changes!"))
+    $scope.cancelEdit = function(todoKey, justDoIt) { // Nike.
+      if (justDoIt || confirm("Are you sure you want to cancel? You will lose all changes!")) {
+        $scope.$emit("exitEdit", $scope.todoDraft.key, $scope.todoDraft._index);
         $scope.todoDraft = null;
+        $scope.currentlyEditing--;
+      }
     };
 
   }]);
@@ -166,6 +152,29 @@
       $scope.todosPerPage = null;
       $scope.totalTodos = 0;
       $scope.pages = [];
+
+      // Managed via the event enterEdit, exitEdit, new Todo's save success, and in Expand all.
+      var currentlyEditing = [];
+
+      $scope.$on("enterEdit", function(e, todoKey, i) {
+        if (currentlyEditing.indexOf(todoKey) === -1)
+          currentlyEditing.push(todoKey);
+      });
+
+      $scope.$on("exitEdit", function(e, todoKey, i) {
+        var j = currentlyEditing.indexOf(todoKey);
+        if (j >= 0)
+          currentlyEditing.splice(j, 1);
+      });
+
+      $scope.$on("deleted", function(e, todoKey, i) {
+        $scope.todos.splice(i, 1);
+        $scope.totalTodos--;
+      });
+
+      $scope.$on("saved", function(e, newTodo, i) {
+        $scope.todos[i] = newTodo;
+      });
 
       var recomputePages = function(totalTodos, todosPerPage) {
         $scope.totalTodos = totalTodos;
@@ -203,6 +212,7 @@
         } else {
           for (var i=0; i<$scope.todos.length; i++) {
             toggleTodo($scope.todos[i], "close");
+            currentlyEditing = [];
           }
           $(e.target).text("Expand All");
         }
@@ -221,7 +231,22 @@
         }
       };
 
+      var cancelAction = function(action) {
+        if (currentlyEditing.length > 0) {
+          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
+          msg += "This action will reload the todo items, but you have items currently open for editing. ";
+          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
+          if (!window.confirm(msg)) {
+            return true;
+          }
+          currentlyEditing = [];
+        }
+        return false;
+      };
+
       $scope.createTodo = function() {
+        if (cancelAction("create a new todo")) return;
+
         if ($scope.newtodoitem.title) {
           if ($scope.newtodoitem.tags)
             $scope.newtodoitem.tags = extractTags($scope.newtodoitem.tags);
@@ -229,6 +254,7 @@
           TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
             $scope.update("Created");
             $scope.newTodo(); // hack. Closes the "New Todo" form.
+            currentlyEditing = [];
           }).fail(function(xhr){
             $("body").statusmsg("open", "Posting failed: " + xhr.status, {type: "error", closable: true});
           });
@@ -288,7 +314,6 @@
           });
       };
 
-
       $scope.clearDone = function(todo) {
         TodosService.clearDone($scope.currentProject).done(function(data) {
           $scope.$apply(function() {
@@ -304,17 +329,7 @@
         });
       };
 
-      var cancelAction = function(action) {
-        if (currentlyEditing()) {
-          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
-          msg += "This action will reload the todo items, but you have items currently open for editing. ";
-          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
-          if (!window.confirm(msg)) {
-            return true;
-          }
-        }
-        return false;
-      };
+
 
       $scope.checkTagFilter = function(tag) {
         if (cancelAction("change the filters")) return;
@@ -350,11 +365,20 @@
   );
 
   module.controller(
-    "SingleTodoController", ["$scope", "$route", "title", "TodosService", "ProjectsService", function($scope, $route, title, TodosService, ProjectsService) {
+    "SingleTodoController", ["$scope", "$route", "$location", "title", "TodosService", "ProjectsService", function($scope, $route, $location, title, TodosService, ProjectsService) {
       $scope.currentProject = null;
       $scope.todo = {};
       $scope.hideCommentLink = true;
       $("body").statusmsg("open", "Loading your page...");
+
+      $scope.$on("deleted", function(e, todoKey) {
+        $location.path("/projects/" + $scope.currentProject.key + "/todos");
+        $location.replace();
+      });
+
+      $scope.$on("saved", function(e, newTodo) {
+        $scope.todo = newTodo;
+      });
 
       ProjectsService.getCurrentProject().done(function(currentProject) {
         $scope.currentProject = currentProject;
