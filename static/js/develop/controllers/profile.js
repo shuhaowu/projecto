@@ -36,6 +36,7 @@
                   $("#profile-name", iElement).attr("content-editable", "false").off("keypress");
                   editLink.text("Change");
                   $("#profile-name-edit-cancel", iElement).hide();
+                  $("#name-change-alert").remove();
                 }).fail(function(xhr) {
                   toast.error("Failed to change name", xhr.status);
                   editLink.text("Save");

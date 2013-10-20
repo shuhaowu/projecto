@@ -21,7 +21,7 @@ from settings import DATABASES
 
 
 class User(Document, UserMixin):
-  name = StringProperty(default="Paranoid User")
+  name = StringProperty(default="A New User :)")
   emails = ListProperty(index=True)
   avatar = StringProperty()
 

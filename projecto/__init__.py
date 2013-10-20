@@ -63,7 +63,9 @@ def tech():
 def mainapp():
   if not current_user.is_authenticated():
     return redirect(url_for("main"))
-  return render_template("app.html")
+
+  new_user_name = current_user._get_current_object().__class__.name.default()
+  return render_template("app.html", change_name=current_user.name==new_user_name)
 
 
 # register blueprints automatically.

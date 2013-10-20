@@ -35,6 +35,15 @@
 {% endblock %}
 
 {% block main %}
+{% if change_name %}
+<div class="row" id="name-change-alert">
+  <div class="large-12 columns">
+    <div class="alert-box secondary">
+      Welcome to Projecto! You should <a href="#/profile/">set your name</a> before proceeding.
+    </div>
+  </div>
+</div>
+{% endif %}
 <div ng-view>
   <div class="row">
 
