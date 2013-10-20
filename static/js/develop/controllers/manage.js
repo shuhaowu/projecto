@@ -13,7 +13,7 @@
     return confirm("Are you sure you want to delete this user?");
   };
 
-  angular.module("projecto").controller("ProjectMembershipController", ["$scope", "ManageService", "ProjectsService", function($scope, ManageService, ProjectsService) {
+  angular.module("projecto").controller("ProjectMembershipController", ["$scope", "toast", "ManageService", "ProjectsService", function($scope, toast, ManageService, ProjectsService) {
     $scope.owners = [];
     $scope.collaborators = [];
     $scope.unregisteredOwners = [];
@@ -22,32 +22,33 @@
     var genericAdder = function(f) {
       var email = promptForAdd();
       if (email) {
-        $("body").statusmsg("open", "Adding...");
+        toast.info("Adding...");
         var addRequest = f($scope.currentProject, email);
 
         addRequest.success(function(data, status, headers) {
-          $("body").statusmsg("open", "Added!", {type: "success", autoclose: 2000});
+          toast.close();
           $scope.update();
         });
 
         addRequest.error(function(data, status, headers) {
-          $("body").statusmsg("open", "Adding failed: " + status, {type: "error", closable: true});
+          toast.error("Failed to add", status);
         });
       }
     };
 
     var genericRemover = function(email, i, f, list) {
       if (confirmForDelete()) {
+        toast.info("Removing...");
         var removeRequest = f($scope.currentProject, email);
         removeRequest.success(function() {
           if (list)
             list.splice(i, 1);
 
-          $("body").statusmsg("open", "Removed!", {type: "success", autoclose: 2000});
+          toast.close();
         });
 
         removeRequest.error(function(data, status) {
-          $("body").statusmsg("open", "Removing failed: " + status, {type: "error", closable: true});
+          toast.error("Failed to remove", status);
         });
       }
     };
@@ -58,7 +59,7 @@
 
     $scope.removeOwner = function(i, owner) {
       if ($scope.owners.length <= 1) {
-        $("body").statusmsg("open", "Cannot remove the last owner!", {type: "error", closable: true});
+        toast.error("Cannot remove the last owner!");
         return;
       }
       genericRemover(owner.email, i, ManageService.removeOwner, $scope.owners);
@@ -83,7 +84,9 @@
     $scope.update = function() {
       if ($scope.currentProject) {
         var listRequest = ManageService.listMembers($scope.currentProject);
+
         listRequest.success(function(data, status, header) {
+          toast.loaded();
           $scope.owners = data.owners;
           $scope.collaborators = data.collaborators;
           $scope.unregisteredCollaborators = data.unregistered_collaborators;
@@ -91,13 +94,13 @@
         });
 
         listRequest.error(function(data, status, headers) {
-          $("body").statusmsg("open", "Problem getting members. Try refreshing. (" + status + ")", {type: "error", closable: true});
+          toast.error("Failed to list members", status);
         });
       }
     };
 
     $scope.currentProject = null;
-
+    toast.loading();
     ProjectsService.getCurrentProject().done(function(currentProject){
       $scope.currentProject = currentProject;
       $scope.update();

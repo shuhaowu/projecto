@@ -2,7 +2,7 @@
 
 (function() {
   angular.module("projecto").controller(
-    "ProjectSwitcher", ["$scope", "$location", "ProjectsService", function($scope, $location, ProjectsService) {
+    "ProjectSwitcher", ["$scope", "$location", "toast", "ProjectsService", function($scope, $location, toast, ProjectsService) {
       $scope.projectsOwned = [];
 
       $scope.projectsParticipating = [];
@@ -27,11 +27,11 @@
             $scope.projectsOwned.push(data);
             $location.path("/projects/" + data.key + "/");
           });
-          $("body").statusmsg("open", "Project \""+projectName+"\" created!", {type: "success", autoclose: 2000});
+          toast.success("Project \"" + projectName + "\" created!");
         });
 
         promise.fail(function() {
-          $("body").statusmsg("open", "Adding project failed (Error: " + xhr.status + ").", {type: "error", closable: true});
+          toast.error("Failed to create project", xhr.status);
         });
       };
     }]

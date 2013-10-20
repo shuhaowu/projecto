@@ -4,7 +4,7 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FilesTreeController", ["$scope", "$route", "$location", "title", "FilesService", "ProjectsService", function($scope, $route, $location, title, FilesService, ProjectsService) {
+  module.controller("FilesTreeController", ["$scope", "$route", "$location", "toast", "title", "FilesService", "ProjectsService", function($scope, $route, $location, toast, title, FilesService, ProjectsService) {
     title("Files", $scope.currentProject);
 
     var files = [];
@@ -17,21 +17,21 @@
 
     $scope.currentProject = null;
 
-    $("body").statusmsg("open", "Loading...");
-
     $scope.newDirectory = function() {
       var name = $.trim(prompt("Enter folder name"));
       if (name) {
-        $("body").statusmsg("open", "Creating directory...");
+        toast.info("Creating...");
         var req = FilesService.newDirectory($scope.currentProject, $route.current.params.path || "/", name);
         req.success(function(data, status, headers, config) {
-          $("body").statusmsg("close");
+          toast.close();
           $scope.update();
         });
 
         req.error(function(data, status, headers, config) {
           if (status === 404) {
-            $("body").statusmsg("open", "You cannot create a directory inside a directory that does not exist!", {type: "error", closable: true});
+            toast.error("Failed to create directory", "cannot modify a directory that does not exist");
+          } else {
+            toast.error("Failed to create directory", status);
           }
         });
       }
@@ -44,11 +44,14 @@
 
     $scope.newFile = function() {
       if (files.length === 0) {
-        $("body").statusmsg("open", "You need to select a file!", {type: "warning", autoclose: 1500});
+        toast.warn("You need to select a file.");
       } else {
+        toast.info("Uploading...");
+
         var req = FilesService.newFile($scope.currentProject, $route.current.params.path || "/", files[0]);
         req.success(function(data, status, headers, config) {
-          $("body").statusmsg("open", "File added!", {type: "success", autoclose: 1500});
+          toast.close();
+
           $scope.update();
           $("#files-new-file-modal").foundation("reveal", "close");
           resetFileUploads();
@@ -61,8 +64,7 @@
           } else {
             message = status;
           }
-          $("body").statusmsg("open", "Error adding file: " + message, {autoclose: false, type: "error"});
-          console.log("Error adding files", data, status);
+          toast.error("Failed to upload file", message)
           resetFileUploads();
         });
       }
@@ -70,9 +72,12 @@
 
     $scope.deleteDirectory = function() {
       if (confirm("Are you sure you want to delete this folder?")) {
+        toast.info("Deleting...");
         var req = FilesService.delete($scope.currentProject, $scope.path);
+
         req.success(function() {
-          $("body").statusmsg("open", "Folder deleted.", {type: "success", autoclose: 1500});
+          toast.close();
+
           var oneLevelUp = $scope.path.substring(0, $scope.path.length - 1).split("/");
           oneLevelUp.pop();
           if (oneLevelUp.length > 0) {
@@ -81,13 +86,13 @@
           } else {
             oneLevelUp = "/";
           }
-          console.log(oneLevelUp);
+
           $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
           $location.replace();
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Error deleting folder " + status, {type: "error", closable: true});
+          toast.error("Failed to delete folder", status);
         });
       }
     };
@@ -109,8 +114,9 @@
         }
 
         var req = FilesService.get($scope.currentProject, path);
+
         req.success(function(data, status, headers, config) {
-          $("body").statusmsg("close");
+          toast.loaded();
           $scope.files = data.children;
           var directories = [];
           var files = [];
@@ -143,15 +149,16 @@
         });
         req.error(function(data, status, headers, config) {
           if (status === 404) {
-            $("body").statusmsg("open", "This directory cannot be found!", {type: "error", closable: true});
+            toast.error("Directory not found");
             $scope.notFound = true;
           } else {
-            $("body").statusmsg("open", "List directory failed (" + status + ")!", {type: "error", closable: true});
+            toast.error("Failed to list directory", status);
           }
         });
       }
     };
 
+    toast.loading();
     ProjectsService.getCurrentProject().done(function(currentProject){
       $scope.currentProject = currentProject;
       $scope.update();
@@ -161,7 +168,7 @@
   }]);
 
 
-  module.controller("FileViewController", ["$scope", "$route", "$location", "title", "FilesService", "ProjectsService", function($scope, $route, $location, title, FilesService, ProjectsService) {
+  module.controller("FileViewController", ["$scope", "$route", "$location", "toast", "title", "FilesService", "ProjectsService", function($scope, $route, $location, toast, title, FilesService, ProjectsService) {
 
     // TODO: Really could use some refactoring with the FilesTreeController
     // Perhaps it is possible to reduce both of those things into a single controller
@@ -180,11 +187,18 @@
 
     $scope.updateFile = function() {
       if (files.length === 0) {
-        $("body").statusmsg("open", "You need to select a file!", {type: "warning", autoclose: 1500});
+        toast.warn("You need to select a file.");
       } else {
+        toast.info("Updating...");
         var req = FilesService.updateFile($scope.currentProject, $route.current.params.path, files[0]);
+
         req.success(function(data, status, headers, config) {
-          $("body").statusmsg("open", "File updated!", {type: "success", autoclose: 1500});
+          // Usually we will close the dialog only. Since in this view changes
+          // are not really visible, we will just another toast.
+          // However... this does not work right now.
+          // Is probably a bug upstream: https://github.com/shuhaowu/awesome-statusmsg
+          // TODO: fix this.
+          toast.success("Updated!");
           $scope.update();
           $("#files-update-file-modal").foundation("reveal", "close");
           resetFileUploads();
@@ -197,8 +211,7 @@
           } else {
             message = status;
           }
-          $("body").statusmsg("open", "Error updating file: " + message, {autoclose: false, type: "error"});
-          console.log("Error updating files", data, status);
+          toast.error("Failed to update file", message);
           resetFileUploads();
         });
       }
@@ -206,9 +219,12 @@
 
     $scope.delete = function() {
       if (confirm("Are you sure you want to delete this file?")) {
+        toast.info("Deleting...");
         var req = FilesService.delete($scope.currentProject, $scope.path);
+
         req.success(function() {
-          $("body").statusmsg("open", "File deleted.", {type: "success", autoclose: 1500});
+          toast.close();
+
           var oneLevelUp = $scope.path.split("/");
           oneLevelUp.pop();
           if (oneLevelUp.length > 0) {
@@ -217,12 +233,13 @@
           } else {
             oneLevelUp = "/";
           }
+
           $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
           $location.replace();
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Error deleting file " + status, {type: "error", closable: true});
+          toast.error("Failed to delete file", status)
         });
       }
     };
@@ -231,24 +248,30 @@
       if ($scope.currentProject) {
         $scope.notFound = false;
         title("Files", $scope.currentProject);
+
         var path = $route.current.params.path;
         [$scope.currentDirectoryList, $scope.path] = FilesService.breadcrumbify(path);
         $scope.filename = $scope.currentDirectoryList[$scope.currentDirectoryList.length-1].name;
+
         var req = FilesService.get($scope.currentProject, $scope.path);
+
         req.success(function(data, status, headers, config) {
+          toast.loaded();
           $scope.author = data.author;
           $scope.updated = data.date;
         });
 
         req.error(function(data, status, headers, config) {
-          $scope.notFound = true;
-          if (status !== 404) {
-            $("body").statusmsg("open", "Cannot get file info " + status, {type: "error", closable: true});
+          if (status === 404) {
+            $scope.notFound = true;
+          } else {
+            toast.error("Failed to get file info", status);
           }
         });
       }
     };
 
+    toast.loading();
     ProjectsService.getCurrentProject().done(function(currentProject){
       $scope.currentProject = currentProject;
       $scope.update();

@@ -4,7 +4,7 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FeedItemController", ["$scope", "FeedService", function($scope, FeedService) {
+  module.controller("FeedItemController", ["$scope", "toast", "FeedService", function($scope, toast, FeedService) {
     $scope.deletePost = function(post) {
       if ($scope.currentProject) {
         if (confirm("Are you sure you want to delete this post?")) {
@@ -18,7 +18,7 @@
               }
             }
           }).fail(function(xhr){
-            $("body").statusmsg("open", "Delete error " + xhr.status, {type: "error", closable: true});
+            toast.error("Failed to delete post", xhr.status);
           });
         }
       } else {
@@ -28,15 +28,15 @@
   }]);
 
   module.controller(
-    "FeedController", ["$scope", "title", "FeedService", "ProjectsService", function($scope, title, FeedService, ProjectsService) {
+    "FeedController", ["$scope", "toast", "title", "FeedService", "ProjectsService", function($scope, toast, title, FeedService, ProjectsService) {
       $scope.posts = [];
       $scope.newpost = "";
 
       $scope.post = function() {
         if ($scope.newpost && $scope.currentProject) {
-          $("body").statusmsg("open", "Posting...");
+          toast.info("Posting...");
           FeedService.new($scope.currentProject, $scope.newpost).done(function(data){
-            $("body").statusmsg("close");
+            toast.close();
             // The backend API won't transmit useless information to save
             // bandwidth.
             data.author = window.currentUser;
@@ -46,11 +46,11 @@
               $scope.posts.splice(0, 0, data);
             });
           }).fail(function(xhr){
-            $("body").statusmsg("open", "Error posting (" + xhr.status + "). Please try again later.", {type: "error", closable: true});
+            toast.error("Failed to post", xhr.status);
           })
         } else {
           if (!$scope.newpost) {
-            $("body").statusmsg("open", "You can't post an empty message!", {type: "error", autoclose: 5000});
+            toast.warn("You cannot post an empty message.");
           } else {
             notLoaded();
           }
@@ -76,10 +76,10 @@
               $scope.posts = data.feed;
             });
           }).fail(function(xhr){
-            $("body").statusmsg("open", "Updating feed failed: " + xhr.status, {type: "error", closable: true});
+            toast.error("Failed to update feed", xhr.status);
           });
         } else {
-          $("body").statusmsg("open", "The page has not been fully loaded yet. Please wait...", {type: "warning", closable: true});
+          notLoaded();
         }
       };
 
@@ -93,7 +93,7 @@
     }]
   );
 
-  module.controller("SingleFeedController", ["$scope", "$route", "title", "FeedService", "ProjectsService", "CommentsService", function($scope, $route, title, FeedService, ProjectsService, CommentsService) {
+  module.controller("SingleFeedController", ["$scope", "$route", "toast", "title", "FeedService", "ProjectsService", "CommentsService", function($scope, $route, toast, title, FeedService, ProjectsService, CommentsService) {
     $scope.currentProject = null;
 
     $scope.update = function() {
@@ -108,6 +108,8 @@
           $scope.comments = $scope.post.children;
           title(t, $scope.currentProject);
         });
+      }).fail(function(xhr) {
+        toast.error("Failed to get item", xhr.status);
       });
     };
 

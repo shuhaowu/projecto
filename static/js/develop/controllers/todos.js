@@ -46,7 +46,7 @@
     return tags;
   };
 
-  module.controller("TodoItemController", ["$scope", "$filter", "$location", "TodosService", function($scope, $filter, $location, TodosService) {
+  module.controller("TodoItemController", ["$scope", "$filter", "$location", "toast", "TodosService", function($scope, $filter, $location, toast, TodosService) {
     $scope.todoDraft = null;
 
     $scope.toggleTodo = function(todo, event) {
@@ -62,7 +62,7 @@
       });
 
       req.error(function(data, status) {
-        $("body").statusmsg("open", "Marking done failed: " + status, {type: "error", closable: true});
+        toast.error("Failed to mark done", status);
       });
     };
 
@@ -86,15 +86,16 @@
         return;
 
       if ($scope.currentProject) {
+        toast.info("Deleting...");
         var req = TodosService.delete($scope.currentProject, todo);
 
         req.success(function() {
-          $("body").statusmsg("open", "Deleted", {type: "success", autoclose: 2000});
+          toast.close();
           $scope.$emit("deleted", todo.key, i);
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Deleting todo failed: " + status, {type: "error", closable: true});
+          toast.error("Failed to delete todo", status);
         });
 
       } else {
@@ -104,24 +105,25 @@
 
     $scope.saveTodo = function(todo, event) {
       if (!$scope.todoDraft) {
-        $("body").statusmsg("open", "Something has gone wrong... Please refresh the page.", {type: "error"});
+        toast.wtf("$scope.todoDraft does not exist while trying to save todo? Wat.");
         return;
       }
 
       if ($scope.currentProject) {
         $scope.todoDraft.tags = extractTags($scope.todoDraft.tags);
+
+        toast.info("Saving...");
         var req = TodosService.put($scope.currentProject, $scope.todoDraft);
 
         req.success(function(data) {
           $scope.$emit("saved", data, $scope.todoDraft._index)
           $scope.cancelEdit($scope.todoDraft.key, true);
-
-          $("body").statusmsg("open", "Saved", {type: "success", autoclose: 2000});
+          toast.success("Saved");
           toggleTodo(data, "open");
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Saving error: " + status, {type: "error", closable: true});
+          toast.error("Failed to save", status);
         });
       } else {
         window.notLoaded();
@@ -139,7 +141,7 @@
   }]);
 
   module.controller(
-    "TodosController", ["$scope", "$route", "title", "TodosService", "ProjectsService", function($scope, $route, title, TodosService, ProjectsService){
+    "TodosController", ["$scope", "$route", "toast", "title", "TodosService", "ProjectsService", function($scope, $route, toast, title, TodosService, ProjectsService){
       $scope.newtodoitem = {};
       $scope.todos = [];
       $scope.tags = [];
@@ -197,7 +199,7 @@
           $scope.currentPage = data.currentPage;
           recomputePages(data.totalTodos, data.todosPerPage);
           if (msg) {
-            $("body").statusmsg("open", msg, {type: "success", autoclose: 2000});
+            toast.success(msg);
           }
         });
       };
@@ -256,10 +258,10 @@
             $scope.newTodo(); // hack. Closes the "New Todo" form.
             currentlyEditing = [];
           }).fail(function(xhr){
-            $("body").statusmsg("open", "Posting failed: " + xhr.status, {type: "error", closable: true});
+            toast.error("Failed to post", xhr.status);
           });
         } else {
-          $("body").statusmsg("open", "Todos must have a title!", {type: "error", autoclose: 2000});
+          toast.warn("Todos must have a title.");
         }
       };
 
@@ -299,7 +301,7 @@
             showTodosUpdate(data, msg);
           })
           .fail(function(xhr){
-            $("body").statusmsg("open", "Updating todos failed: " + xhr.status, {type: "error", closable: true});
+            toast.error("Failed to list todo", xhr.status);
           });
       };
 
@@ -310,7 +312,7 @@
             updateTodos(msg);
           })
           .fail(function(xhr) {
-            $("body").statusmsg("open", "Updating tags failed: " + xhr.status, {type: "error", closable: true});
+            toast.error("Failed to list tags", xhr.status);
           });
       };
 
@@ -325,11 +327,9 @@
             }
           });
         }).fail(function(xhr) {
-          $("body").statusmsg("open", "Clearing failed: " + xhr.status, {type: "error", closable: true});
+          toast.error("Failed to clear", xhr.status);
         });
       };
-
-
 
       $scope.checkTagFilter = function(tag) {
         if (cancelAction("change the filters")) return;
@@ -365,11 +365,10 @@
   );
 
   module.controller(
-    "SingleTodoController", ["$scope", "$route", "$location", "$timeout", "title", "TodosService", "ProjectsService", function($scope, $route, $location, $timeout, title, TodosService, ProjectsService) {
+    "SingleTodoController", ["$scope", "$route", "$location", "$timeout", "toast", "title", "TodosService", "ProjectsService", function($scope, $route, $location, $timeout, toast, title, TodosService, ProjectsService) {
       $scope.currentProject = null;
       $scope.todo = {};
       $scope.hideCommentLink = true;
-      $("body").statusmsg("open", "Loading your page...");
 
       var setupCommentStuff = function() {
         $scope.comments = $scope.todo.children;
@@ -390,7 +389,7 @@
         var req = TodosService.get($scope.currentProject, $route.current.params.todoId);
 
         req.success(function(data) {
-          $("body").statusmsg("close");
+          toast.loaded();
           $scope.todo = data;
           setupCommentStuff();
 
@@ -399,16 +398,17 @@
         });
 
         req.error(function(data, status) {
-          $("body").statusmsg("open", "Loading todo failed: " + status, {type: "error", closable: true});
+          toast.error("Failed to load todo", status);
         });
       };
 
+      toast.loading();
       ProjectsService.getCurrentProject().done(function(currentProject) {
         $scope.currentProject = currentProject;
         $scope.update();
         $scope.$$phase || $scope.$apply();
       }).fail(function(xhr) {
-        $("body").statusmsg("open", "Loading page failed on getting current project: " + xhr.status, {type: "error", closable: true});
+        toast.error("Failed to get project info", xhr.status);
       });
 
     }]

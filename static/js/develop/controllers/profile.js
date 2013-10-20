@@ -2,7 +2,7 @@
 
 (function(){
   angular.module("projecto").directive(
-    "profileName", ["title", "ProfileService", function(title, ProfileService){
+    "profileName", ["toast", "title", "ProfileService", function(toast, title, ProfileService){
       return {
         template: '<p id="profile-name">{[ user.name ]}</p> <a href="" ng-click="editName()" id="profile-name-edit">Change</a> <a href="" ng-click="cancelEditName()" id="profile-name-edit-cancel">Cancel</a>',
         restrict: "EA",
@@ -14,29 +14,34 @@
               $("#profile-name", iElement).attr("contenteditable", "true").keypress(function(e) { return e.which != 13; }).focus();
               editLink.text("Save");
               $("#profile-name-edit-cancel", iElement).show();
+
             } else if (editLink.text() === "Save") {
               // This way we have no line breaks.
               var newName = $("#profile-name", iElement).text();
               newName = $.trim(newName.replace("&nbsp;", " "));
+
               if (newName.length === 0) {
-                $("body").statusmsg("open", "You must have a name!", {type: "warning", autoclose: 2000});
+                toast.warn("You must have a name.");
                 $("#profile-name", iElement).text(scope.user.name).focus();
               } else {
                 editLink.text("Saving...");
                 // Change name will take care of changing rootScope and window.currentUser
+
                 ProfileService.changeName(newName).done(function() {
                   scope.$apply(function(){
                     scope.user.name = newName;
                     title(scope.user.name);
                   });
-                $("#profile-name", iElement).attr("content-editable", "false").off("keypress");
-                editLink.text("Change");
-                $("#profile-name-edit-cancel", iElement).hide();
+
+                  $("#profile-name", iElement).attr("content-editable", "false").off("keypress");
+                  editLink.text("Change");
+                  $("#profile-name-edit-cancel", iElement).hide();
                 }).fail(function(xhr) {
-                  $("body").statusmsg("open", "Name change failed: " + xhr.status, {type: "error", closable: true});
+                  toast.error("Failed to change name", xhr.status);
                   editLink.text("Save");
                 });
               }
+
             }
           };
 
