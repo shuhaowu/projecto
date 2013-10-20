@@ -13,7 +13,7 @@
     <li class="has-dropdown">
       <a href="#/projects">Projects</a>
       <ul class="dropdown" ng-controller="ProjectSwitcher">
-        <li><a href="#" ng-click="newProject()">New Project</a></li>
+        <li><a ng-click="newProject()">New Project</a></li>
         <li class="divider"></li>
         <li><label>Projects owned by you</label></li>
         <li ng-repeat="project in projectsOwned">
