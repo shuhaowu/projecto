@@ -3,7 +3,7 @@
 {% block navbar_section %}
 <section class="top-bar-section" ng-controller="NavbarController">
   <ul class="left" ng-show="currentProject" class="hide">
-    <li><a href="#/projects/{[ currentProject.key ]}/">{[ currentProject.name ]}</a></li>
+    <li class="ellipsis"><a href="#/projects/{[ currentProject.key ]}/">{[ currentProject.name ]}</a></li>
     <li><a href="#/projects/{[ currentProject.key ]}/feed/">Feed</a></li>
     <li><a href="#/projects/{[ currentProject.key ]}/todos/">Todos</a></li>
     <li><a href="#/projects/{[ currentProject.key ]}/files/">Files</a></li>
@@ -28,7 +28,7 @@
         <li><label></label></li> <!-- hack to add in some extra space -->
       </ul>
     </li>
-    <li><a href="#/profile/">{[ currentUser.name ]}</a></li>
+    <li class="ellipsis"><a href="#/profile/">{[ currentUser.name ]}</a></li>
     <li><a id="login-persona" href="#">Logout</a></li>
   </ul>
 </section>

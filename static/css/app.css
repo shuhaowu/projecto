@@ -16,6 +16,8 @@ span.custom.checkbox { cursor: pointer; }
 div.contain-to-grid { margin-bottom: 1.6em; }
 
 /* Topbar customizations */
+/* 140px is chosen so it doesn't overflow */
+nav.top-bar .ellipsis a { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
 nav.top-bar li:hover { background-color: #222; }
 nav.top-bar li.name h1 a:hover { color: #DDD; }
 a#login-persona { color: orange; }
