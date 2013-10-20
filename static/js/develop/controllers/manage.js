@@ -13,7 +13,7 @@
     return confirm("Are you sure you want to delete this user?");
   };
 
-  angular.module("projecto").controller("ProjectMembershipController", ["$scope", "toast", "ManageService", "ProjectsService", function($scope, toast, ManageService, ProjectsService) {
+  angular.module("projecto").controller("ProjectMembershipController", ["$scope", "title", "toast", "ManageService", "ProjectsService", function($scope, title, toast, ManageService, ProjectsService) {
     $scope.owners = [];
     $scope.collaborators = [];
     $scope.unregisteredOwners = [];
@@ -83,6 +83,7 @@
 
     $scope.update = function() {
       if ($scope.currentProject) {
+        title("Manage", $scope.currentProject);
         var listRequest = ManageService.listMembers($scope.currentProject);
 
         listRequest.success(function(data, status, header) {
