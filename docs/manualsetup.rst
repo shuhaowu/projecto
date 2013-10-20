@@ -4,9 +4,9 @@
 Manual Setup (NOT RECOMMENDED)
 ==============================
 
-**Warning: This is not recommended. You should be using :ref:`vagrantsetup` 
+**Warning: This is not recommended. You should be using :ref:`vagrantsetup`
 instead. The instructions here may be outdated, break your setup, and so forth.
-Basically, by following this, you voided the warrenty. This is here for 
+Basically, by following this, you voided the warrenty. This is here for
 educational purposes.**
 
 This project has a some weird dependencies (really.. all non-trivial apps have
@@ -68,8 +68,8 @@ Lastly, we need a settings file. In the project root::
 This file should have roughly this content::
 
     DEBUG = True
-
     SECRET_KEY = "{generate a random string please :)}"
+    SITE_URL = "http://localhost:8800"
 
 Without this, you will not be able to run unittests.
 

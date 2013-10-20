@@ -10,6 +10,7 @@ the following content::
 
     DEBUG = True
     SECRET_KEY = "<some random string here>"
+    SITE_URL = "http://192.168.33.10:8800"
 
 Save the file. In the project directory, type::
 
@@ -39,6 +40,9 @@ the entry::
 into your /etc/hosts (or whereever the host file of your OS is) file and
 go to http://projecto to get to the projecto dev server (after it is
 running, of course).
+
+If you opt to do this, you must change the ``SITE_URL`` in your
+settings_local.py file to "http://projecto"
 
 Windows Notes
 -------------

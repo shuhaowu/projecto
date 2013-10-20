@@ -1,4 +1,4 @@
-from flask import Blueprint, request, make_response
+from flask import Blueprint, request, make_response, current_app
 from flask.ext.login import login_user, logout_user
 import settings
 import os
@@ -23,7 +23,7 @@ meta = {
 def login():
   payload = {
     "assertion": request.form["assertion"],
-    "audience": request.url_root
+    "audience": current_app.config["SITE_URL"]
   }
 
   response = requests.post("https://verifier.login.persona.org/verify", data=payload)
