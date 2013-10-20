@@ -19,19 +19,19 @@
       $scope.newProject = function() {
         var projectName = prompt("Project name");
         if (!projectName) return;
-        var promise = ProjectsService.new(projectName);
 
-        promise.done(function(data, status, xhr) {
-          $scope.$apply(function() {
-            data.name = projectName;
-            $scope.projectsOwned.push(data);
-            $location.path("/projects/" + data.key + "/");
-          });
-          toast.success("Project \"" + projectName + "\" created!");
+        toast.info("Creating...");
+        var req = ProjectsService.new(projectName);
+
+        req.success(function(data) {
+          data.name = projectName;
+          $scope.projectsOwned.push(data);
+          $location.path("/projects/" + data.key + "/");
+          toast.close();
         });
 
-        promise.fail(function() {
-          toast.error("Failed to create project", xhr.status);
+        req.error(function(data, status) {
+          toast.error("Failed to create project", status);
         });
       };
     }]

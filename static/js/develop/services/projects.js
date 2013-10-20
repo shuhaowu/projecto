@@ -2,7 +2,7 @@
 
 (function(){
   // This service actual caches the projects
-  angular.module("projecto").service("ProjectsService", ["$route", "$location", function($route, $location) {
+  angular.module("projecto").service("ProjectsService", ["$route", "$location", "$http", function($route, $location, $http) {
     var projectAPIPrefix = window.API_PREFIX + "/projects";
 
     var self = this;
@@ -10,16 +10,16 @@
     this.new = function(name) {
       self._myProjects = null; // Invalidate so we need to refresh our projects and thereby the cache.
       self._projectIdsToProjects = null;
-      return $.ajax({
-        type: "POST",
+
+      return $http({
+        method: "POST",
         url: projectAPIPrefix + "/",
-        dataType: "json",
-        data: JSON.stringify({name: name}),
-        contentType: "application/json"
+        data: {name: name}
       });
     };
 
     this.get = function(id) {
+      // This cannot be changed yet as literally everything will break.
       return $.ajax({
         type: "GET",
         url: projectAPIPrefix + "/" + id,
