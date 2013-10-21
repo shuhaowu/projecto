@@ -34,3 +34,5 @@ DATABASES = {
   dbname: (os.path.join(DATABASES_FOLDER, dbname.lower()), os.path.join(DATABASES_FOLDER, dbname.lower() + ".indexes")) for dbname in DATABASE_NAMES
 }
 
+if SECRET_KEY is None or SITE_URL is None:
+  raise RuntimeError("SECRET_KEY and SITE_URL are required to run projecto!")
