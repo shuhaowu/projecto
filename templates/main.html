@@ -1,16 +1,54 @@
 {% extends "master.html" %}
 
+{% set landing = 1 %}
+
 {% block main %}
-  <div class="row">
-    <div class="large-12 columns">
-      <div class="panel">
-        <h4>Welcome to Projecto!</h4>
-        <p>Projecto is a free project management software aimed towards small - medium sized projects.
-        <br />
-        Projecto offers meetings, todos, file sharing, announcements, and discussions for teams.
-        All you need is an email to sign up and try!</p>
-        <p class="text-right"><a href="/about" class="no-margin button">Learn More</a></p>
+
+  <div id="landing" class="container landing-boxes">
+    <div class="row">
+      <header class="large-12 columns">
+        <h1>Projecto</h1>
+        <h2>Integrated project management solution for teams.</h2>
+        <div class="landing-buttons">
+          <a href="/about" class="large button">Learn More</a>
+          <a href="https://github.com/shuhaowu/projecto" target="_blank" class="large button">Source Code</a>
+        </div>
+      </header>
+    </div>
+  </div>
+
+  <div id="main1" class="container landing-boxes">
+    <div class="row">
+      <div class="large-4 columns">
+        <h2>Integrated solution</h2>
+        <p>Designed to have all of the features built in, you and your team no
+           longer need to use a gazillion different tools for one job.</p>
+      </div>
+      <div class="large-4 columns">
+        <h2>For fast moving teams</h2>
+        <p>Slick system that makes a fast moving team of scientists, engineers, hackers feel right at home.</p>
+      </div>
+      <div class="large-4 columns">
+        <h2>Open source with love</h2>
+        <p>Everything is open source licensed under Apache 2. Free to host your own and modify.</p>
       </div>
     </div>
   </div>
+
+  <div id="signup" class="container landing-boxes">
+    <div class="row">
+      <div class="large-offset-by-1 large-5 columns">
+        <h2 style="text-align: left; margin-top: 1rem;">Projecto is still in private beta.</h2>
+        <p>You should contact us if you are interested. You could also <a href="https://github.com/shuhaowu/projecto" target="_blank">check out the source code</a> yourself.</p>
+      </div>
+      <div class="large-6 columns">
+        <h2>Interested? Sign up for updates!</h2>
+        <form action="/signup" method="post">
+          <input type="text" name="email" placeholder="Email" />
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}
