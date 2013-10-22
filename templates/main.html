@@ -4,6 +4,7 @@
 
 {% block main %}
 
+
   <div id="landing" class="container landing-boxes">
     <div class="row">
       <header class="large-12 columns">
@@ -47,6 +48,7 @@
           <div class="row collapse">
             <div class="small-10 columns">
               <input type="text" name="email" placeholder="Email" />
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             </div>
             <div class="small-2 columns">
               <button type="submit" class="button prefix">Submit</button>
@@ -57,4 +59,20 @@
     </div>
   </div>
 
+{% endblock %}
+
+{% block end %}
+{% with messages = get_flashed_messages(with_categories=True) %}
+{% if messages %}
+<script>
+$(function() {
+  {% autoescape off %}
+  {% for category, message in messages %}
+  $("body").statusmsg("open", "{{ message }}", {type: "{{ category }}", closable: true});
+  {% endfor %}
+  {% endautoescape %}
+});
+</script>
+{% endif %}
+{% endwith %}
 {% endblock %}

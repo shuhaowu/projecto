@@ -17,7 +17,8 @@ DATABASE_NAMES = (
     "COMMENTS",
     "TODOS",
     "ARCHIVED_FEED",
-    "FILES"
+    "FILES",
+    "SIGNUPS"
 )
 
 
