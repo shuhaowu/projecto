@@ -34,14 +34,14 @@ div.landing-boxes h2 { margin-bottom: 1rem; font-size: 1.4rem; }
 
 div#landing { background-image: url(/static/img/dt-landing.png); background-position: center; background-repeat: no-repeat; background-size: cover; padding: 120px 0;}
 div#landing h1 { font-size: 3rem; text-shadow: 0px 2px 3px rgba(255, 255, 255, 0.8); }
-div#landing h2 { font-size: 1.3rem; margin-top: 2rem; text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8); }
+div#landing h2 { font-size: 1.3rem; margin-top: 2rem; text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.8); }
 div#landing div.landing-buttons { width: 60%; margin: 0 auto; text-align: center; }
 div#landing div.landing-buttons a { margin: 1.2em 1em 0 1em; }
 
 div#main1 { background-color: #EEE; }
 
 div#signup input { height: 2.5rem; text-align: center; }
-div#signup button { display: block; margin: 0 auto; }
+div#signup button { display: block; margin: 0 auto; height: 2.5rem;}
 
 /* comments */
 .comments h1 { font-size: 22px; }
