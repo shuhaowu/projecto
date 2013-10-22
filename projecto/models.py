@@ -19,6 +19,11 @@ import werkzeug.utils
 
 from settings import DATABASES
 
+# TODO: We really need to move the backend databases to Riak so we don't need
+# things like werkzeug hacks..
+# Seamless transition with riakkit is possible. Just gotta write riakkit like
+# leveldbkit.
+
 class Signup(Document):
   date = DateTimeProperty()
 
