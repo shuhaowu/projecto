@@ -39,6 +39,7 @@ div#landing div.landing-buttons { width: 60%; margin: 0 auto; text-align: center
 div#landing div.landing-buttons a { margin: 1.2em 1em 0 1em; }
 
 div#main1 { background-color: #EEE; }
+div#main1 .landing-3-box { width: 95%; text-align: center; }
 
 div#signup input { height: 2.5rem; text-align: center; }
 div#signup button { display: block; margin: 0 auto; height: 2.5rem;}
