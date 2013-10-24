@@ -39,9 +39,9 @@ def main():
   return render_template("main.html")
 
 
-@app.route("/about")
-def about():
-  return render_template("about.html")
+@app.route("/features")
+def features():
+  return render_template("features.html")
 
 
 @app.route("/tos")
@@ -52,11 +52,6 @@ def tos():
 @app.route("/privacy")
 def privacy():
   return render_template("privacy.html")
-
-
-@app.route("/tech")
-def tech():
-  return render_template("tech.html")
 
 
 @app.route("/app")

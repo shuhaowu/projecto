@@ -2,6 +2,20 @@
 
 {% set landing = 1 %}
 
+{% macro signupform() %}
+<form action="/signup" method="post">
+  <div class="row collapse">
+    <div class="small-10 columns">
+      <input type="text" name="email" />
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    </div>
+    <div class="small-2 columns">
+      <button type="submit" class="success button prefix">Submit</button>
+    </div>
+  </div>
+</form>
+{% endmacro %}
+
 {% block main %}
 
   <a href="https://github.com/shuhaowu/projecto"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
@@ -10,9 +24,9 @@
     <div class="row">
       <header class="large-12 columns">
         <h1>Projecto</h1>
-        <h2>Integrated project management solution for a fast moving teams.</h2>
+        <h2>Integrated project management solution for fast moving teams.</h2>
         <div class="landing-buttons">
-          <a href="/about" class="secondary button">Learn More</a>
+          <a href="/features" class="secondary button">Learn More</a>
           <a href="https://github.com/shuhaowu/projecto" target="_blank" class="success button">Source Code</a>
         </div>
       </header>
@@ -51,17 +65,7 @@
       </div>
       <div class="large-6 columns">
         <h2>Interested? Sign up for updates! <br /><small>We will only send you an email when we release.</small></h2>
-        <form action="/signup" method="post">
-          <div class="row collapse">
-            <div class="small-10 columns">
-              <input type="text" name="email" placeholder="Email" />
-              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-            </div>
-            <div class="small-2 columns">
-              <button type="submit" class="success button prefix">Submit</button>
-            </div>
-          </div>
-        </form>
+        {{ signupform() }}
       </div>
     </div>
   </div>

@@ -31,6 +31,11 @@ div.landing-boxes p { font-size: 1.2em; }
 div.landing-boxes div.row { max-width: 75em; }
 div.landing-boxes h1, div.landing-boxes h2 { font-weight: normal; line-height: 1; text-align: center; }
 div.landing-boxes h2 { margin-bottom: 1rem; font-size: 1.4rem; }
+div.landing-boxes table tr th, div.landing-boxes table tr td { font-size: 1.2em; line-height: 2.5em;}
+
+div.landing-boxes.about h1, div.landing-boxes.about h2 { text-align: left; font-weight: 600; }
+div.landing-boxes.about .row { padding: 15px 0; }
+
 
 div#landing { background-image: url(/static/img/dt-landing.jpg); background-position: center; background-repeat: no-repeat; background-size: cover; padding: 120px 0;}
 div#landing h1 { font-size: 3rem; font-weight: 600; }

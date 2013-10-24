@@ -29,14 +29,13 @@
   <div class="contain-to-grid{% if landing %} landing-nav{% endif %}">
     <nav class="top-bar">
       <ul class="title-area">
-        <li class="name"><h1><a href="#home">Projecto</a></h1></li>
+        <li class="name"><h1><a href="{% if landing %}/{% else %}#/home{% endif %}">Projecto</a></h1></li>
         <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
       </ul>
       {% block navbar_section %}
       <section class="top-bar-section">
         <ul class="left">
-          <li><a href="/about">About</a></li>
-          <li><a href="/tech">Technologies</a></li>
+          <li><a href="/about">Features</a></li>
         </ul>
         <ul class="right">
           <li><a id="login-persona" href="#">Login with Persona</a></li>
