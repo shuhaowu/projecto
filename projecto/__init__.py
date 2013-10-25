@@ -44,14 +44,9 @@ def features():
   return render_template("features.html")
 
 
-@app.route("/tos")
-def tos():
-  return render_template("tos.html")
-
-
-@app.route("/privacy")
-def privacy():
-  return render_template("privacy.html")
+@app.route("/licenses")
+def licenses():
+  return render_template("licenses.html")
 
 
 @app.route("/app")
