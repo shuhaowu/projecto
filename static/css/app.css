@@ -37,6 +37,7 @@ div.landing-boxes.about { padding-bottom: 0px; }
 div.landing-boxes.about h1, div.landing-boxes.about h2 { text-align: left; font-weight: 600; }
 div.landing-boxes.about .row { padding: 50px 0; }
 div.landing-boxes.about .row:first-child { padding: 15px 0 50px 0; }
+div.landing-boxes.features-table { padding: 0; }
 
 div.about .img { width: 90%; padding: 0; border: 1px solid #CCC; border-radius: 3px; }
 
