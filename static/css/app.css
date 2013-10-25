@@ -33,11 +33,10 @@ div.landing-boxes h1, div.landing-boxes h2 { font-weight: normal; line-height: 1
 div.landing-boxes h2 { margin-bottom: 1rem; font-size: 1.4rem; }
 div.landing-boxes table tr th, div.landing-boxes table tr td { font-size: 1.2em; line-height: 2.5em;}
 
-div.landing-boxes { padding-bottom: 0; }
+div.landing-boxes.about { padding-bottom: 0px; }
 div.landing-boxes.about h1, div.landing-boxes.about h2 { text-align: left; font-weight: 600; }
 div.landing-boxes.about .row { padding: 50px 0; }
 div.landing-boxes.about .row:first-child { padding: 15px 0 50px 0; }
-div.landing-boxes.about .row:last-child { padding: 50px 0 0 0;}
 
 div.about .img { width: 90%; padding: 0; border: 1px solid #CCC; border-radius: 3px; }
 
