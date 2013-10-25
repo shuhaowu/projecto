@@ -1,0 +1,156 @@
+{% extends "main.html" %}
+
+{% block title %}
+Features - Projecto
+{% endblock %}
+
+{% block main %}
+<div class="container landing-boxes about">
+  <div class="row">
+    <div class="large-6 columns">
+      <h2>All-in-one project management</h2>
+      <p>Running different systems is tough. Getting people to use them is tougher.
+        Projecto is designed with all the features you need in a single system. Get it all for free!</p>
+      <p>Need a new feature? Just add it yourself and don't forget to send a pull request!</p>
+    </div>
+    <div class="large-6 columns">
+      <div class="img">
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="large-6 columns">
+      <div class="img">
+        <img src="/static/img/features-feed.png" alt="Feed" />
+      </div>
+    </div>
+    <div class="large-6 columns">
+      <h2>One Feed for Everything</h2>
+      <p>With the project feed, each member of the team can post updates, ask questions, or hold discussions.
+      A single destination allows everyone to easily track what everyone else is doing.</p>
+      <p>If this were an Apple product, this would definitely be a beautiful feed.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="large-6 columns">
+      <h2>Collaborate Using Todo Lists</h2>
+      <p>Each project gets its very own multiplayer todo list.
+      Work efficiently with your team by assigning and tagging individual items.</p>
+      <p>Discuss any issue using its comments section.</p>
+    </div>
+    <div class="large-6 columns">
+      <div class="img">
+        <img src="/static/img/features-todos.png" alt="Multiplayer todo list" />
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="large-6 columns">
+      <div class="img">
+        <img src="/static/img/features-files.png" alt="Sharing files" />
+      </div>
+    </div>
+
+    <div class="large-6 columns">
+      <h2>Share Files Effortlessly</h2>
+      <p>Shared file storage is essential to any team. Projecto offers each project its very own shared folder, perfect for engineering schematics, budget spreadsheets, or funny cat pictures. Keep your files organized in subfolders.</p>
+      <p>Just like everything else in Projecto, each file has its own comments section, enabling lively debates.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="large-6 columns">
+      <h2>Manage Your Team Like a Boss</h2>
+      <p>Simply add your team members' email addresses. Projecto uses <a href="http://www.mozilla.org/en-US/persona/" target="_blank">Mozilla Persona</a> for an easy and secure sign in experience.</p>
+      <p>Projecto works with all email providers, including Gmail and Yahoo. For additional security, you could even <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Persona/Implementing_a_Persona_IdP" target="_blank">implement your own authenticator for your domain</a>.</p>
+    </div>
+    <div class="large-6 columns">
+      <div class="img">
+        <img src="/static/img/features-manage.png" alt="Team management feature" />
+      </div>
+    </div>
+  </div>
+  <div class="row" style="padding-bottom: 0;">
+    <div class="large-6 columns" id="signup">
+      <h2>Sign up for release updates!</h2>
+      <p>We'll let you know when we release the hosted version.</p>
+      {{ signupform() }}
+    </div>
+    <div class="large-6 columns">
+      <h2>Open source</h2>
+      <p>Projecto's source code can be found <a href="https://github.com/shuhaowu/projecto" target="_blank">on github</a>. It is licensed under Apache 2. This means you are free to host, modify, and distribute your own version. Just remember, sending a pull request would get you srs nerdcreds.</p>
+    </div>
+  </div>
+</div>
+
+<div class="container landing-boxes">
+  <div class="row">
+    <div class="large-12 columns">
+      <h2 class="text-center">Feature status <br /><small style="font-weight:normal;">The following is listed in the order of priority.</small></h2>
+      <table width="100%">
+        <tbody>
+          <tr>
+            <td>Feed</td>
+            <td>Posting updates for teams.</td>
+            <td>Stable</td>
+          </tr>
+          <tr>
+            <td>Todo</td>
+            <td>Todos tracking and discussions.</td>
+            <td>Partially implemented</td>
+          </tr>
+          <tr>
+            <td>Files</td>
+            <td>File uploads and sharing with a directory structure.</td>
+            <td>Partially implemented</td>
+          </tr>
+          <tr>
+            <td>Scheduling</td>
+            <td>Team calendar with CalDAV, meeting time voting, and much more.</td>
+            <td>Planning</td>
+          </tr>
+          <tr>
+            <td>Wiki</td>
+            <td>A wiki allows a team to collaborate easily on documents.</td>
+            <td>Wishlist</td>
+          </tr>
+          <tr>
+            <td>Team</td>
+            <td>Add and remove team members.</td>
+            <td>Stable</td>
+          </tr>
+          <tr>
+            <td>Multiple emails</td>
+            <td>Multiple emails for users via Persona.</td>
+            <td>Planning</td>
+          </tr>
+          <tr>
+            <td>Email</td>
+            <td>Receive email notifications of project activity and reply to add comments.</td>
+            <td>Planning</td>
+          </tr>
+          <tr>
+            <td>Modules</td>
+            <td>Add to the core features with modules. Submit your modules to a central database.</td>
+            <td>Wishlist</td>
+          </tr>
+          <tr>
+            <td>WebDAV</td>
+            <td>Access to files via WebDAV.</td>
+            <td>Wishlist</td>
+          </tr>
+          <tr>
+            <td>Github</td>
+            <td>Programmers need to feel at home, too! Right? Integrate the system with Github.</td>
+            <td>Wishlist</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="text-center">The current (non-security) issues list can be <a href="https://github.com/shuhaowu/projecto/issues" target="_blank">found on Github</a>.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

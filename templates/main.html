@@ -1,16 +1,89 @@
 {% extends "master.html" %}
 
+{% set landing = 1 %}
+
+{% macro signupform() %}
+<form action="/signup" method="post">
+  <div class="row collapse">
+    <div class="small-10 columns">
+      <input type="text" name="email" />
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    </div>
+    <div class="small-2 columns">
+      <button type="submit" class="success button prefix">Submit</button>
+    </div>
+  </div>
+</form>
+{% endmacro %}
+
 {% block main %}
-  <div class="row">
-    <div class="large-12 columns">
-      <div class="panel">
-        <h4>Welcome to Projecto!</h4>
-        <p>Projecto is a free project management software aimed towards small - medium sized projects.
-        <br />
-        Projecto offers meetings, todos, file sharing, announcements, and discussions for teams.
-        All you need is an email to sign up and try!</p>
-        <p class="text-right"><a href="/about" class="no-margin button">Learn More</a></p>
+
+  <a href="https://github.com/shuhaowu/projecto"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+
+  <div id="landing" class="container landing-boxes">
+    <div class="row">
+      <header class="large-12 columns">
+        <h1>Projecto</h1>
+        <h2>Integrated project management solution for fast moving teams.</h2>
+        <div class="landing-buttons">
+        <a href="/features" class="secondary button">Learn More</a>
+          <a href="https://github.com/shuhaowu/projecto" target="_blank" class="success button">Source Code</a>
+        </div>
+      </header>
+    </div>
+  </div>
+
+  <div id="main1" class="container landing-boxes">
+    <div class="row">
+      <div class="large-4 columns">
+        <div class="landing-3-box">
+          <h2>Integrated solution</h2>
+          <p>Designed to have all of the features built in, you and your team no
+             longer need to use a gazillion different tools for one job.</p>
+         </div>
+      </div>
+      <div class="large-4 columns">
+        <div class="landing-3-box">
+          <h2>Packed with features</h2>
+          <p>Feed, todos, files, schedules. Projecto comes with all the features needed for a fast moving, small to medium sized team.</p>
+        </div>
+      </div>
+      <div class="large-4 columns">
+        <div class="landing-3-box">
+          <h2>Open source with love</h2>
+          <p>Everything is open source licensed under Apache 2. Host your own instance, add your own features. All for free!</p>
+        </div>
       </div>
     </div>
   </div>
+
+  <div id="signup" class="container landing-boxes">
+    <div class="row">
+      <div class="large-offset-by-1 large-5 columns">
+        <h2 style="text-align: left;">Projecto is still in under active development.</h2>
+        <p>This means that the hosted service is still not yet enabled. You could <a href="https://github.com/shuhaowu/projecto" target="_blank">check out the source code</a> yourself, but that is likely to be <em>highly</em> unstable.</p>
+      </div>
+      <div class="large-6 columns">
+        <h2>Interested? Sign up for updates! <br /><small>We'll let you know when we release the hosted version.</small></h2>
+        {{ signupform() }}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block end %}
+{% with messages = get_flashed_messages(with_categories=True) %}
+{% if messages %}
+<script>
+$(function() {
+  {% autoescape off %}
+  {% for category, message in messages %}
+  $("body").statusmsg("open", "{{ message }}", {type: "{{ category }}", closable: true});
+  {% endfor %}
+  {% endautoescape %}
+});
+</script>
+{% endif %}
+{% endwith %}
 {% endblock %}

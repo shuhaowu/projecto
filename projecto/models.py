@@ -19,6 +19,13 @@ import werkzeug.utils
 
 from settings import DATABASES
 
+# TODO: We really need to move the backend databases to Riak so we don't need
+# things like werkzeug hacks..
+# Seamless transition with riakkit is possible. Just gotta write riakkit like
+# leveldbkit.
+
+class Signup(Document):
+  date = DateTimeProperty()
 
 class User(Document, UserMixin):
   name = StringProperty(default="A New User :)")
@@ -371,7 +378,8 @@ ALL_MODELS = {
   Comment: "COMMENTS",
   Todo: "TODOS",
   ArchivedFeedItem: "ARCHIVED_FEED",
-  File: "FILES"
+  File: "FILES",
+  Signup: "SIGNUPS"
 }
 
 def establish_connections(files_folder):

@@ -49,12 +49,7 @@ $(function () {
         data: {assertion: assertion},
         success: function (res, status, xhr) {
           var l = window.location.pathname.length;
-          if (l === 1)
-            window.location.href = "/app";
-          else if (window.location.pathname.slice(l-3, l) !== "app") {
-            $("#login-persona").text("Enter App");
-            rebindLogin();
-          }
+          window.location.href = "/app";
         },
         error: function (xhr, status, err) {
           navigator.id.logout();

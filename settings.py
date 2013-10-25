@@ -17,13 +17,17 @@ DATABASE_NAMES = (
     "COMMENTS",
     "TODOS",
     "ARCHIVED_FEED",
-    "FILES"
+    "FILES",
+    "SIGNUPS"
 )
 
 
 MAX_CONTENT_LENGTH = 20 * 1024 * 1024
 SECRET_KEY = None
 SITE_URL = None
+
+# To be removed when we are ready.
+DISABLE_SIGNUP = False
 
 try:
   from settings_local import *

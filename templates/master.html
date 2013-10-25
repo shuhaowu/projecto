@@ -26,17 +26,16 @@
 </head>
 <body>
 
-  <div class="contain-to-grid">
+  <div class="contain-to-grid{% if landing %} landing-nav{% endif %}">
     <nav class="top-bar">
       <ul class="title-area">
-        <li class="name"><h1><a href="#home">Projecto</a></h1></li>
+        <li class="name"><h1><a href="{% if landing %}/{% else %}#/home{% endif %}">Projecto</a></h1></li>
         <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
       </ul>
       {% block navbar_section %}
       <section class="top-bar-section">
         <ul class="left">
-          <li><a href="/about">About</a></li>
-          <li><a href="/tech">Technologies</a></li>
+          <li><a href="/features">Features</a></li>
         </ul>
         <ul class="right">
           <li><a id="login-persona" href="#">Login with Persona</a></li>
@@ -50,7 +49,7 @@
   {% endblock %}
 
   <footer class="row">
-    <a href="/tos">Terms of Service</a> | Copyright &copy; Projecto Team 2013 | <a href="/privacy">Privacy Policy</a>
+    <a href="/licenses">Licenses</a> | Copyright &copy; <a href="https://github.com/shuhaowu/projecto/graphs/contributors" target="_blank">Projecto Team</a> 2013 | <a href="https://github.com/shuhaowu/projecto" target="_blank">Source Code</a>
     <br />
   </footer>
   <script src="/static/js/vendor/jquery-1.9.1.min.js"></script>
