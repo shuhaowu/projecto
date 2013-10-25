@@ -30,7 +30,7 @@ register_assets(app)
 # App stuff
 @app.before_request
 def before_request():
-  app.jinja_env.globals["partials"] = partials
+  app.jinja_env.globals["partials"] = partials()
 
 
 # Here are just the pages.

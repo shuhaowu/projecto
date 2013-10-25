@@ -75,7 +75,8 @@ def register_assets(app):
 
 # Partials
 if DEBUG:
-  partials = None
+  partials = lambda: None
 else:
+  def partials():
     with open(os.path.join(APP_FOLDER, "all_partials.html")) as f:
-      partials = f.read()
+      return f.read()
