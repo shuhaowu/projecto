@@ -21,9 +21,9 @@
   <div class="row" ng-hide="notFound">
     <div class="large-12 columns">
       <div class="files-action-buttons">
-        <button class="small alert" ng-click="delete()"><i class="icon icon-white icon-remove"></i> Delete</button>
-        <button class="small" data-reveal-id="files-update-file-modal"><i class="icon icon-white icon-upload"></i> Update</button>
-        <a class="button small success" href="/api/v1/projects/{[ currentProject.key ]}/files/?path={[ path ]}&download=true" target="_blank"><i class="icon icon-white icon-download"></i> Download</a>
+        <button class="small alert" ng-click="delete()"><i class="fa fa-times"></i> Delete</button>
+        <button class="small" data-reveal-id="files-update-file-modal"><i class="fa fa-edit"></i> Update</button>
+        <a class="button small success" href="/api/v1/projects/{[ currentProject.key ]}/files/?path={[ path ]}&download=true" target="_blank"><i class="fa fa-download"></i> Download</a>
       </div>
     </div>
   </div>
