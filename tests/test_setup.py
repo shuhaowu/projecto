@@ -7,10 +7,7 @@ from .utils import FlaskTestCase
 class TestBasicRoutes(FlaskTestCase):
   def test_basic_routes(self):
     self.assertStatus(200, self.get("/"))
-    self.assertStatus(200, self.get("/about"))
-    self.assertStatus(200, self.get("/tos"))
-    self.assertStatus(200, self.get("/privacy"))
-    self.assertStatus(200, self.get("/tech"))
+    self.assertStatus(200, self.get("/features"))
     self.assertRedirect("/", self.get("/app"))
 
   def test_login_logout(self):
