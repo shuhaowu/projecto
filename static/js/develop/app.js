@@ -17,6 +17,14 @@
       controller: "FilesTreeController"
     };
 
+    var homePage = {
+      templateUrl: "/static/partials/homepage.html",
+      controller: "ProjectSwitcher"
+    };
+
+    $routeProvider.when("/", homePage);
+    $routeProvider.when("/home", homePage);
+
     $routeProvider.when("/projects/:id/", feedPage);
     $routeProvider.when("/projects/:id/feed/", feedPage);
     $routeProvider.when("/projects/:id/feed/:feedId", {

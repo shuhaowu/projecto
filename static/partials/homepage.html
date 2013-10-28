@@ -1,0 +1,30 @@
+<div class="row dashboard">
+  <div class="columns" ng-class="{'large-6': projectsParticipating.length > 0, 'large-12': projectsParticipating.length == 0}" ng-show="projectsOwned.length > 0">
+    <h4 class="text-center">Your Projects</h4>
+    <ul class="dashboard-projects-list">
+      <li ng-repeat="project in projectsOwned">
+        <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="columns" ng-class="{'large-6': projectsOwned.length > 0, 'large-12': projectsOwned.length == 0}" ng-show="projectsParticipating.length > 0">
+    <h4 class="text-center">Participating Projects</h4>
+    <ul class="dashboard-projects-list">
+      <li ng-repeat="project in projectsParticipating">
+        <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-12 columns">
+
+    <ul class="dashboard-projects-list">
+      <li>
+        <a href="" ng-click="newProject()" class="create">Create a project</a>
+      </li>
+    </ul>
+  </div>
+</div>

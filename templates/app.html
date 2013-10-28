@@ -14,14 +14,14 @@
       <a href="#/projects">Projects</a>
       <ul class="dropdown" ng-controller="ProjectSwitcher">
         <li><a ng-click="newProject()">New Project</a></li>
-        <li class="divider"></li>
-        <li><label>Projects owned by you</label></li>
+        <li class="divider" ng-show="projectsOwned.length > 0 || projectsParticipating.length > 0"></li>
+        <li ng-show="projectsOwned.length > 0"><label>Projects owned by you</label></li>
         <li ng-repeat="project in projectsOwned">
           <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
         </li>
-        <li><label></label></li>
-        <li class="divider"></li>
-        <li><label>Projects you're participating in</label></li>
+        <li ng-show="projectsOwned.length > 0 && projectsParticipating.length > 0"><label></label></li>
+        <li class="divider" ng-show="projectsOwned.length > 0 && projectsParticipating.length > 0"></li>
+        <li ng-show="projectsParticipating.length > 0"><label>Projects you're participating in</label></li>
         <li ng-repeat="project in projectsParticipating">
           <a href="#/projects/{[ project.key ]}/">{[ project.name ]}</a>
         </li>

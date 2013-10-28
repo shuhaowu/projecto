@@ -2,19 +2,28 @@
 
 (function() {
   angular.module("projecto").controller(
-    "ProjectSwitcher", ["$scope", "$location", "toast", "ProjectsService", function($scope, $location, toast, ProjectsService) {
+    "ProjectSwitcher", ["$scope", "$location", "toast", "title", "ProjectsService", function($scope, $location, toast, title, ProjectsService) {
       $scope.projectsOwned = [];
 
       $scope.projectsParticipating = [];
 
+      var path = $location.path();
+      if (path === "" || path === "/" || path === "/home") {
+        title("Dashboard");
+      }
+
       // Get all the projects
-      var promise = ProjectsService.listMine();
-      promise.done(function(data, status, xhr) {
-        $scope.$apply(function() {
-          $scope.projectsOwned = data.owned;
-          $scope.projectsParticipating = data.participating;
-        });
+      var req = ProjectsService.listMine();
+      req.done(function(data, status, xhr) {
+        $scope.projectsOwned = data.owned;
+        $scope.projectsParticipating = data.participating;
+        $scope.$$phase || $scope.$apply();
       });
+
+      req.error(function(xhr) {
+        toast.error("Failed to list projects", xhr.status);
+      });
+
 
       $scope.newProject = function() {
         var projectName = prompt("Project name");
