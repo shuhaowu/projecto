@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from cStringIO import StringIO
 import os
 
-from leveldbkit import NotFoundError
+from kvkit import NotFoundError
 import ujson as json
 from werkzeug.datastructures import FileStorage
 

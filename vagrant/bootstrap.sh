@@ -6,15 +6,21 @@ echo "Setup already completed.. skipping. To run this again, remove /home/vagran
 fi
 
 # getting required packages
+sudo apt-get install -y curl
+curl http://apt.basho.com/gpg/basho.apt.key | apt-key add -
+echo deb http://apt.basho.com $(lsb_release -sc) main > /etc/apt/sources.list.d/basho.list
 apt-get update
 apt-get install -y python-software-properties python g++ make
 add-apt-repository ppa:chris-lea/node.js
 apt-get update
-apt-get install -y build-essential python-dev automake libtool autoconf pkg-config
+apt-get install -y build-essential python-dev automake libtool autoconf pkg-config riak
 apt-get install -y nodejs git subversion
 
 # Getting convenient packages
 apt-get install -y nginx
+
+cp /projecto/vagrant/app.config /etc/riak/app.config
+riak start
 
 # Install pip
 cd /tmp
@@ -22,17 +28,8 @@ wget http://python-distribute.org/distribute_setup.py
 python distribute_setup.py
 easy_install pip
 
-# Installing LevelDB as it is a bitch to do.
-cd /tmp
-svn checkout http://py-leveldb.googlecode.com/svn/trunk/ py-leveldb-read-only
-cd py-leveldb-read-only
-./compile_leveldb.sh
-python setup.py build
-python setup.py install
-
 # Setup project directory.
 cd /projecto
-mkdir -p databases
 mkdir -p userfiles
 
 # Install additional requirements
@@ -81,7 +78,7 @@ service nginx restart
 
 # shortcuts
 echo "cd /projecto" >> /home/vagrant/.bashrc
-echo "alias t='cd /projecto; python -m unittest discover'" >> /home/vagrant/.bashrc
+echo "alias t='cd /projecto; TESTING=1 python -m unittest discover'" >> /home/vagrant/.bashrc
 echo "alias s='cd /projecto; python server.py'" >> /home/vagrant/.bashrc
 
 # run the unittests!

@@ -1,7 +1,7 @@
 import os
 
 from flask.ext.login import LoginManager
-from leveldbkit import NotFoundError
+from kvkit import NotFoundError
 
 from .models import User
 from .utils import jsonify

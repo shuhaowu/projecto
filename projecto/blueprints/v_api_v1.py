@@ -5,7 +5,7 @@ import settings
 import os
 import math
 
-from leveldbkit import NotFoundError
+from kvkit import NotFoundError
 
 from ..models import Project, FeedItem, Todo, User, Comment, File
 from ..utils import jsonify, project_access_required, ensure_good_request, markdown_to_db, project_managers_required
@@ -24,6 +24,7 @@ meta = {
 }
 
 # Project APIs
+
 
 class ProjectsView(FlaskView):
   @route("/", methods=["POST"])
@@ -71,7 +72,7 @@ class ProjectsView(FlaskView):
   @project_managers_required
   def addowner(self, project):
     for email in request.json["emails"]:
-      userkeys = User.index_keys_only("emails", email)
+      userkeys = list(User.index_keys_only("emails", email))
       if userkeys:
         project.owners.append(userkeys[0])
       else:
@@ -85,7 +86,7 @@ class ProjectsView(FlaskView):
   @project_managers_required
   def addcollaborator(self, project):
     for email in request.json["emails"]:
-      userkeys = User.index_keys_only("emails", email)
+      userkeys = list(User.index_keys_only("emails", email))
       if userkeys:
         project.collaborators.append(userkeys[0])
       else:
@@ -101,7 +102,7 @@ class ProjectsView(FlaskView):
     # this request should fail and not modify if there is an invalid email.
     # i.e. this request should be atomic.
     for email in request.json["emails"]:
-      userkeys = User.index_keys_only("emails", email)
+      userkeys = list(User.index_keys_only("emails", email))
       if userkeys:
         if len(project.owners) == 1 and userkeys[0] == project.owners[0]:
           return abort(403)
@@ -124,7 +125,7 @@ class ProjectsView(FlaskView):
   @project_managers_required
   def removecollaborators(self, project):
     for email in request.json["emails"]:
-      userkeys = User.index_keys_only("emails", email)
+      userkeys = list(User.index_keys_only("emails", email))
       if userkeys:
         try:
           project.collaborators.remove(userkeys[0])
