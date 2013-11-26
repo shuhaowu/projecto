@@ -6,12 +6,18 @@ import os
 
 from flask.ext.login import test_login_user, test_logout_user
 from werkzeug.datastructures import FileStorage
+import riak
 
 from projecto import app
 from projecto.extensions import csrf
-from projecto.models import (User, Project, establish_connections,
-                             close_connections, FeedItem, Todo, Comment,
-                             File)
+from projecto.models import (
+    User,
+    Project,
+    FeedItem,
+    Todo,
+    Comment,
+    File
+)
 import settings
 
 CSRF_SET = False
@@ -113,11 +119,12 @@ class FlaskTestCase(TestCase):
     """Resets the database. This will DELETE files on disk!
 
     Must be called before ANY actions are taken in a test case."""
-    close_connections()
 
-    for dbname in settings.DATABASES.keys():
-      shutil.rmtree(settings.DATABASES[dbname][0])
-      shutil.rmtree(settings.DATABASES[dbname][1])
+    c = riak.RiakClient(protocol="pbc")
+    for bucket in settings.DATABASES.itervalues():
+      b = c.bucket(bucket)
+      for key in b.get_keys():
+        b.delete(key)
 
     files_folder = os.path.join(settings.APP_FOLDER, "test_userfiles")
     if os.path.exists(files_folder):
@@ -125,7 +132,7 @@ class FlaskTestCase(TestCase):
 
     os.mkdir(files_folder)
 
-    establish_connections(files_folder=files_folder)
+    File.FILES_FOLDER = files_folder
     self.user = self.create_user("test@test.com")
 
 

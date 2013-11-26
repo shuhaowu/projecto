@@ -1,15 +1,18 @@
 Flask==0.9
 Flask-Assets==0.8
 Flask-Classy==0.6.3
--e git://github.com/shuhaowu/flask-login.git@4cd0fb4e5e84146bc967d79cc982660e664ea362#egg=Flask_Login-dev
+-e git+https://github.com/shuhaowu/flask-login.git@4cd0fb4e5e84146bc967d79cc982660e664ea362#egg=Flask_Login-dev
 Flask-SeaSurf==0.1.22
 Jinja2==2.7
 MarkupSafe==0.18
--e git://github.com/shuhaowu/werkzeug.git@ba2101628cbf55fb8265ca645addf2bce0df7cad#egg=Werkzeug-dev
+Werkzeug==0.8.3
 argparse==1.2.1
 cssmin==0.1.4
-leveldbkit==0.1.3b
 misaka==1.0.2
+-e git+https://github.com/shuhaowu/kvkit.git@0916d71c3aefae6f362a28739f6881d0770926fa#egg=kvkit-master
+riak==2.0.2
+riak-pb==1.4.1.1
+protobuf==2.4.1
 requests==1.2.3
 ujson==1.33
 webassets==0.8

@@ -5,8 +5,7 @@ from settings import DEBUG, HOST, PORT
 
 if __name__ == "__main__":
   if DEBUG:
-    from projecto.models import close_connections
-    app.run(debug=True, host="", port=PORT, cleanup_func=close_connections)
+    app.run(debug=True, host="", port=PORT)
   else:
     from gevent.wsgi import WSGIServer
     from werkzeug.contrib.fixers import ProxyFix

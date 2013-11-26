@@ -6,7 +6,7 @@ from flask.ext.login import current_user
 
 from .blueprints import blueprints
 from .extensions import login_manager, register_assets, partials
-from .models import establish_connections
+from .models import File
 from settings import APP_FOLDER, STATIC_FOLDER, TEMPLATES_FOLDER
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATES_FOLDER)
@@ -20,7 +20,8 @@ from .extensions import csrf
 csrf.init_app(app)
 
 # Database shit
-establish_connections(files_folder=app.config["FILES_FOLDER"])
+# TODO: this needs to be made better.
+File.FILES_FOLDER = app.config["FILES_FOLDER"]
 
 
 # asset stuffs

@@ -9,9 +9,12 @@ MarkupSafe==0.18
 Werkzeug==0.8.3
 argparse==1.2.1
 cssmin==0.1.4
--e git://github.com/surfly/gevent.git@454a77ca561868854760b2d9cbfa3bf3bbd2e062#egg=gevent-dev
+-e git+https://github.com/surfly/gevent.git@454a77ca561868854760b2d9cbfa3bf3bbd2e062#egg=gevent-dev
 greenlet==0.4.0
-leveldbkit==0.1.3b
+-e git+https://github.com/shuhaowu/kvkit.git@0916d71c3aefae6f362a28739f6881d0770926fa#egg=kvkit-master
+riak==2.0.2
+riak-pb==1.4.1.1
+protobuf==2.4.1
 misaka==1.0.2
 requests==1.2.3
 ujson==1.33

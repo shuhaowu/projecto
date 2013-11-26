@@ -5,7 +5,7 @@ from hashlib import md5
 import os
 
 from flask.ext.login import UserMixin
-from leveldbkit import (
+from kvkit import (
   Document, EmDocument,
   StringProperty,
   DictProperty,
@@ -15,26 +15,35 @@ from leveldbkit import (
   ListProperty,
   NotFoundError
 )
+from kvkit.backends import riak as riak_backend
+import riak
 import werkzeug.utils
 
-from settings import DATABASES
+from settings import DATABASES, RIAK_NODES
 
-# TODO: We really need to move the backend databases to Riak so we don't need
-# things like werkzeug hacks..
-# Seamless transition with riakkit is possible. Just gotta write riakkit like
-# leveldbkit.
+class BaseDocument(Document):
+  _backend = riak_backend
 
-class Signup(Document):
+rc = riak.RiakClient(protocol="pbc", nodes=RIAK_NODES)
+
+class Signup(BaseDocument):
+  _riak_options = {"bucket": rc.bucket(DATABASES["signups"])}
+
   date = DateTimeProperty()
 
-class User(Document, UserMixin):
+class User(BaseDocument, UserMixin):
+  _riak_options = {"bucket": rc.bucket(DATABASES["users"])}
+
   name = StringProperty(default="A New User :)")
   emails = ListProperty(index=True)
   avatar = StringProperty()
 
+  def serialize_for_client(self):
+    return self.serialize(restricted=("emails", ), include_key=True)
+
   @classmethod
   def register_or_login(cls, email):
-    user = cls.index_keys_only("emails", email)
+    user = list(cls.index_keys_only("emails", email))
     if len(user) == 0:
       user = cls(data={"emails": [email]})
       user.avatar = md5(email).hexdigest()
@@ -46,7 +55,9 @@ class User(Document, UserMixin):
   def get_id(self):
     return self.key
 
-class Project(Document):
+class Project(BaseDocument):
+  _riak_options = {"bucket": rc.bucket(DATABASES["projects"])}
+
   name = StringProperty()
   desc = StringProperty()
 
@@ -63,20 +74,28 @@ class Content(EmDocument):
   parent = StringProperty(index=True)
 
   def serialize_for_client(self, include_comments="expand"):
-    item = self.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}])
+    item = self.serialize(restricted=("parent", "author"), include_key=True)
+    item["author"] = self.author.serialize_for_client()
+
     if include_comments == "expand":
       item["children"] = children = []
       for comment in Comment.index("parent", self.key):
-        children.append(comment.serialize(restricted=("parent", ), include_key=True, expand=[{"restricted": ("emails", ), "include_key": True}]))
+        serialized_comment = comment.serialize(restricted=("parent", "author"), include_key=True)
+        serialized_comment["author"] = comment.author.serialize_for_client()
+        children.append(serialized_comment)
     elif include_comments == "keys":
-      item["children"] = Comment.index_keys_only("parent", self.key)
+      item["children"] = list(Comment.index_keys_only("parent", self.key))
     return item
 
-class ArchivedFeedItem(Document, Content):
+class ArchivedFeedItem(BaseDocument, Content):
+  _riak_options = {"bucket": rc.bucket(DATABASES["archived_feed"])}
+
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
-class FeedItem(Document, Content):
+class FeedItem(BaseDocument, Content):
+  _riak_options = {"bucket": rc.bucket(DATABASES["feed"])}
+
   parent = ReferenceProperty(Project, index=True)
   type = StringProperty()
 
@@ -93,10 +112,13 @@ class FeedItem(Document, Content):
 
     return Document.delete(self, *args, **kwargs)
 
-class Comment(Document, Content):
-  pass
+class Comment(BaseDocument, Content):
+  _riak_options = {"bucket": rc.bucket(DATABASES["comments"])}
 
-class Todo(Document, Content):
+
+class Todo(BaseDocument, Content):
+  _riak_options = {"bucket": rc.bucket(DATABASES["todos"])}
+
   parent = ReferenceProperty(Project, index=True)
   assigned = ReferenceProperty(User, index=True)
   due = DateTimeProperty(default=lambda: None)
@@ -109,7 +131,9 @@ class Todo(Document, Content):
 
 class CannotMoveToDestination(IOError): pass
 
-class File(Document):
+class File(BaseDocument):
+  _riak_options = {"bucket": rc.bucket(DATABASES["files"])}
+
   # Only this user and root can read this!
   MODE = 0600
 
@@ -171,7 +195,8 @@ class File(Document):
     return self.path[-1] == "/"
 
   def serialize_for_client(self, recursive=True):
-    item = self.serialize(restricted=("project", ), expand=[{"restricted": ("emails", ), "include_key": True}])
+    item = self.serialize(restricted=("project", "author"))
+    item["author"] = self.author.serialize_for_client()
     item["path"] = self.path
 
     # recursive is a lie. It only goes down one level! :D
@@ -370,37 +395,3 @@ class File(Document):
 
         key = File.keygen(self.project, p.replace(new_path, old_path, 1))
         File.get(key).move(p, db_only=True)
-
-ALL_MODELS = {
-  User: "USERS",
-  Project: "PROJECTS",
-  FeedItem: "FEED",
-  Comment: "COMMENTS",
-  Todo: "TODOS",
-  ArchivedFeedItem: "ARCHIVED_FEED",
-  File: "FILES",
-  Signup: "SIGNUPS"
-}
-
-def establish_connections(files_folder):
-  for model in ALL_MODELS:
-    model.establish_connection()
-
-  File.FILES_FOLDER = files_folder
-
-def close_connections():
-  """This method is named close_connections because if there is a LevelDB
-  instance, resetting it will cause GC to destroy the instance, which will
-  cause the underlying leveldb library to unlock the database.
-
-  We need to use a modified version of werkzeug or else this won't be called
-  and we will get a lock error everytime the development server reloads.
-
-  Incidentally, we also can use this to easily populate all the dbs for each
-  model as evident by the immediate calling after this method.
-  """
-  for model, name in ALL_MODELS.iteritems():
-    model.db, model.indexdb = DATABASES[name]
-
-# This actually sets up the models
-close_connections()

@@ -123,8 +123,8 @@ class TestFeedAPI(ProjectTestCase):
 
     self.login()
     self.get(self.base_url("/"))
-    self.assertEquals(200, len(FeedItem.index_keys_only("parent", self.project.key)))
-    self.assertEquals(50, len(ArchivedFeedItem.index_keys_only("parent", self.project.key)))
+    self.assertEquals(200, len(list(FeedItem.index_keys_only("parent", self.project.key))))
+    self.assertEquals(50, len(list(ArchivedFeedItem.index_keys_only("parent", self.project.key))))
 
   def test_index_feeditems_reject_permission(self):
     response, data = self.getJSON(self.base_url("/"))

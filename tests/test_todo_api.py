@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from leveldbkit import NotFoundError
+from kvkit import NotFoundError
 from projecto.models import Todo
 
 import unittest

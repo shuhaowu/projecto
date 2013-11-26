@@ -27,7 +27,7 @@ def jsonify(**params):
 # Project access control helpers
 
 from functools import wraps
-from leveldbkit import NotFoundError
+from kvkit import NotFoundError
 from flask.ext.login import current_user
 from .models import Project, User
 
@@ -105,7 +105,7 @@ def project_managers_required(fn):
   return wrapped
 
 from flask import request
-from leveldbkit import ValidationError
+from kvkit import ValidationError
 
 def ensure_good_request(required_parameters, accepted_parameters=None, allow_json_none=False):
   """Ensure that the request is good. aborts with 400 otherwise.
