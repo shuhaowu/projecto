@@ -19,12 +19,12 @@ from kvkit.backends import riak as riak_backend
 import riak
 import werkzeug.utils
 
-from settings import DATABASES
+from settings import DATABASES, RIAK_NODES
 
 class BaseDocument(Document):
   _backend = riak_backend
 
-rc = riak.RiakClient(protocol="pbc")
+rc = riak.RiakClient(protocol="pbc", nodes=RIAK_NODES)
 
 class Signup(BaseDocument):
   _riak_options = {"bucket": rc.bucket(DATABASES["signups"])}

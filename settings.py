@@ -8,8 +8,14 @@ PORT = os.environ.get("PORT", 8800)
 APP_FOLDER = os.path.dirname(os.path.abspath(__file__))
 STATIC_FOLDER = os.path.join(APP_FOLDER, "static")
 TEMPLATES_FOLDER = os.path.join(APP_FOLDER, "templates")
-DATABASES_FOLDER = os.path.join(APP_FOLDER, "databases")
 FILES_FOLDER = os.path.join(APP_FOLDER, "userfiles")
+
+RIAK_NODES = [
+  {
+    "host": "127.0.0.1",
+    "pb_port": 8087
+  }
+]
 
 DATABASE_NAMES = (
     "USERS",
