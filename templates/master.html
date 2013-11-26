@@ -45,6 +45,16 @@
     </nav>
   </div>
 
+{% if SERVER_MODE == "stage" %}
+  <div class="row" style="position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: 5%">
+    <div class="large-12 columns">
+      <div class="alert-box alert text-center">
+        You're viewing the staging site for Projecto. The data here may not be maintained, or deleted.
+      </div>
+    </div>
+  </div>
+{% endif %}
+
   {% block main %}
   {% endblock %}
 

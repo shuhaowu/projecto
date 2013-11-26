@@ -2,6 +2,10 @@ import os
 
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
 TESTING = bool(int(os.environ.get("TESTING", 0)))
+
+# could be dev, stage, or prod
+SERVER_MODE = os.environ.get("SERVER_MODE", "dev")
+
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = os.environ.get("PORT", 8800)
 

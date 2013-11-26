@@ -32,6 +32,7 @@ register_assets(app)
 @app.before_request
 def before_request():
   app.jinja_env.globals["partials"] = partials()
+  app.jinja_env.globals["SERVER_MODE"] = app.config["SERVER_MODE"]
 
 
 # Here are just the pages.
