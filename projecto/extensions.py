@@ -63,6 +63,10 @@ def register_assets(app):
   )
 
   _js_files = list(get_files_in_directory("js/develop", ".js", excludes=["app.min.js", "app.js"]))
+  for module in LOADED_MODULES:
+    for fname in get_files_from_module(module, "js", "js"):
+      _js_files.append("api_v1_" + module + "/js/" + fname)
+
   js_all = Bundle("js/develop/app.js", *_js_files, filters="uglifyjs", output="js/app.min.js")
 
   assets.init_app(app)
