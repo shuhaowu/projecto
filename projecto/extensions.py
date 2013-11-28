@@ -5,7 +5,7 @@ from kvkit import NotFoundError
 
 from .models import User
 from .utils import jsonify
-from settings import STATIC_FOLDER, DEBUG, APP_FOLDER
+from settings import STATIC_FOLDER, DEBUG, APP_FOLDER, LOADED_MODULES
 
 login_manager = LoginManager()
 
@@ -26,30 +26,45 @@ def unauthorized():
 from flask.ext.seasurf import SeaSurf
 csrf = SeaSurf()
 
+
 # Assets
 from flask.ext.assets import Environment, Bundle
 assets = Environment()
 
 
-def get_files_in_directory(path, ext=None, excludes=[]):
+def get_files_from_module(module, type, ext=None, excludes=tuple()):
+  if ext is None:
+    ext = type
+  path = os.path.join(APP_FOLDER, "projecto", "apiv1", module, "static", type)
+  for root, subdir, filenames in os.walk(path):
+    for fname in filenames:
+      if fname.endswith(ext) and fname not in excludes:
+        yield fname
+
+
+def get_files_in_directory(path, ext=None, excludes=[], fname_only=False):
   prefix_length = len(STATIC_FOLDER) + 1
   for root, subdir, filenames in os.walk(os.path.join(STATIC_FOLDER, path)):
     for fname in filenames:
       if (ext is None or fname.endswith(ext)) and fname not in excludes:
-        yield root[prefix_length:] + "/" + fname
-
-_js_files = list(get_files_in_directory("js/develop", ".js", excludes=["app.min.js", "app.js"]))
-js_all = Bundle("js/develop/app.js", *_js_files, filters="uglifyjs", output="js/app.min.js")
-
-css_all = Bundle(
-    "css/base.css",
-    "css/app.css",
-    filters="cssmin",
-    output="css/app.min.css"
-)
+        yield fname if fname_only else root[prefix_length:] + "/" + fname
 
 
 def register_assets(app):
+  _css_files = ["css/base.css", "css/app.css"]
+  for module in LOADED_MODULES:
+    for fname in get_files_from_module(module, "css", "css"):
+      _css_files.append("api_v1_" + module + "/css/" + fname)
+
+  css_all = Bundle(
+      *_css_files,
+      filters="cssmin",
+      output="css/app.min.css"
+  )
+
+  _js_files = list(get_files_in_directory("js/develop", ".js", excludes=["app.min.js", "app.js"]))
+  js_all = Bundle("js/develop/app.js", *_js_files, filters="uglifyjs", output="js/app.min.js")
+
   assets.init_app(app)
   # work around bug https://github.com/miracle2k/flask-assets/issues/54
   assets.app = app

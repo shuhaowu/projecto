@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
-from flask import Blueprint, request
+from flask import request
 from flask.ext.login import current_user, login_required
 
+from ..hacks import Blueprint
 from ...utils import (
     ensure_good_request,
     jsonify

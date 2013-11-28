@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
-from flask import Blueprint, request, abort
+from flask import request, abort
 from flask.ext.login import current_user, login_required
 
+from ..hacks import Blueprint
 from ...models import Project, User
 from ...utils import (
     ensure_good_request,

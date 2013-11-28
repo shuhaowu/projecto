@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
-from flask import Blueprint, request, abort, send_file
+from flask import request, abort, send_file
 from flask.ext.login import current_user
 from kvkit import NotFoundError
 
+from ..hacks import Blueprint
 from ...models import File
 from ...utils import ensure_good_request, project_access_required, jsonify
 

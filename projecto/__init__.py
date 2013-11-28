@@ -24,10 +24,6 @@ csrf.init_app(app)
 File.FILES_FOLDER = app.config["FILES_FOLDER"]
 
 
-# asset stuffs
-register_assets(app)
-
-
 # App stuff
 @app.before_request
 def before_request():
@@ -71,3 +67,7 @@ for module in LOADED_MODULES:
   meta = api_module.meta
   meta["url_prefix"] = api_route_base + meta["url_prefix"]
   app.register_blueprint(api_module.blueprint, **meta)
+
+# asset stuffs
+# needs to be after all the blueprints are registered.
+register_assets(app)

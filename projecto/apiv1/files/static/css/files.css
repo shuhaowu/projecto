@@ -1,0 +1,12 @@
+ul.files { list-style: none; margin: 1em 0 !important; }
+ul.files li { margin: 1.5em 0; border-bottom: 1px solid #AAA; }
+ul.files li:first-of-type { margin: 0 0 1.5em 0; }
+ul.files li:last-of-type { margin: 1.5em 0 0 0; border-bottom: none; }
+ul.files li:last-of-type p { margin: 0; }
+ul.files li p { line-height: 14px; }
+ul.files li:only-of-type { margin: 0 0 1.5em 0 !important; }
+ul.files li i { float: left; margin-top: 0px; margin-right: 5px; }
+ul.files li span.author { float: right; margin-left: 5px; }
+ul.files li span.date { float: right; }
+
+div.files-action-buttons { margin-bottom: 10px; float: right; }

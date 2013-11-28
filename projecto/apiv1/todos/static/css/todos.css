@@ -1,0 +1,59 @@
+#todos-new-todo {
+  margin-top: 1em;
+  display: none;
+}
+
+.todos-todo-title a, .todos-todo-title a:visited, .todos-todo-title a:focus {
+  color: #555;
+}
+
+.todos-todo-title a:hover {
+  color: #333;
+}
+
+.todos-todo-donebox {
+  float: left;
+  margin-right: 0.3em;
+}
+
+.todos-filter-box {
+  margin-right: 0.3em;
+}
+.todos-todo-body {
+  display: none;
+  margin-top: 0.5em;
+  border: 1px dashed #CCC;
+  border-radius: 4px;
+  padding: 0.6em;
+}
+
+.todos-todo-content {
+  margin: 0 0 1em 0;
+}
+
+.todos-todo-info {
+  font-size: 0.9em;
+  color: #999;
+}
+
+.todos-control {
+  font-size: 0.8em;
+  line-height: 1.2em;
+  color: #AAA;
+  float: right;
+  display: inline-block;
+  margin-left: 0.3em;
+}
+
+.label.todos-todo-tag {
+  margin-left: 4px;
+}
+
+/* todos-content */
+.todos-todo-content h1 { font-size: 1.8em; }
+.todos-todo-content h2 { font-size: 1.6em; }
+.todos-todo-content h3 { font-size: 1.4em; }
+.todos-todo-content h4 { font-size: 1.2em; }
+.todos-todo-content h5 { font-size: 1.0em; }
+.todos-todo-content h6 { font-size: 0.9em; }
+.todos-todo-content ul { margin-left: 1.5em; }

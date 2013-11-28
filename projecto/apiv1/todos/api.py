@@ -2,10 +2,11 @@ from __future__ import absolute_import
 
 import math
 
-from flask import Blueprint, request, abort
+from flask import request, abort
 from flask.ext.login import current_user
 from kvkit import NotFoundError
 
+from ..hacks import Blueprint
 from ...models import Todo
 from ...utils import ensure_good_request, project_access_required, jsonify, markdown_to_db
 
@@ -188,6 +189,7 @@ def markdone(project, id):
   todo.save()
   return jsonify(status="okay")
 
+
 # TODO: needs caching
 @blueprint.route("/tags/", methods=["GET"])
 @project_access_required
@@ -199,4 +201,4 @@ def list_tags(project):
       for tag in todo.tags:
         tags.add(tag)
 
-    return jsonify(tags=list(tags))
+  return jsonify(tags=list(tags))
