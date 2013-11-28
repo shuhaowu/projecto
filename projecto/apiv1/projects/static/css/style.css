@@ -1,0 +1,35 @@
+ul.dashboard-projects-list {
+  list-style: none;
+}
+
+div.dashboard.row { margin: 0 auto;}
+
+ul.dashboard-projects-list li {
+  width: 100%;
+  margin: 0.5rem auto;
+}
+
+ul.dashboard-projects-list li a {
+  display: block;
+  width: 100%;
+  border: 1px solid #CCC;
+  background-color: #F1F1F1;
+  text-align: center;
+  line-height: 3rem;
+  margin: 0 auto;
+}
+
+ul.dashboard-projects-list li a.create {
+  background-color: #3BB6DB;
+  border-color: #2284A1;
+  color: #111;
+}
+
+ul.dashboard-projects-list li a.create:hover {
+  background-color: #2BA6CB;
+}
+
+ul.dashboard-projects-list li a:hover {
+  background-color: #EAEAEA;
+}
+

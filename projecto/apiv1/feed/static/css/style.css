@@ -1,0 +1,23 @@
+.feed-character-count {
+  margin-right: 5px;
+  color: #AAA;
+  font-size: 0.8em;
+}
+
+.comment-avatar, .feed-avatar {
+  margin-right: 10px;
+  float: left;
+  vertical-align: bottom;
+}
+
+.comment-date, .feed-date {
+  font-size: 0.85em;
+  float: right;
+  line-height: 1.18em;
+}
+
+.comment-post, .feed-post {
+  margin-bottom: 0.75em;
+  clear: both;
+  padding-bottom: 1.6em;
+}

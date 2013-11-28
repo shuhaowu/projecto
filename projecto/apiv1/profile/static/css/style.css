@@ -1,0 +1,21 @@
+.profile-avatar {
+  float: left;
+  margin-right: 10px;
+}
+
+#profile-name {
+  margin: 0;
+  line-height: 80px;
+  display: inline-block;
+  font-size: 1.6em;
+}
+
+#profile-name-edit, #profile-name-edit-cancel {
+  margin-left: 8px;
+  line-height: 80px;
+  font-size: 0.8em;
+}
+
+#profile-name-edit-cancel {
+  display: none;
+}

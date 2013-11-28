@@ -3,22 +3,22 @@
 (function(){
   var routes = function($routeProvider) {
     var feedPage = {
-      templateUrl: "/static/partials/feed.html",
+      templateUrl: "/static/feed/partials/feed.html",
       controller: "FeedController",
     };
 
     var todosPage = {
-      templateUrl: "/static/partials/todos.html",
+      templateUrl: "/static/todos/partials/todos.html",
       controller: "TodosController"
     };
 
     var filesTreePage = {
-      templateUrl: "/static/partials/filestree.html",
+      templateUrl: "/static/files/partials/filestree.html",
       controller: "FilesTreeController"
     };
 
     var homePage = {
-      templateUrl: "/static/partials/homepage.html",
+      templateUrl: "/static/projects/partials/homepage.html",
       controller: "ProjectSwitcher"
     };
 
@@ -28,14 +28,14 @@
     $routeProvider.when("/projects/:id/", feedPage);
     $routeProvider.when("/projects/:id/feed/", feedPage);
     $routeProvider.when("/projects/:id/feed/:feedId", {
-      templateUrl: "/static/partials/singlefeed.html",
+      templateUrl: "/static/feed/partials/singlefeed.html",
       controller: "SingleFeedController"
     });
 
     $routeProvider.when("/projects/:id/todos", todosPage);
 
     $routeProvider.when("/projects/:id/todos/:todoId", {
-      templateUrl: "/static/partials/singletodo.html",
+      templateUrl: "/static/todos/partials/singletodo.html",
       controller: "SingleTodoController"
     });
 
@@ -43,17 +43,17 @@
     $routeProvider.when("/projects/:id/files/*path", filesTreePage);
 
     $routeProvider.when("/projects/:id/view_file/*path", {
-      templateUrl: "/static/partials/viewfile.html",
+      templateUrl: "/static/files/partials/viewfile.html",
       controller: "FileViewController"
     });
 
     $routeProvider.when("/projects/:id/manage", {
-      templateUrl: "/static/partials/manage.html",
+      templateUrl: "/static/projects/partials/manage.html",
       controller: "ManageController"
     });
 
     var profilePage = {
-      templateUrl: "/static/partials/profile.html",
+      templateUrl: "/static/profile/partials/profile.html",
       controller: "ProfileController"
     };
     $routeProvider.when("/profile/", profilePage);

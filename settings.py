@@ -41,6 +41,16 @@ SITE_URL = None
 # To be removed when we are ready.
 DISABLE_SIGNUP = False
 
+API = "projecto.apiv1"
+LOADED_MODULES = [
+  "comments",
+  "feed",
+  "files",
+  "profile",
+  "projects",
+  "todos",
+]
+
 try:
   from settings_local import *
 except ImportError:
