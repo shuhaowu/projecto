@@ -1,6 +1,0 @@
-/static/js/develop/ export-ignore
-/static/partials/ export-ignore
-.gitignore export-ignore
-.gitattributes export-ignore
-Makefile export-ignore
-devsettings.py export-ignore

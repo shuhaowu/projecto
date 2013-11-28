@@ -1,11 +1,12 @@
 import os
 
+from flask import url_for
 from flask.ext.login import LoginManager
 from kvkit import NotFoundError
 
 from .models import User
 from .utils import jsonify
-from settings import STATIC_FOLDER, DEBUG, APP_FOLDER, LOADED_MODULES
+from settings import STATIC_FOLDER, APP_FOLDER, LOADED_MODULES
 
 login_manager = LoginManager()
 
@@ -50,6 +51,10 @@ def get_files_in_directory(path, ext=None, excludes=[], fname_only=False):
         yield fname if fname_only else root[prefix_length:] + "/" + fname
 
 
+_partials = None
+partials = lambda: _partials
+
+
 def register_assets(app):
   _css_files = ["css/base.css", "css/app.css"]
   for module in LOADED_MODULES:
@@ -77,25 +82,18 @@ def register_assets(app):
   assets.register("js_all", js_all)
   assets.register("css_all", css_all)
   if not app.debug:
-    partials_template = """
-<script id="{path}" type="text/ng-template">
-{content}
-</script>
-"""
-    with open(os.path.join(APP_FOLDER, "all_partials.html"), "w") as f:
-      for fname in get_files_in_directory("partials", ".html"):
-        path = os.path.join(STATIC_FOLDER, fname)
-        with open(path) as g:
+    partials_template = '<script id="{path}" type="text/ng-template">{content}</script>'
+    global _partials
+    _partials = ""
+    for module in LOADED_MODULES:
+      for fname in get_files_from_module(module, "partials", "html"):
+        # TODO: look at this hack.
+        with app.test_request_context():
+          path = url_for("api_v1_" + module + ".static", filename="partials/" + fname)
+
+        with open(os.path.join(APP_FOLDER, "projecto", "apiv1", module, "static", "partials", fname)) as g:
           content = g.read()
-        f.write(partials_template.format(path=path, content=content))
+        _partials += partials_template.format(path=path, content=content)
 
     css_all.build()
     js_all.build()
-
-# Partials
-if DEBUG:
-  partials = lambda: None
-else:
-  def partials():
-    with open(os.path.join(APP_FOLDER, "all_partials.html")) as f:
-      return f.read()
