@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
+
 from kvkit import NotFoundError
 from projecto.models import Todo
 
@@ -177,12 +179,10 @@ class TestTodoAPI(ProjectTestCase):
   def test_index_todos(self):
     self.login()
 
-    keys = []
+    keys = set()
     for i in xrange(50):
-        todo = new_todo(self.user, self.project, save=True)
-        keys.append(todo.key)
-
-    keys.sort()
+      todo = new_todo(self.user, self.project, date=datetime.now() + timedelta(seconds=i*10), title=str(i), save=True)
+      keys.add(todo.key)
 
     response, data = self.getJSON(self.base_url("/"))
     self.assertStatus(200, response)
@@ -193,23 +193,25 @@ class TestTodoAPI(ProjectTestCase):
     self.assertEquals(20, data["todosPerPage"])
 
     self.assertEquals(20, len(data["todos"]))
-    k = [t["key"] for t in data["todos"]]
+    k = {t["key"] for t in data["todos"]}
+    self.assertEquals(20, len(k))
 
     response, data = self.getJSON(self.base_url("/?page=2"))
     self.assertEquals(20, len(data["todos"]))
     self.assertEquals(2, data["currentPage"])
     self.assertEquals(50, data["totalTodos"])
     self.assertEquals(20, data["todosPerPage"])
-    k.extend([t["key"] for t in data["todos"]])
+    k.update({t["key"] for t in data["todos"]})
+    self.assertEquals(40, len(k))
 
     response, data = self.getJSON(self.base_url("/?page=3"))
     self.assertEquals(10, len(data["todos"]))
     self.assertEquals(3, data["currentPage"])
     self.assertEquals(50, data["totalTodos"])
     self.assertEquals(20, data["todosPerPage"])
-    k.extend([t["key"] for t in data["todos"]])
+    k.update({t["key"] for t in data["todos"]})
+    self.assertEquals(50, len(k))
 
-    k.sort()
     self.assertEquals(keys, k)
 
   def test_index_todos_reject_permission(self):
@@ -227,15 +229,15 @@ class TestTodoAPI(ProjectTestCase):
 
     keys = []
     for i in xrange(30):
-      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo", "tags": ["tag1"]})
-      keys.append(data["key"])
-    for i in xrange(20):
-      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo", "tags": ["tag2"]})
-      keys.append(data["key"])
-    keys.sort()
+      todo = new_todo(self.user, self.project, date=datetime.now() + timedelta(seconds=i*10), title=str(i), tags=["tag1"], save=True)
+      keys.append(todo.key)
 
-    for i in xrange(7):
-      response, data = self.postJSON(self.base_url("/"), data={"title": "a todo", "tags": ["tag3"]})
+    for i in xrange(30, 50):
+      todo = new_todo(self.user, self.project, date=datetime.now() + timedelta(seconds=i*10), title=str(i), tags=["tag2"], save=True)
+      keys.append(todo.key)
+
+    for i in xrange(50, 57):
+      new_todo(self.user, self.project, date=datetime.now() + timedelta(seconds=i*10), title=str(i), tags=["tag3"], save=True)
 
     response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=1"))
     self.assertStatus(200, response)
@@ -261,8 +263,7 @@ class TestTodoAPI(ProjectTestCase):
     self.assertEquals(10, len(data["todos"]))
     k.extend([t["key"] for t in data["todos"]])
 
-    k.sort()
-    self.assertEquals(keys, k)
+    self.assertEquals(set(keys), set(k))
 
   def test_filter_todos_reject_permission(self):
     response, data = self.getJSON(self.base_url("/filter"))
@@ -317,14 +318,10 @@ class TestTodoAPI(ProjectTestCase):
     self.assertTrue(sorted(["tag1", "tag2", "mrrow", "wut", "another tag"]), data["tags"])
 
   def test_list_tags_reject_permission(self):
-    todo = new_todo(self.user, self.project, tags=["tag1", "tag2", "another tag"], save=True)
+    new_todo(self.user, self.project, tags=["tag1", "tag2", "another tag"], save=True)
 
     response, data = self.getJSON(self.base_url("/tags/"))
     self.assertStatus(403, response)
-
-  # TODO: this gotta be written! We still might change how filter works, though
-  #def test_filter(self):
-  #  pass
 
 
 if __name__ == "__main__":

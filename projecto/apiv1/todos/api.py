@@ -80,6 +80,8 @@ def index(project):
 
   todos = []
   showdone = request.args.get("showdone", "0")
+
+  # TODO: Lists through everything. Is very slow.
   for todo in Todo.index("parent", project.key):
     if showdone == "0" and todo.done:
       continue
