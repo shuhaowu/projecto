@@ -125,5 +125,4 @@
       expect(scope.comments).toBe(specificPostItem.children);
     });
   });
-
 })();
