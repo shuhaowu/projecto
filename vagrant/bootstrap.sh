@@ -35,7 +35,7 @@ mkdir -p userfiles
 # Install additional requirements
 cd /home/vagrant # weird pip src directory is interfering if we are in /projecto
 pip install -r /projecto/requirements.txt
-npm install -g uglify-js
+npm install -g uglify-js karma
 
 # Configuration for nginx. You can set the "projecto" to point to 192.168.33.10
 # on your host machine.
