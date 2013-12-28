@@ -17,3 +17,14 @@ var commonMocked = {};
 commonMocked.$window = {
   confirm: function(msg) { return true; }
 };
+
+// Fuck yeah. l33thax.
+commonMocked.ProjectsService = {
+  getCurrentProject: function() {
+    var o = {
+      done: function(args) { return o; },
+      fail: function(args) { return o; }
+    };
+    return o;
+  }
+};
