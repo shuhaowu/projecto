@@ -28,3 +28,19 @@ commonMocked.ProjectsService = {
     return o;
   }
 };
+
+var testutils = {
+  // Get around PhantomJS bug 11013:
+  // https://github.com/ariya/phantomjs/issues/11013
+  createBlob: function(name) {
+    var blob;
+    if (typeof(Blob) === typeof(Function)) {
+      blob = new Blob();
+    } else {
+      var builder = new WebKitBlobBuilder();
+      blob = builder.getBlob();
+    }
+    blob.name = name;
+    return blob;
+  }
+};

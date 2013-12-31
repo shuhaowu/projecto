@@ -19,19 +19,6 @@
   var nested_dir = {author: author, path: "/dir1/dir2/", date: 1388189244.0};
   var nested_dir_url = baseUrl + "?path=%2Fdir1%2Fdir2%2F";
 
-  // Get around PhantomJS bug 11013: https://github.com/ariya/phantomjs/issues/11013
-  var createBlob = function(name) {
-    var blob;
-    if (typeof(Blob) === typeof(Function)) {
-      blob = new Blob();
-    } else {
-      var builder = new WebKitBlobBuilder();
-      blob = builder.getBlob();
-    }
-    blob.name = name;
-    return blob;
-  };
-
   describe("FilesService", function() {
     var service, $httpBackend;
 
@@ -71,12 +58,12 @@
       $httpBackend.when("POST", file1url).respond(file1);
       $httpBackend.when("POST", nested_file_url).respond(nested_file);
 
-      var blob = createBlob("file1.txt");
+      var blob = testutils.createBlob("file1.txt");
       service.newFile(project, "/", blob);
       $httpBackend.expectPOST(file1url);
       $httpBackend.flush();
 
-      blob = createBlob("file2.txt");
+      blob = testutils.createBlob("file2.txt");
       service.newFile(project, "/dir1/", blob);
       $httpBackend.expectPOST(nested_file_url);
       $httpBackend.flush();
@@ -101,12 +88,12 @@
       $httpBackend.when("PUT", file1url).respond(file1);
       $httpBackend.when("PUT", nested_file_url).respond(file1);
 
-      var blob = createBlob("file2.txt");
+      var blob = testutils.createBlob("file2.txt");
       service.updateFile(project, file1.path, blob);
       $httpBackend.expectPUT(file1url);
       $httpBackend.flush();
 
-      var blob = createBlob("file3.txt");
+      var blob = testutils.createBlob("file3.txt");
       service.updateFile(project, nested_file.path, blob);
       $httpBackend.expectPUT(nested_file_url);
       $httpBackend.flush();
