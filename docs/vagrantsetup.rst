@@ -24,7 +24,7 @@ You should see that all tests has passed. After this point, you can do
 in a directory called /projecto. This is synced with your project dir via NFS.
 
 Some convenience aliases has been set in the VM. Type ``s`` to start the dev
-server and ``t`` to unittest.
+server and ``t`` to server side unittest.
 
 Note that unittests will fail if ``DEBUG = False``. This is an issue currently
 under investigation.

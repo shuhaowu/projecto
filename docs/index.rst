@@ -25,6 +25,7 @@ Part II: New Developer Guide
    devsystemrequirements
    vagrantsetup
    manualsetup
+   merging
 
 
 Part III: Production setup

@@ -31,6 +31,9 @@ the followings:
 - `Vagrant <http://vagrantup.com>`_
 - `NFS <https://help.ubuntu.com/community/SettingUpNFSHowTo>`_
   - For Windows, ignore this and follow the instructions in :ref:`vagrantsetup`.
+- `NodeJS <http://nodejs.org/>`_
+- `Karma <http://karma-runner.github.io/0.10/index.html>`_
+- Firefox and Chromium for now.
 
 Instructions for those are available online. So follow them.
 
