@@ -29,10 +29,10 @@
 
   }]);
 
-  module.controller("CommentController", ["$scope", "toast", "CommentsService", function($scope, toast, CommentsService) {
+  module.controller("CommentController", ["$scope", "$window", "toast", "CommentsService", function($scope, $window, toast, CommentsService) {
     // TODO: fix the hackness of this.
     $scope.delete = function(index) {
-      if (confirm("Are you sure you want to delete this comment?")) {
+      if ($window.confirm("Are you sure you want to delete this comment?")) {
         toast.info("Deleting...");
         var req = CommentsService.delete($scope.currentProject, $scope.commentsParent.key, $scope.comments[index]);
 

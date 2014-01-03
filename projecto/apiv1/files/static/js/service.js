@@ -44,7 +44,10 @@
 
     this.newDirectory = function(project, path, name) {
       path = this.trimSlashes(path);
-      path = "/" + path + "/" + name + "/";
+      if (!path)
+        path = "/" + name + "/";
+      else
+        path = "/" + path + "/" + name + "/";
 
       return $http({
         method: "POST",

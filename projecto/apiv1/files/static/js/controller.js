@@ -4,7 +4,7 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FilesTreeController", ["$scope", "$route", "$location", "toast", "title", "FilesService", "ProjectsService", function($scope, $route, $location, toast, title, FilesService, ProjectsService) {
+  module.controller("FilesTreeController", ["$scope", "$window", "$route", "$location", "toast", "title", "FilesService", "ProjectsService", function($scope, $window, $route, $location, toast, title, FilesService, ProjectsService) {
     title("Files", $scope.currentProject);
 
     var files = [];
@@ -16,12 +16,13 @@
     });
 
     $scope.currentProject = null;
+    $scope.path = "/" + ($route.current.params.path || "");
 
     $scope.newDirectory = function() {
-      var name = $.trim(prompt("Enter folder name"));
+      var name = $.trim($window.prompt("Enter folder name"));
       if (name) {
         toast.info("Creating...");
-        var req = FilesService.newDirectory($scope.currentProject, $route.current.params.path || "/", name);
+        var req = FilesService.newDirectory($scope.currentProject, $scope.path, name);
         req.success(function(data, status, headers, config) {
           toast.close();
           $scope.update();
@@ -48,7 +49,7 @@
       } else {
         toast.info("Uploading...");
 
-        var req = FilesService.newFile($scope.currentProject, $route.current.params.path || "/", files[0]);
+        var req = FilesService.newFile($scope.currentProject, $scope.path, files[0]);
         req.success(function(data, status, headers, config) {
           toast.close();
 
@@ -71,7 +72,7 @@
     };
 
     $scope.deleteDirectory = function() {
-      if (confirm("Are you sure you want to delete this folder?")) {
+      if ($window.confirm("Are you sure you want to delete this folder?")) {
         toast.info("Deleting...");
         var req = FilesService.delete($scope.currentProject, $scope.path);
 
@@ -80,11 +81,11 @@
 
           var oneLevelUp = $scope.path.substring(0, $scope.path.length - 1).split("/");
           oneLevelUp.pop();
-          if (oneLevelUp.length > 0) {
+          if (oneLevelUp.length === 0 || (oneLevelUp.length === 1 && oneLevelUp[0] === "")) {
+            oneLevelUp = "/";
+          } else {
             oneLevelUp = oneLevelUp.join("/");
             oneLevelUp = "/" + oneLevelUp + "/";
-          } else {
-            oneLevelUp = "/";
           }
 
           $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
@@ -101,11 +102,10 @@
       if ($scope.currentProject) {
         $scope.notFound = false;
         title("Files", $scope.currentProject);
-        var path = $route.current.params.path;
 
         // This is for parsing for the breadcrumbs.
-        [$scope.currentDirectoryList, path] = FilesService.breadcrumbify(path);
-        $scope.path = path;
+        var tmp = FilesService.breadcrumbify($scope.path);
+        $scope.currentDirectoryList = tmp[0];
         if ($scope.path.charAt($scope.path.length - 1) !== "/") {
           // TODO: this is what i mean that we need to combine view_file with file.
           // Having two is incredibly inefficient and causes duplicate code and things like this.
@@ -113,7 +113,7 @@
           $location.replace();
         }
 
-        var req = FilesService.get($scope.currentProject, path);
+        var req = FilesService.get($scope.currentProject, $scope.path);
 
         req.success(function(data, status, headers, config) {
           toast.loaded();
@@ -143,7 +143,8 @@
               return 0;
             }
           };
-          directories.sort(function(a, b) {  })
+
+          directories.sort(filenameComparer);
           directories.push.apply(directories, files);
           $scope.files = directories;
         });
@@ -168,7 +169,7 @@
   }]);
 
 
-  module.controller("FileViewController", ["$scope", "$route", "$location", "toast", "title", "FilesService", "ProjectsService", function($scope, $route, $location, toast, title, FilesService, ProjectsService) {
+  module.controller("FileViewController", ["$scope", "$route", "$location", "$window", "toast", "title", "FilesService", "ProjectsService", function($scope, $route, $location, $window, toast, title, FilesService, ProjectsService) {
 
     // TODO: Really could use some refactoring with the FilesTreeController
     // Perhaps it is possible to reduce both of those things into a single controller
@@ -185,12 +186,14 @@
       document.getElementById("files-file-upload").value = "";
     };
 
+    $scope.path = "/" + ($route.current.params.path || "");
+
     $scope.updateFile = function() {
       if (files.length === 0) {
         toast.warn("You need to select a file.");
       } else {
         toast.info("Updating...");
-        var req = FilesService.updateFile($scope.currentProject, $route.current.params.path, files[0]);
+        var req = FilesService.updateFile($scope.currentProject, $scope.path, files[0]);
 
         req.success(function(data, status, headers, config) {
           // Usually we will close the dialog only. Since in this view changes
@@ -218,7 +221,7 @@
     };
 
     $scope.delete = function() {
-      if (confirm("Are you sure you want to delete this file?")) {
+      if ($window.confirm("Are you sure you want to delete this file?")) {
         toast.info("Deleting...");
         var req = FilesService.delete($scope.currentProject, $scope.path);
 
@@ -227,11 +230,12 @@
 
           var oneLevelUp = $scope.path.split("/");
           oneLevelUp.pop();
-          if (oneLevelUp.length > 0) {
+
+          if (oneLevelUp.length === 0 || (oneLevelUp.length === 1 && oneLevelUp[0] === "")) {
+            oneLevelUp = "/";
+          } else {
             oneLevelUp = oneLevelUp.join("/");
             oneLevelUp = "/" + oneLevelUp + "/";
-          } else {
-            oneLevelUp = "/";
           }
 
           $location.path("/projects/" + $scope.currentProject.key + "/files" + oneLevelUp);
@@ -249,8 +253,8 @@
         $scope.notFound = false;
         title("Files", $scope.currentProject);
 
-        var path = $route.current.params.path;
-        [$scope.currentDirectoryList, $scope.path] = FilesService.breadcrumbify(path);
+        var tmp = FilesService.breadcrumbify($scope.path);
+        $scope.currentDirectoryList = tmp[0];
         $scope.filename = $scope.currentDirectoryList[$scope.currentDirectoryList.length-1].name;
 
         var req = FilesService.get($scope.currentProject, $scope.path);
@@ -264,6 +268,7 @@
         req.error(function(data, status, headers, config) {
           if (status === 404) {
             $scope.notFound = true;
+            toast.error("File not found");
           } else {
             toast.error("Failed to get file info", status);
           }

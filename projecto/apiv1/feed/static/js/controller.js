@@ -4,21 +4,21 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FeedItemController", ["$scope", "toast", "FeedService", function($scope, toast, FeedService) {
+  module.controller("FeedItemController", ["$scope", "$window", "toast", "FeedService", function($scope, $window, toast, FeedService) {
     $scope.deletePost = function(post) {
       if ($scope.currentProject) {
-        if (confirm("Are you sure you want to delete this post?")) {
-          FeedService.delete($scope.currentProject, post).done(function(){
+        if ($window.confirm("Are you sure you want to delete this post?")) {
+          var req = FeedService.delete($scope.currentProject, post);
+          req.success(function() {
             for (var i=0; i<$scope.posts.length; i++) {
               if ($scope.posts[i].key === post.key) {
-                $scope.$apply(function(){
-                  $scope.posts.splice(i, 1);
-                });
+                $scope.posts.splice(i, 1);
                 break;
               }
             }
-          }).fail(function(xhr){
-            toast.error("Failed to delete post", xhr.status);
+          });
+          req.error(function(data, status) {
+            toast.error("Failed to delete post", status);
           });
         }
       } else {
@@ -35,19 +35,20 @@
       $scope.post = function() {
         if ($scope.newpost && $scope.currentProject) {
           toast.info("Posting...");
-          FeedService.new($scope.currentProject, $scope.newpost).done(function(data){
+          var req = FeedService.new($scope.currentProject, $scope.newpost);
+          req.success(function(data) {
             toast.close();
             // The backend API won't transmit useless information to save
             // bandwidth.
             data.author = window.currentUser;
             data.children = [];
-            $scope.$apply(function(){
-              $scope.newpost = "";
-              $scope.posts.splice(0, 0, data);
-            });
-          }).fail(function(xhr){
-            toast.error("Failed to post", xhr.status);
-          })
+            $scope.newpost = "";
+            $scope.posts.splice(0, 0, data);
+          });
+
+          req.error(function(data, status) {
+            toast.error("Failed to post", status);
+          });
         } else {
           if (!$scope.newpost) {
             toast.warn("You cannot post an empty message.");
@@ -71,12 +72,13 @@
       $scope.update = function() {
         if ($scope.currentProject){
           title("Feed", $scope.currentProject);
-          FeedService.index($scope.currentProject).done(function(data){
-            $scope.$apply(function(){
-              $scope.posts = data.feed;
-            });
-          }).fail(function(xhr){
-            toast.error("Failed to update feed", xhr.status);
+          var req = FeedService.index($scope.currentProject);
+          req.success(function(data) {
+            $scope.posts = data.feed;
+          });
+
+          req.error(function(data, status) {
+            toast.error("Failed to update feed", status);
           });
         } else {
           notLoaded();
@@ -97,19 +99,21 @@
     $scope.currentProject = null;
 
     $scope.update = function() {
-      FeedService.get($scope.currentProject, $route.current.params.feedId).done(function(post) {
-        $scope.$apply(function() {
-          var t = post.content.slice(0, 20);
-          if (post.content.length > 20) {
-            t += " ...";
-          }
+      var req = FeedService.get($scope.currentProject, $route.current.params.feedId);
 
-          $scope.post = $scope.commentsParent = post;
-          $scope.comments = $scope.post.children;
-          title(t, $scope.currentProject);
-        });
-      }).fail(function(xhr) {
-        toast.error("Failed to get item", xhr.status);
+      req.success(function(post) {
+        var t = post.content.slice(0, 20);
+        if (post.content.length > 20) {
+          t += " ...";
+        }
+
+        $scope.post = $scope.commentsParent = post;
+        $scope.comments = $scope.post.children;
+        title(t, $scope.currentProject);
+      });
+
+      req.error(function(data, status) {
+        toast.error("Failed to get item", status);
       });
     };
 
