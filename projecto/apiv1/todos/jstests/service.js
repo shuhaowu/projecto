@@ -25,6 +25,15 @@
   };
   var baseUrl = window.API_PREFIX + "/projects/" + projectKey + "/todos/";
 
+  var tmptodo = angular.copy(returnedtodo);
+  var todolist = [];
+  for (var i=0; i<20; i++) {
+    tmptodo = angular.copy(tmptodo);
+    tmptodo.date -= 1;
+    tmptodo.key += "1";
+    todolist.push(tmptodo);
+  }
+
   describe("Todos", function() {
     var TodoItem, TodoList, $httpBackend, service;
 
@@ -139,6 +148,13 @@
       expect(service.delete).toHaveBeenCalledWith(project, item.serialize(), true, undefined);
       $httpBackend.expectDELETE(baseUrl + todoKey + "?archived=0&really=1").respond({status: "okay"});
       $httpBackend.flush();
+    });
+
+    it("should fetch todo lists", function() {
+      spyOn(service, "get").andCallThrough();
+
+      var list = new TodoList(project);
+      list.fetch();
     });
 
   });
