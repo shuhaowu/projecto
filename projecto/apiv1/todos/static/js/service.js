@@ -28,9 +28,9 @@
 
     this.filter = function(project, params) {
       return $http({
-        type: "GET",
+        method: "GET",
         url: apiUrl(project.key, "filter"),
-        data: params
+        params: params
       });
     };
 
@@ -77,6 +77,7 @@
     };
 
     this.clearDone = function(project) {
+
       return $http({
         method: "DELETE",
         url: apiUrl(project.key, "done")
@@ -204,7 +205,7 @@
     }
 
     TodoList.prototype.checkFetched = function() {
-      if (this.totalPages = -1)
+      if (this.totalPages == -1)
         throw "TodoList has not been fetched.";
     };
 

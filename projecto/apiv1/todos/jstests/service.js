@@ -151,10 +151,137 @@
     });
 
     it("should fetch todo lists", function() {
-      spyOn(service, "get").andCallThrough();
+      spyOn(service, "filter").andCallThrough();
 
       var list = new TodoList(project);
       list.fetch();
+
+      var params = {
+        tags: [],
+        showdone: "0",
+        shownotdone: "1",
+        page: 1
+      };
+
+      expect(service.filter).toHaveBeenCalledWith(project, params);
+
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+        todos: todolist,
+        currentPage: 1,
+        totalTodos: 20,
+        todosPerPage: 20
+      });
+
+      $httpBackend.flush();
+
+      expect(list.todos).toBe(todolist);
+      expect(list.currentPage).toBe(1);
+      expect(list.totalPages).toBe(1);
+      expect(list.todosPerPage).toBe(20);
+
+      list = new TodoList(project);
+      list.fetch();
+
+      var params = {
+        tags: [],
+        showdone: "0",
+        shownotdone: "1",
+        page: 1
+      };
+
+      expect(service.filter).toHaveBeenCalledWith(project, params);
+
+      var firstpage = todolist.slice(0, 10);
+      var secondpage = todolist.slice(10, 20);
+
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+        todos: firstpage,
+        currentPage: 1,
+        totalTodos: 20,
+        todosPerPage: 10
+      });
+      $httpBackend.flush();
+
+      expect(list.todos.length).toBe(10);
+      expect(list.todos).toBe(firstpage);
+      expect(list.currentPage).toBe(1);
+      expect(list.totalPages).toBe(2);
+      expect(list.todosPerPage).toBe(10);
+
+      list.nextpage();
+      params.page = 2;
+      expect(service.filter).toHaveBeenCalledWith(project, params);
+
+      $httpBackend.expectGET(baseUrl + "filter?page=2&showdone=0&shownotdone=1").respond({
+        todos: secondpage,
+        currentPage: 2,
+        totalTodos: 20,
+        todosPerPage: 10
+      });
+      $httpBackend.flush();
+
+      expect(list.todos.length).toBe(10);
+      expect(list.todos).toBe(secondpage);
+      expect(list.currentPage).toBe(2);
+      expect(list.totalPages).toBe(2);
+      expect(list.todosPerPage).toBe(10);
+
+      list.prevpage();
+      params.page = 1;
+      expect(service.filter).toHaveBeenCalledWith(project, params);
+
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+        todos: firstpage,
+        currentPage: 1,
+        totalTodos: 20,
+        todosPerPage: 10
+      });
+      $httpBackend.flush();
+
+      expect(list.todos.length).toBe(10);
+      expect(list.todos).toBe(firstpage);
+      expect(list.currentPage).toBe(1);
+      expect(list.totalPages).toBe(2);
+      expect(list.todosPerPage).toBe(10);
+    });
+
+    it("should fetch archived todolists", function() {
+      spyOn(service, "index").andCallThrough();
+
+      var list = new TodoList(project, {archived: true});
+      list.fetch();
+
+      expect(service.index).toHaveBeenCalledWith(project, 1, true);
+      $httpBackend.expectGET(baseUrl + "?archived=1").respond({
+        todos: todolist,
+        currentPage: 1,
+        totalTodos: 20,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+      expect(list.todos).toBe(todolist);
+      expect(list.currentPage).toBe(1);
+      expect(list.totalPages).toBe(1);
+      expect(list.todosPerPage).toBe(20);
+    });
+
+    it("should clear todos that are done", function() {
+      spyOn(service, "clearDone").andCallThrough();
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+        todos: todolist,
+        currentPage: 1,
+        totalTodos: 20,
+        todosPerPage: 20
+      });
+
+      var list = new TodoList(project);
+      list.fetch();
+      $httpBackend.flush();
+
+      list.clearDone();
+
+      expect(service.clearDone).toHaveBeenCalledWith(project);
     });
 
   });
