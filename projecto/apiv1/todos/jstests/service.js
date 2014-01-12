@@ -133,7 +133,7 @@
       var item = new TodoItem(todoKey, project, angular.copy(newtododata));
       item.archive();
 
-      expect(service.delete).toHaveBeenCalledWith(project, item.serialize(), undefined, undefined);
+      expect(service.delete).toHaveBeenCalledWith(project, item.serialize(), undefined, false);
       $httpBackend.expectDELETE(baseUrl + todoKey + "?archived=0&really=0").respond({status: "okay"});
       $httpBackend.flush();
 
@@ -145,7 +145,7 @@
 
       var item = new TodoItem(todoKey, project, angular.copy(newtododata));
       item.delete();
-      expect(service.delete).toHaveBeenCalledWith(project, item.serialize(), true, undefined);
+      expect(service.delete).toHaveBeenCalledWith(project, item.serialize(), true, false);
       $httpBackend.expectDELETE(baseUrl + todoKey + "?archived=0&really=1").respond({status: "okay"});
       $httpBackend.flush();
     });

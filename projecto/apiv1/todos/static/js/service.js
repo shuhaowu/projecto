@@ -51,6 +51,7 @@
     };
 
     this.put = function(project, todo) {
+      // No archived as we cannot edit archived todos.
       var j = {};
       j["title"] = todo["title"];
       j["content"] = {markdown: $.type(todo["content"]) === "string" ? todo["content"] : (todo["content"]["markdown"] || "")};
@@ -96,7 +97,7 @@
     function TodoItem(key, project, data, archived) {
       this.key = key;
       this.project = project;
-      this.data = data;
+      this.data = data || {};
       this.archived = archived || false;
     }
 
@@ -122,8 +123,7 @@
           });
         } else {
           // Editted item should be saved.
-          var todo = this.serialize();
-          var req = TodosService.put(this.project, todo);
+          var req = TodosService.put(this.project, this.serialize());
           req.success(function(data) {
             deferred.resolve(data);
           });
@@ -135,7 +135,7 @@
       } else {
         throw "Cannot save archived items.";
       }
-      return deferred;
+      return deferred.promise;
     };
 
     TodoItem.prototype.done = function() {
@@ -149,7 +149,7 @@
           var that = this;
 
           req.success(function(data) {
-            that.data.done = data.done;
+            that.data.done = !that.data.done;
             deferred.resolve(data);
           });
 
@@ -158,7 +158,7 @@
           });
         }
       }
-      return deferred;
+      return deferred.promise;
     };
 
     TodoItem.prototype.archive = function(really) {
@@ -168,7 +168,7 @@
         throw "Cannot delete a todo that is not saved.";
       } else {
         var todo = this.serialize();
-        var req = TodosService.delete(this.project, todo, really, todo.archived);
+        var req = TodosService.delete(this.project, todo, really, this.archived);
         var that = this;
 
         req.success(function(data) {
@@ -182,11 +182,11 @@
         });
       }
 
-      return deferred;
+      return deferred.promise;
     };
 
     TodoItem.prototype.delete = function() {
-      this.archive(true);
+      return this.archive(true);
     };
 
     function TodoList(project, options) {
@@ -252,7 +252,7 @@
           deferred.reject(data, status);
         });
       }
-      return deferred;
+      return deferred.promise;
     };
 
     TodoList.prototype.nextpage = function() {
@@ -286,7 +286,7 @@
       req.error(function(data, status) {
         deferred.reject(data, status);
       });
-      return deferred;
+      return deferred.promise;
     };
 
     return {

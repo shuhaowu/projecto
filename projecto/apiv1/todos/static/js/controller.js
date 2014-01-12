@@ -42,11 +42,10 @@
         i--;
       }
     }
-    console.log(tags);
     return tags;
   };
 
-  module.controller("TodoItemController", ["$scope", "$filter", "$location", "toast", "TodosService", function($scope, $filter, $location, toast, TodosService) {
+  module.controller("TodoItemController", ["$scope", "$window", "$filter", "$location", "toast", "Todos", function($scope, $window, $filter, $location, toast, Todos) {
     $scope.todoDraft = null;
 
     $scope.toggleTodo = function(todo, event) {
@@ -56,14 +55,11 @@
     };
 
     $scope.markDone = function(todo) {
-      var req = TodosService.markDone($scope.currentProject, todo);
-      req.success(function(data) {
-        todo.done = !todo.done;
-      });
-
-      req.error(function(data, status) {
+      var req = todo.done();
+      var error = function(data, status) {
         toast.error("Failed to mark done", status);
-      });
+      };
+      req.then(undefined, error);
     };
 
     $scope.editTodo = function(todo, i) {
@@ -71,8 +67,8 @@
         $scope.cancelEdit(todo.key);
       } else {
         toggleTodo(todo, "open");
-        $scope.todoDraft = angular.copy(todo);
-        $scope.todoDraft.due = $filter("absoluteTime")(todo["due"]);
+        $scope.todoDraft = new Todos.TodoItem(todo.key, todo.project, angular.copy(todo.data), todo.archived);
+        $scope.todoDraft.data.due = $filter("absoluteTime")(todo.data.due);
         // For restoring in the correct order later if we are on TodosController
         $scope.todoDraft._index = i;
 
@@ -81,23 +77,40 @@
       }
     };
 
+    $scope.archiveTodo = function(todo, i) {
+      if ($scope.currentProject) {
+        toast.info("Archiving...");
+        var req = todo.archive();
+        var success = function() {
+          toast.close();
+          $scope.$emit("archived", todo.key, i);
+        };
+
+        var error = function(data, status) {
+          toast.error("Failed to archive todo", status);
+        };
+        req.then(success, error);
+      } else {
+        window.notLoaded();
+      }
+    };
+
     $scope.deleteTodo = function(todo, i) {
-      if (!confirm("Are you sure you want to delete this todo item?"))
+      if (!$window.confirm("Are you sure you want to delete this todo?"))
         return;
 
       if ($scope.currentProject) {
         toast.info("Deleting...");
-        var req = TodosService.delete($scope.currentProject, todo);
-
-        req.success(function() {
+        var req = todo.delete();
+        var success = function() {
           toast.close();
           $scope.$emit("deleted", todo.key, i);
-        });
+        };
 
-        req.error(function(data, status) {
+        var error = function(data, status) {
           toast.error("Failed to delete todo", status);
-        });
-
+        };
+        req.then(success, error);
       } else {
         window.notLoaded();
       }
@@ -110,35 +123,34 @@
       }
 
       if ($scope.currentProject) {
-        $scope.todoDraft.tags = extractTags($scope.todoDraft.tags);
+        if ($scope.todoDraft.data.tags)
+          $scope.todoDraft.data.tags = extractTags($scope.todoDraft.data.tags);
 
         toast.info("Saving...");
-        var req = TodosService.put($scope.currentProject, $scope.todoDraft);
-
-        req.success(function(data) {
-          $scope.$emit("saved", data, $scope.todoDraft._index)
+        var req = $scope.todoDraft.save();
+        var success = function(data) {
+          $scope.$emit("saved", data, $scope.todoDraft._index);
           $scope.cancelEdit($scope.todoDraft.key, true);
           toast.success("Saved");
           toggleTodo(data, "open");
-        });
+        };
 
-        req.error(function(data, status) {
+        var error = function(data, status) {
           toast.error("Failed to save", status);
-        });
+        };
+        req.then(success, error);
       } else {
         window.notLoaded();
       }
     };
 
     $scope.cancelEdit = function(todoKey, justDoIt) { // Nike.
-      if (justDoIt || confirm("Are you sure you want to cancel? You will lose all changes!")) {
+      if (justDoIt || $window.confirm("Are you sure you want to cancel? You will lose all changes!")) {
         $scope.$emit("exitEdit", $scope.todoDraft.key, $scope.todoDraft._index);
         $scope.todoDraft = null;
-        $scope.currentlyEditing--;
       }
     };
-
-  }]);
+  }])
 
   module.controller(
     "TodosController", ["$scope", "$route", "toast", "title", "TodosService", "ProjectsService", function($scope, $route, toast, title, TodosService, ProjectsService){
