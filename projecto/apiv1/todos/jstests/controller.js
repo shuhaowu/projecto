@@ -173,9 +173,49 @@
   });
 
   describe("TodosController", function() {
-    beforeEach(angular.mock.module("projecto"));
-    beforeEach(angular.mock.inject(function() {
+    var $httpBackend, controller, scope, TodoItem, TodoList, $window, rootScope, newcontroller;
 
+    beforeEach(angular.mock.module("projecto"));
+    beforeEach(angular.mock.inject(function($rootScope, $controller, _$httpBackend_, Todos) {
+      TodoItem = Todos.TodoItem;
+      TodoList = Todos.TodoList;
+      $httpBackend = _$httpBackend_;
+      rootScope = $rootScope;
+      newcontroller = $controller;
+
+      scope = $rootScope.$new();
+      controller = $controller("TodosController", {
+        $scope: scope,
+        $window: commonMocked.$window,
+        ProjectService: commonMocked.ProjectService
+      });
+      scope.currentProject = project;
+
+      this.addMatchers({
+        toHaveBeenCalledPartiallyWith: function() {
+
+        }
+      });
     }));
+
+    it("should subscribe to signals", function() {
+      var scope = rootScope.$new();
+      spyOn(scope, "$on");
+
+      var controller = newcontroller("TodosController", {
+        $scope: scope,
+        $window: commonMocked.$window,
+        ProjectService: commonMocked.ProjectService
+      });
+
+      expect(scope.$on).toHaveBeenCalledWith("saved");
+      expect(scope.$on).toHaveBeenCalledWith("archived");
+      expect(scope.$on).toHaveBeenCalledWith("deleted");
+      expect(scope.$on).toHaveBeenCalledWith("enterEdit");
+      expect(scope.$on).toHaveBeenCalledWith("exitEdit");
+
+
+    });
+
   });
 })();
