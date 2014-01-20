@@ -43,6 +43,25 @@
       TodoList = Todos.TodoList;
       service = TodosService;
       $httpBackend = _$httpBackend_;
+
+      this.addMatchers({
+        toBeTheSameTodoListAs: function(raw_list) {
+          var todolist = this.actual;
+          if (todolist.length !== raw_list.length)
+            return false;
+
+          var raw_todo;
+          for (var i=0, l=todolist.length; i<l; i++) {
+            raw_todo = angular.copy(raw_list[i]);
+            delete raw_todo.key;
+            // I hate JavaScript.
+            if (JSON.stringify(raw_todo) !== JSON.stringify(todolist[i].data)) {
+              return false;
+            }
+          }
+          return true;
+        }
+      })
     }));
 
     it("should initialize TodoItem", function() {
@@ -85,6 +104,8 @@
 
       $httpBackend.expectPOST(baseUrl, item.serialize());
       $httpBackend.flush();
+
+      expect(item.data).toBe(returnedtodo);
     });
 
     it("should update existing todos", function() {
@@ -104,6 +125,8 @@
       delete putitem.key;
       $httpBackend.expectPUT(baseUrl + todoKey, putitem);
       $httpBackend.flush();
+
+      expect(item.data).toBe(returnedtodo);
     });
 
     it("should mark todos as done", function() {
@@ -166,7 +189,7 @@
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
-        todos: todolist,
+        todos: angular.copy(todolist),
         currentPage: 1,
         totalTodos: 20,
         todosPerPage: 20
@@ -174,7 +197,9 @@
 
       $httpBackend.flush();
 
-      expect(list.todos).toBe(todolist);
+      expect(list.todos[0].key).toBe(todolist[0].key);
+      expect(list.todos[0].data.date).toBe(todolist[0].date);
+      expect(list.todos).toBeTheSameTodoListAs(todolist);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(1);
       expect(list.todosPerPage).toBe(20);
@@ -195,7 +220,7 @@
       var secondpage = todolist.slice(10, 20);
 
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
-        todos: firstpage,
+        todos: angular.copy(firstpage),
         currentPage: 1,
         totalTodos: 20,
         todosPerPage: 10
@@ -203,7 +228,7 @@
       $httpBackend.flush();
 
       expect(list.todos.length).toBe(10);
-      expect(list.todos).toBe(firstpage);
+      expect(list.todos).toBeTheSameTodoListAs(firstpage);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(2);
       expect(list.todosPerPage).toBe(10);
@@ -213,7 +238,7 @@
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
       $httpBackend.expectGET(baseUrl + "filter?page=2&showdone=0&shownotdone=1").respond({
-        todos: secondpage,
+        todos: angular.copy(secondpage),
         currentPage: 2,
         totalTodos: 20,
         todosPerPage: 10
@@ -221,7 +246,7 @@
       $httpBackend.flush();
 
       expect(list.todos.length).toBe(10);
-      expect(list.todos).toBe(secondpage);
+      expect(list.todos).toBeTheSameTodoListAs(secondpage);
       expect(list.currentPage).toBe(2);
       expect(list.totalPages).toBe(2);
       expect(list.todosPerPage).toBe(10);
@@ -231,7 +256,7 @@
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
-        todos: firstpage,
+        todos: angular.copy(firstpage),
         currentPage: 1,
         totalTodos: 20,
         todosPerPage: 10
@@ -239,10 +264,35 @@
       $httpBackend.flush();
 
       expect(list.todos.length).toBe(10);
-      expect(list.todos).toBe(firstpage);
+      expect(list.todos).toBeTheSameTodoListAs(firstpage);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(2);
       expect(list.todosPerPage).toBe(10);
+    });
+
+    it("should initialize tags and fetch todolist", function() {
+      spyOn(service, "listTags").andCallThrough();
+
+      var list = new TodoList(project);
+      list.fetch(true);
+
+      expect(service.listTags).toHaveBeenCalledWith(project);
+      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+        tags: ["tag1", "tag2"]
+      });
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+        todos: angular.copy(todolist),
+        currentPage: 1,
+        totalTodos: 20,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+      expect(list.tags).toEqual(["tag1", "tag2"]);
+      expect(list.todos).toBeTheSameTodoListAs(todolist);
+      expect(list.currentPage).toBe(1);
+      expect(list.totalPages).toBe(1);
+      expect(list.todosPerPage).toBe(20);
     });
 
     it("should fetch archived todolists", function() {
@@ -253,14 +303,14 @@
 
       expect(service.index).toHaveBeenCalledWith(project, 1, true);
       $httpBackend.expectGET(baseUrl + "?archived=1").respond({
-        todos: todolist,
+        todos: angular.copy(todolist),
         currentPage: 1,
         totalTodos: 20,
         todosPerPage: 20
       });
       $httpBackend.flush();
 
-      expect(list.todos).toBe(todolist);
+      expect(list.todos).toBeTheSameTodoListAs(todolist);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(1);
       expect(list.todosPerPage).toBe(20);
@@ -269,7 +319,7 @@
     it("should clear todos that are done", function() {
       spyOn(service, "clearDone").andCallThrough();
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
-        todos: todolist,
+        todos: angular.copy(todolist),
         currentPage: 1,
         totalTodos: 20,
         todosPerPage: 20
@@ -279,10 +329,19 @@
       list.fetch();
       $httpBackend.flush();
 
-      list.clearDone();
+      list.todos[0].data.done = true;
+      list.todos[5].data.done = true;
+      list.todos[6].data.title = "YAY!";
 
+      list.clearDone();
       expect(service.clearDone).toHaveBeenCalledWith(project);
+      $httpBackend.expectDELETE(baseUrl + "done").respond({status: "okay"});
+      $httpBackend.flush();
+
+      expect(list.todos.length).toBe(18);
+      expect(list.todos[4].data.title).toBe("YAY!");
     });
+
 
   });
 })();

@@ -193,7 +193,29 @@
 
       this.addMatchers({
         toHaveBeenCalledPartiallyWith: function() {
+          var spy = this.actual;
+          var args;
+          var foundArgs = false;
 
+          for (var i=0; i<spy.argsForCall.length; i++) {
+            var thisIsIt = true;
+            args = spy.argsForCall[i];
+            for (var j=0; j<args.length; j++) {
+              if (args[j] === arguments[j] || arguments[j] === undefined) {
+                continue;
+              } else {
+                thisIsIt = false;
+                break;
+              }
+            }
+
+            if (thisIsIt) {
+              foundArgs = true;
+              break;
+            }
+          }
+
+          return foundArgs;
         }
       });
     }));
@@ -208,13 +230,11 @@
         ProjectService: commonMocked.ProjectService
       });
 
-      expect(scope.$on).toHaveBeenCalledWith("saved");
-      expect(scope.$on).toHaveBeenCalledWith("archived");
-      expect(scope.$on).toHaveBeenCalledWith("deleted");
-      expect(scope.$on).toHaveBeenCalledWith("enterEdit");
-      expect(scope.$on).toHaveBeenCalledWith("exitEdit");
-
-
+      expect(scope.$on).toHaveBeenCalledPartiallyWith("saved");
+      expect(scope.$on).toHaveBeenCalledPartiallyWith("archived");
+      expect(scope.$on).toHaveBeenCalledPartiallyWith("deleted");
+      expect(scope.$on).toHaveBeenCalledPartiallyWith("enterEdit");
+      expect(scope.$on).toHaveBeenCalledPartiallyWith("exitEdit");
     });
 
   });

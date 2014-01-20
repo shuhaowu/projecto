@@ -88,7 +88,8 @@
     this.listTags = function(project, archived) {
       return $http({
         method: "GET",
-        url: apiUrl(project.key, "tags/")
+        url: apiUrl(project.key, "tags"),
+        params: {archived: archived ? "1" : "0"}
       });
     };
   }]);
@@ -107,14 +108,29 @@
       return todo;
     };
 
+    TodoItem.prototype.validate = function(human_messages) {
+      var invalids = {};
+      invalids["title"] = !!this.title;
+
+      if (human_messages) {
+        return {
+          title: invalids["title"] ? "Todos must have a title." : undefined
+        };
+      } else {
+        return invalids;
+      }
+    };
+
     TodoItem.prototype.save = function() {
       var deferred = $q.defer();
       if (!this.archived) {
+        var that = this;
 
         if (!this.key) {
           // New item and should be saved.
           var req = TodosService.new(this.project, this.data);
           req.success(function(data) {
+            that.data = data;
             deferred.resolve(data);
           });
 
@@ -125,6 +141,7 @@
           // Editted item should be saved.
           var req = TodosService.put(this.project, this.serialize());
           req.success(function(data) {
+            that.data = data;
             deferred.resolve(data);
           });
 
@@ -209,13 +226,21 @@
         throw "TodoList has not been fetched.";
     };
 
-    TodoList.prototype.fetch = function() {
+    TodoList.prototype.fetch = function(initialize) {
       // Depending on archived state, we use filter or whatever.
       var deferred = $q.defer();
 
       // Refactored.
-      var recomputeTodos = function(data) {
-        this.todos = data.todos;
+      var recomputeTodos = function(data, archived) {
+        this.todos = [];
+        var tododata, todokey;
+        for (var i=0, l=data.todos.length; i<l; i++) {
+          tododata = data.todos[i];
+          todokey = tododata.key;
+          delete tododata.key;
+          this.todos.push(new TodoItem(todokey, this.project, tododata, archived));
+        }
+
         this.currentPage = data.currentPage;
         this.totalTodos = data.totalTodos;
         this.todosPerPage = data.todosPerPage;
@@ -228,7 +253,7 @@
       if (this.archived) {
         var req = TodosService.index(this.project, this.currentPage, this.archived);
         req.success(function(data) {
-          recomputeTodos(data);
+          recomputeTodos(data, true);
           deferred.resolve(self);
         });
 
@@ -236,21 +261,38 @@
           deferred.reject(data, status);
         });
       } else {
-        var params = {
-          tags: this.tags,
-          showdone: this.showdone ? "1" : "0",
-          shownotdone: this.shownotdone ? "0" : "1",
-          page: this.currentPage
-        };
-        var req = TodosService.filter(this.project, params);
-        req.success(function(data) {
-          recomputeTodos(data);
-          deferred.resolve(self);
-        });
+        var dofilter = function() {
+          var params = {
+            tags: this.tags,
+            showdone: this.showdone ? "1" : "0",
+            shownotdone: this.shownotdone ? "0" : "1",
+            page: this.currentPage
+          };
+          var req = TodosService.filter(this.project, params);
+          req.success(function(data) {
+            recomputeTodos(data, false);
+            deferred.resolve(self);
+          });
 
-        req.error(function(data, status) {
-          deferred.reject(data, status);
-        });
+          req.error(function(data, status) {
+            deferred.reject(data, status);
+          });
+        };
+
+        dofilter = dofilter.bind(this);
+        if (!initialize) {
+          dofilter();
+        } else {
+          var tagsreq = TodosService.listTags(this.project);
+          tagsreq.success(function(data) {
+            self.tags = data.tags;
+            dofilter();
+          });
+
+          tagsreq.error(function(data, status) {
+            deferred.reject(data, status);
+          });
+        }
       }
       return deferred.promise;
     };
@@ -278,8 +320,17 @@
 
       var deferred = $q.defer();
       var req = TodosService.clearDone(this.project);
+      var that = this;
 
       req.success(function(data) {
+        if (!that.showdone) {
+          for (var i=0; i<that.todos.length; i++) {
+            if (that.todos[i].data.done) {
+              that.todos.splice(i, 1);
+              i--;
+            }
+          }
+        }
         deferred.resolve(data);
       });
 

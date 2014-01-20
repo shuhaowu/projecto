@@ -3,9 +3,11 @@
 
     <!-- Top buttons -->
     <div class="right">
-      <a href="" ng-click="clearDone()" class="small secondary button" ng-show="showdone">Clear Done</a>
-      <a href="" ng-click="expandTodos($event)" class="small secondary button">Expand All</a>
-      <a href="" ng-click="newTodo()" class="small success button" id="todos-new-todo-btn">New Todo</a>
+      <a href="" ng-click="clear_done()" class="small secondary button" ng-show="!todolist.archived && showdone">Clear Done</a>
+      <a href="" ng-click="expand_todos()" class="small secondary button" ng-hide="all_expanded">Expand All</a>
+      <a href="" ng-click="collapse_todos()" class="small secondary button" ng-show="all_expanded">Close All</a>
+      <a href="" ng-click="new_todos()" class="small success button" id="todos-new-todo-btn" ng-hide="newtodo">New Todo</a>
+      <a href="" ng-click="cancel_new_todos()" class="small success button" ng-show="newtodo">Cancel</a>
     </div>
     <a href="#/projects/{[ currentProject.key ]}/todos/" class="small secondary button">All Todos</a>
     <!--
@@ -18,21 +20,21 @@
         <div class="row">
           <div class="large-12 columns">
             <label>Todo title</label>
-            <input type="text" ng-model="newtodoitem.title" placeholder="Title for the todo" />
+            <input type="text" ng-model="newtodo.data.title" placeholder="Title for the todo" />
           </div>
         </div>
 
         <div class="row">
           <div class="large-12 columns">
             <label>Description</label>
-            <textarea ng-model="newtodoitem.content" placeholder="A short description for the todo" ></textarea>
+            <textarea ng-model="newtodo.data.content" placeholder="A short description for the todo" ></textarea>
           </div>
         </div>
 
         <div class="row">
           <div class="large-12 columns">
             <label>Tags</label>
-            <input type="text" ng-model="newtodoitem.tags" placeholder="Tags (comma separated list)" />
+            <input type="text" ng-model="newtodo.data.tags" placeholder="Tags (comma separated list)" />
           </div>
         </div>
 
