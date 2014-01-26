@@ -98,5 +98,12 @@
 
   app.run(["$rootScope", function($rootScope) {
     $rootScope.currentUser = window.currentUser;
+    $rootScope.range = function(n) {
+      var a = new Array(n);
+      for (var i=0; i<n; i++) {
+        a[i] = i;
+      }
+      return a;
+    };
   }]);
 })();

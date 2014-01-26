@@ -109,12 +109,17 @@
     };
 
     TodoItem.prototype.validate = function(human_messages) {
-      var invalids = {};
-      invalids["title"] = !!this.title;
+      var invalids = {
+        invalid: false
+      };
+
+      invalids["title"] = !this.title;
+      invalids["invalid"] = invalids["title"];
 
       if (human_messages) {
         return {
-          title: invalids["title"] ? "Todos must have a title." : undefined
+          title: invalids["title"] ? "Todos must have a title." : undefined,
+          invalid: invalids["invalid"]
         };
       } else {
         return invalids;
@@ -211,8 +216,13 @@
       this.project = project;
       this.archived = options.archived || false;
       this.currentPage = options.currentPage || 1;
-      this.filterState = options.filterState || {};
+      this.tagsFiltered = options.tagsFiltered || [];
       this.showdone = options.showdone || false;
+      if (options.shownotdone !== undefined) {
+        this.shownotdone = options.shownotdone;
+      } else {
+        this.shownotdone = true;
+      }
 
       this.todos = [];
       this.tags = [];
@@ -263,9 +273,9 @@
       } else {
         var dofilter = function() {
           var params = {
-            tags: this.tags,
+            tags: this.tagsFiltered,
             showdone: this.showdone ? "1" : "0",
-            shownotdone: this.shownotdone ? "0" : "1",
+            shownotdone: this.shownotdone ? "1" : "0",
             page: this.currentPage
           };
           var req = TodosService.filter(this.project, params);
@@ -286,6 +296,7 @@
           var tagsreq = TodosService.listTags(this.project);
           tagsreq.success(function(data) {
             self.tags = data.tags;
+            self.tagsFiltered = angular.copy(data.tags);
             dofilter();
           });
 
@@ -297,21 +308,28 @@
       return deferred.promise;
     };
 
-    TodoList.prototype.nextpage = function() {
-      this.checkFetched();
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-        return this.fetch();
+    TodoList.prototype.toggleFilterTag = function(tag) {
+      var i = this.tagsFiltered.indexOf(tag);
+      if (i === -1) {
+        this.tagsFiltered.push(tag);
+      } else {
+        this.tagsFiltered.splice(i, 1);
       }
     };
 
-    TodoList.prototype.prevpage = function() {
-      this.checkFetched();
-      if (this.currentPage > 1) {
-        this.currentPage--;
-        return this.fetch();
-      }
+    TodoList.prototype.isTagFiltered = function(tag) {
+      return this.tagsFiltered.indexOf(tag) !== -1;
     };
+
+    TodoList.prototype.gotopage = function(page) {
+      this.checkFetched();
+      if (0 <= page && page <= this.totalPages) {
+        this.currentPage = page;
+        return this.fetch();
+      } else {
+        throw "page outside of range."
+      }
+    }
 
     TodoList.prototype.clearDone = function() {
       this.checkFetched();

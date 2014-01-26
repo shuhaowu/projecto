@@ -233,7 +233,7 @@
       expect(list.totalPages).toBe(2);
       expect(list.todosPerPage).toBe(10);
 
-      list.nextpage();
+      list.gotopage(2);
       params.page = 2;
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
@@ -251,7 +251,7 @@
       expect(list.totalPages).toBe(2);
       expect(list.todosPerPage).toBe(10);
 
-      list.prevpage();
+      list.gotopage(1);
       params.page = 1;
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
@@ -289,10 +289,36 @@
       $httpBackend.flush();
 
       expect(list.tags).toEqual(["tag1", "tag2"]);
+      expect(list.tagsFiltered).toEqual(["tag1", "tag2"]);
       expect(list.todos).toBeTheSameTodoListAs(todolist);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(1);
       expect(list.todosPerPage).toBe(20);
+    });
+
+    it("should toggle tags filtered", function() {
+      var list = new TodoList(project);
+
+      list.toggleFilterTag("tag1");
+      expect(list.tagsFiltered).toEqual(["tag1"]);
+
+      list.toggleFilterTag("tag1");
+      expect(list.tagsFiltered.length).toBe(0);
+
+      list.toggleFilterTag("tag1");
+      list.toggleFilterTag("tag2");
+      expect(list.tagsFiltered).toEqual(["tag1", "tag2"]);
+    });
+
+    it("should check if tag is filtered", function() {
+      var list = new TodoList(project);
+
+      list.toggleFilterTag("tag1");
+      list.toggleFilterTag("tag2");
+
+      expect(list.isTagFiltered("tag1")).toBe(true);
+      expect(list.isTagFiltered("tag2")).toBe(true);
+      expect(list.isTagFiltered("tag3")).toBe(false);
     });
 
     it("should fetch archived todolists", function() {
