@@ -152,7 +152,7 @@
     };
   }]);
 
-  module.controller("TodosController", ["$scope", "$route", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $route, $window, toast, title, Todos, ProjectsService) {
+  module.controller("TodosController", ["$scope", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $window, toast, title, Todos, ProjectsService) {
     $scope.newtodo = null;
     $scope.todolist = null;
     $scope.allExpanded = false;

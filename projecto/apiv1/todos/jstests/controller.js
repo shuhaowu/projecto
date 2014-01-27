@@ -195,6 +195,7 @@
       new_todo_box = $("<div id='todos-new-todo'></div>");
       new_todo_box.css("display", "none");
       $("body").append(new_todo_box);
+
     }));
 
     afterEach(function() {
@@ -243,8 +244,6 @@
 
       var newtodo = scope.newtodo;
       $httpBackend.expectPOST(baseUrl).respond(returnedtododata);
-      // BUG: This seems to be workaround of a framework bug?
-      $httpBackend.expectGET("/static/projects/partials/homepage.html").respond({});
       $httpBackend.flush();
 
       expect(scope.todolist.todos.length).toBe(1);
@@ -264,6 +263,7 @@
         }
       }
 
+      scope.todolist.fetch();
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
         todos: list,
         currentPage: 1,
