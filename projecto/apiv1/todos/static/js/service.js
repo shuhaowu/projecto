@@ -108,6 +108,26 @@
       return todo;
     };
 
+    TodoItem.prototype.refresh = function() {
+      var deferred = $q.defer();
+
+      if (!this.key)
+        throw "You need a key in order to refresh!";
+
+      var req = TodosService.get(this.project, this.key, this.archived);
+      var that = this;
+      req.success(function(data) {
+        that.data = data;
+        deferred.resolve(data);
+      });
+
+      req.error(function(data, status) {
+        deferred.reject(data, status);
+      });
+
+      return deferred.promise;
+    };
+
     TodoItem.prototype.validate = function(human_messages) {
       var invalids = {
         invalid: false

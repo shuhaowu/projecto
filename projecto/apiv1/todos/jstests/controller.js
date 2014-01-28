@@ -221,6 +221,56 @@
       expect(scope.$on).toHaveBeenCalledWith("exitEdit", jasmine.any(Function));
     });
 
+    it("should remove todos on signal", function() {
+      var list = [];
+      for (var i=0; i<3; i++) {
+        list.push(angular.copy(returnedtododata));
+        list[i].key = list[i].key + i;
+      }
+
+      var key1 = list[1].key;
+      var key2 = list[2].key;
+      scope.todolist.fetch();
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+        todos: list,
+        currentPage: 1,
+        totalTodos: list.length,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+      scope.$emit("deleted", list[0].key, 0);
+
+      expect(scope.todolist.todos.length).toBe(2);
+      expect(scope.todolist.totalTodos).toBe(2);
+      expect(scope.todolist.todos[0].key).toBe(key1);
+      expect(scope.todolist.todos[1].key).toBe(key2);
+
+      scope.$emit("archived", key1, 0);
+      expect(scope.todolist.todos.length).toBe(1);
+      expect(scope.todolist.totalTodos).toBe(1);
+      expect(scope.todolist.todos[0].key).toBe(key2);
+    });
+
+    it("should update todo on save signal", function() {
+      var list = [];
+      for (var i=0; i<3; i++) {
+        list.push(angular.copy(returnedtododata));
+        list[i].key = list[i].key + i;
+      }
+
+      scope.todolist.fetch();
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+        todos: list,
+        currentPage: 1,
+        totalTodos: list.length,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+
+    });
+
     it("should expand and close new todo box", function() {
       scope.new_todo();
       expect(new_todo_box.css("display")).toBe("block");
@@ -272,6 +322,11 @@
       });
       $httpBackend.flush();
 
+      scope.clear_done();
+      $httpBackend.expectDELETE(baseUrl + "done").respond({status: "okay"});
+      $httpBackend.flush();
+
+      expect(scope.todolist.todos.length).toBe(6);
     });
 
     it("should update", function() {
@@ -388,5 +443,13 @@
       expect(scope.todolist.shownotdone).toBe(true);
       expect(scope.update).toHaveBeenCalled();
     });
+  });
+
+  describe("SingleTodoController", function() {
+    var $httpBackend, scope, controller, TodoItem, TodoList;
+    beforeEach(angular.mock.module("projecto"));
+    beforeEach(angular.mock.inject(function() {
+
+    }));
   });
 })();

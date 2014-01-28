@@ -91,6 +91,19 @@
       expect(tododata.content).toBe(data.content);
     });
 
+    it("should refresh TodoItem", function() {
+      spyOn(service, "get").andCallThrough();
+
+      var item = new TodoItem(todoKey, project);
+      item.refresh();
+
+      expect(service.get).toHaveBeenCalledWith(project, todoKey, false);
+      $httpBackend.expectGET(baseUrl + todoKey + "?archived=0").respond(returnedtodo);
+      $httpBackend.flush();
+
+      expect(item.data).toBe(returnedtodo);
+    });
+
     it("should create new todos", function() {
       $httpBackend.when("POST", baseUrl).respond(returnedtodo);
 

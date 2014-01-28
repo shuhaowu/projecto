@@ -180,7 +180,6 @@
 
     $scope.$on("saved", function(e, newTodo, i) {
       $scope.todolist.todos[i] = newTodo;
-      $scope.totalTodos++;
     });
 
     $scope.expand_todos = function() {
@@ -280,59 +279,55 @@
         $scope.todolist = new Todos.TodoList($scope.currentProject);
         title("Todos", $scope.currentProject);
         $scope.update();
+        $scope.$$phase || $scope.$apply();
       } else {
         window.notLoaded();
       }
     });
   }]);
 
-  module.controller(
-    "SingleTodoController", ["$scope", "$route", "$location", "$timeout", "toast", "title", "TodosService", "ProjectsService", function($scope, $route, $location, $timeout, toast, title, TodosService, ProjectsService) {
-      $scope.currentProject = null;
-      $scope.todo = {};
-      $scope.hideCommentLink = true;
+  module.controller("SingleTodoController", ["$scope", "$route", "$location", "toast", "title", "Todos", "ProjectsService", function($scope, $route, $location, toast, title, Todos, ProjectsService) {
+    $scope.currentProject = null;
+    $scope.todo = null;
+    $scope.hideCommentLink = true;
 
-      var setupCommentStuff = function() {
-        $scope.comments = $scope.todo.children;
-        $scope.commentsParent = $scope.todo;
+    var removed = function(e, todo_key) {
+      $location.path("/projects/" + $scope.currentProject.key + "/todos");
+      $location.replace();
+    };
+    $scope.$on("deleted", removed);
+    $scope.$on("archived", removed);
+
+    var refresh_comments = function() {
+      $scope.comments = $scope.todo.children;
+      $scope.commentsParent = $scope.todo;
+    };
+    $scope.$on("saved", function(e, new_todo) {
+      $scope.todo = new_todo;
+      refresh_comments();
+    });
+
+    $scope.update = function() {
+      $scope.todo = new Todos.TodoItem($route.current.params.todoId, $scope.currentProject);
+      var req = $scope.todo.refresh();
+      var success = function() {
+        toast.loaded();
+        refresh_comments();
+        toggleTodo($scope.todo);
+      };
+      var error = function(data, status) {
+        toast.error("Failed to load todos", status);
       };
 
-      $scope.$on("deleted", function(e, todoKey) {
-        $location.path("/projects/" + $scope.currentProject.key + "/todos");
-        $location.replace();
-      });
+      req.then(success, error);
+    };
 
-      $scope.$on("saved", function(e, newTodo) {
-        $scope.todo = newTodo;
-        setupCommentStuff();
-      });
-
-      $scope.update = function() {
-        var req = TodosService.get($scope.currentProject, $route.current.params.todoId);
-
-        req.success(function(data) {
-          toast.loaded();
-          $scope.todo = data;
-          setupCommentStuff();
-
-          // TODO: this is broken. It only sometimes works.
-          toggleTodo($scope.todo);
-        });
-
-        req.error(function(data, status) {
-          toast.error("Failed to load todo", status);
-        });
-      };
-
-      toast.loading();
-      ProjectsService.getCurrentProject().done(function(currentProject) {
-        $scope.currentProject = currentProject;
-        $scope.update();
-        $scope.$$phase || $scope.$apply();
-      }).fail(function(xhr) {
-        toast.error("Failed to get project info", xhr.status);
-      });
-
-    }]
-  );
+    ProjectsService.getCurrentProject().done(function(currentProject) {
+      $scope.currentProject = currentProject;
+      $scope.update();
+      $scope.$$phase || $scope.$apply();
+    }).fail(function(xhr) {
+      toast.error("Failed to get project info", xhr.status);
+    });
+  }]);
 })();
