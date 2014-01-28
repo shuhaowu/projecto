@@ -275,15 +275,118 @@
     });
 
     it("should update", function() {
+      scope.todolist = new TodoList(project);
+      spyOn(scope.todolist, "fetch").andCallThrough();
+      scope.update(true);
 
+      expect(scope.todolist.fetch).toHaveBeenCalledWith(true);
+
+      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+        tags: ["tag1", "tag2"]
+      });
+
+      var list = [];
+      for (var i=0; i<10; i++) {
+        list.push(angular.copy(returnedtododata));
+        list[i].tags = ["tag1"];
+        if (i % 3 == 0)
+          list[i].tags = ["tag2"];
+
+        list[i].key = list[i].key + i;
+      }
+
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+        todos: list,
+        currentPage: 1,
+        totalTodos: list.length,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+      expect(scope.todolist.todos.length).toBe(list.length);
     });
 
     it("should toggle filter tags", function() {
+      scope.todolist = new TodoList(project);
+      scope.todolist.fetch(true);
 
+      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+        tags: ["tag1", "tag2"]
+      });
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+        todos: [],
+        currentPage: 1,
+        totalTodos: 0,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+      expect(scope.todolist.isTagFiltered("tag1")).toBe(true);
+      expect(scope.todolist.isTagFiltered("tag2")).toBe(true);
+
+      spyOn(scope, "update");
+
+      scope.toggle_filter_tag("tag1");
+      expect(scope.todolist.isTagFiltered("tag1")).toBe(false);
+      expect(scope.todolist.isTagFiltered("tag2")).toBe(true);
+      expect(scope.update).toHaveBeenCalled();
+
+      scope.update.reset();
+      scope.toggle_filter_tag("tag1");
+      expect(scope.todolist.isTagFiltered("tag1")).toBe(true);
+      expect(scope.todolist.isTagFiltered("tag2")).toBe(true);
+      expect(scope.update).toHaveBeenCalled();
+
+      scope.update.reset();
+      scope.toggle_filter_tag("tag2");
+      expect(scope.todolist.isTagFiltered("tag1")).toBe(true);
+      expect(scope.todolist.isTagFiltered("tag2")).toBe(false);
+      expect(scope.update).toHaveBeenCalled();
+
+      scope.update.reset();
+      scope.toggle_filter_tag("tag2");
+      expect(scope.todolist.isTagFiltered("tag1")).toBe(true);
+      expect(scope.todolist.isTagFiltered("tag2")).toBe(true);
+      expect(scope.update).toHaveBeenCalled();
     });
 
-    it("should toggle show done", function() {
+    it("should toggle show done and show not done", function() {
+      scope.todolist = new TodoList(project);
+      scope.todolist.fetch(true);
 
+      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+        tags: ["tag1", "tag2"]
+      });
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+        todos: [],
+        currentPage: 1,
+        totalTodos: 0,
+        todosPerPage: 20
+      });
+      $httpBackend.flush();
+
+      expect(scope.todolist.showdone).toBe(false);
+      expect(scope.todolist.shownotdone).toBe(true);
+
+      spyOn(scope, "update");
+      scope.toggle_show_done();
+      expect(scope.todolist.showdone).toBe(true);
+      expect(scope.update).toHaveBeenCalled();
+
+      scope.update.reset();
+      scope.toggle_show_done();
+      expect(scope.todolist.showdone).toBe(false);
+      expect(scope.update).toHaveBeenCalled();
+
+      scope.update.reset();
+      scope.toggle_show_notdone();
+      expect(scope.todolist.shownotdone).toBe(false);
+      expect(scope.update).toHaveBeenCalled();
+
+      scope.update.reset();
+      scope.toggle_show_notdone();
+      expect(scope.todolist.shownotdone).toBe(true);
+      expect(scope.update).toHaveBeenCalled();
     });
   });
 })();
