@@ -268,6 +268,7 @@
       });
       $httpBackend.flush();
 
+      var todo1 = new TodoItem(angular.copy(returnedtododata));
 
     });
 

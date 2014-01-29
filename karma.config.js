@@ -23,6 +23,7 @@ module.exports = function(config) {
       'static/js/develop/**/*.js',
       'projecto/apiv1/**/static/js/*.js',
       'projecto/apiv1/**/jstests/*.js',
+      'tests/jstests/others/**/*.js'
     ],
 
 
