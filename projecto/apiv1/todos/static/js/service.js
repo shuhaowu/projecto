@@ -244,7 +244,7 @@
         this.shownotdone = true;
       }
 
-      this.todos = [];
+      this.todos = new datastructures.LinkedMap();
       this.tags = [];
       this.todosPerPage = -1;
       this.totalTodos = -1;
@@ -262,13 +262,13 @@
 
       // Refactored.
       var recomputeTodos = function(data, archived) {
-        this.todos = [];
+        this.todos = new datastructures.LinkedMap();
         var tododata, todokey;
         for (var i=0, l=data.todos.length; i<l; i++) {
           tododata = data.todos[i];
           todokey = tododata.key;
           delete tododata.key;
-          this.todos.push(new TodoItem(todokey, this.project, tododata, archived));
+          this.todos.put(todokey, new TodoItem(todokey, this.project, tododata, archived));
         }
 
         this.currentPage = data.currentPage;
@@ -362,10 +362,10 @@
 
       req.success(function(data) {
         if (!that.showdone) {
-          for (var i=0; i<that.todos.length; i++) {
-            if (that.todos[i].data.done) {
-              that.todos.splice(i, 1);
-              i--;
+          var rawlist = that.todos.listify();
+          for (var i=0; i<rawlist.length; i++) {
+            if (rawlist[i].value.data.done) {
+              that.todos.remove(rawlist[i].key);
             }
           }
         }

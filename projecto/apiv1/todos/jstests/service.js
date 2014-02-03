@@ -30,7 +30,7 @@
   for (var i=0; i<20; i++) {
     tmptodo = angular.copy(tmptodo);
     tmptodo.date -= 1;
-    tmptodo.key += "1";
+    tmptodo.key = todoKey + i;
     todolist.push(tmptodo);
   }
 
@@ -46,7 +46,7 @@
 
       this.addMatchers({
         toBeTheSameTodoListAs: function(raw_list) {
-          var todolist = this.actual;
+          var todolist = this.actual.listify();
           if (todolist.length !== raw_list.length)
             return false;
 
@@ -55,7 +55,7 @@
             raw_todo = angular.copy(raw_list[i]);
             delete raw_todo.key;
             // I hate JavaScript.
-            if (JSON.stringify(raw_todo) !== JSON.stringify(todolist[i].data)) {
+            if (JSON.stringify(raw_todo) !== JSON.stringify(todolist[i].value.data)) {
               return false;
             }
           }
@@ -210,8 +210,8 @@
 
       $httpBackend.flush();
 
-      expect(list.todos[0].key).toBe(todolist[0].key);
-      expect(list.todos[0].data.date).toBe(todolist[0].date);
+      expect(list.todos.get(todoKey + 0).key).toBe(todolist[0].key);
+      expect(list.todos.get(todoKey + 0).data.date).toBe(todolist[0].date);
       expect(list.todos).toBeTheSameTodoListAs(todolist);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(1);
@@ -240,7 +240,7 @@
       });
       $httpBackend.flush();
 
-      expect(list.todos.length).toBe(10);
+      expect(list.todos.length()).toBe(10);
       expect(list.todos).toBeTheSameTodoListAs(firstpage);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(2);
@@ -258,7 +258,7 @@
       });
       $httpBackend.flush();
 
-      expect(list.todos.length).toBe(10);
+      expect(list.todos.length()).toBe(10);
       expect(list.todos).toBeTheSameTodoListAs(secondpage);
       expect(list.currentPage).toBe(2);
       expect(list.totalPages).toBe(2);
@@ -276,7 +276,7 @@
       });
       $httpBackend.flush();
 
-      expect(list.todos.length).toBe(10);
+      expect(list.todos.length()).toBe(10);
       expect(list.todos).toBeTheSameTodoListAs(firstpage);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(2);
@@ -368,17 +368,17 @@
       list.fetch();
       $httpBackend.flush();
 
-      list.todos[0].data.done = true;
-      list.todos[5].data.done = true;
-      list.todos[6].data.title = "YAY!";
+      list.todos.get(todoKey + "0").data.done = true;
+      list.todos.get(todoKey + "5").data.done = true;
+      list.todos.get(todoKey + "6").data.title = "YAY!";
 
       list.clearDone();
       expect(service.clearDone).toHaveBeenCalledWith(project);
       $httpBackend.expectDELETE(baseUrl + "done").respond({status: "okay"});
       $httpBackend.flush();
 
-      expect(list.todos.length).toBe(18);
-      expect(list.todos[4].data.title).toBe("YAY!");
+      expect(list.todos.length()).toBe(18);
+      expect(list.todos.get(todoKey + 6).data.title).toBe("YAY!");
     });
 
 

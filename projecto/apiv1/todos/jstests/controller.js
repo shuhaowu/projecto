@@ -447,10 +447,56 @@
   });
 
   describe("SingleTodoController", function() {
-    var $httpBackend, scope, controller, TodoItem, TodoList;
-    beforeEach(angular.mock.module("projecto"));
-    beforeEach(angular.mock.inject(function() {
+    var $httpBackend, scope, controller, newcontroller, TodoItem;
 
+    var $route = {
+      current: {
+        params: {
+          todoId: todoKey
+        }
+      }
+    };
+
+    var tododiv = $("<div></div>");
+    tododiv.attr("id", "todo-" + todoKey);
+    $("body").append(tododiv);
+
+    beforeEach(angular.mock.module("projecto"));
+    beforeEach(angular.mock.inject(function($rootScope, $controller, _$httpBackend_, Todos) {
+      $httpBackend = _$httpBackend_;
+      TodoItem = Todos.TodoItem;
+      newcontroller = $controller;
+
+      scope = $rootScope.$new();
+      controller = $controller("SingleTodoController", {
+        $scope: scope,
+        ProjectsService: commonMocked.ProjectsService,
+        $route: $route
+      });
+      scope.currentProject = project;
+
+      tododiv.css("display", "none");
     }));
+
+    it("should subscribe to save signal", function() {
+      spyOn(scope, "$on");
+
+      newcontroller("SingleTodoController", {
+        $scope: scope,
+        ProjectsService: commonMocked.ProjectsService,
+        $route: $route
+      });
+
+      expect(scope.$on).toHaveBeenCalledWith("saved", jasmine.any(Function));
+    });
+
+    it("should respond to save event by refreshing comments", function() {
+      var newtodo = {}
+      scope.$emit("saved", newtodo);
+    });
+
+    it("should update and initialize", function() {
+
+    });
   });
-})();
+});

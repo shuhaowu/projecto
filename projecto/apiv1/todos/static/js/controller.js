@@ -62,28 +62,24 @@
       req.then(undefined, error);
     };
 
-    $scope.editTodo = function(todo, i) {
+    $scope.editTodo = function(todo) {
       if ($scope.todoDraft) {
         $scope.cancelEdit(todo.key);
       } else {
         toggleTodo(todo, "open");
         $scope.todoDraft = new Todos.TodoItem(todo.key, todo.project, angular.copy(todo.data), todo.archived);
         $scope.todoDraft.data.due = $filter("absoluteTime")(todo.data.due);
-        // For restoring in the correct order later if we are on TodosController
-        $scope.todoDraft._index = i;
-
-        // In a truly concurrent program I would be concerned. However...
-        $scope.$emit("enterEdit", todo.key, i);
+        $scope.$emit("enterEdit", todo.key);
       }
     };
 
-    $scope.archiveTodo = function(todo, i) {
+    $scope.archiveTodo = function(todo) {
       if ($scope.currentProject) {
         toast.info("Archiving...");
         var req = todo.archive();
         var success = function() {
           toast.close();
-          $scope.$emit("archived", todo.key, i);
+          $scope.$emit("archived", todo.key);
         };
 
         var error = function(data, status) {
@@ -95,7 +91,7 @@
       }
     };
 
-    $scope.deleteTodo = function(todo, i) {
+    $scope.deleteTodo = function(todo) {
       if (!$window.confirm("Are you sure you want to delete this todo?"))
         return;
 
@@ -104,7 +100,7 @@
         var req = todo.delete();
         var success = function() {
           toast.close();
-          $scope.$emit("deleted", todo.key, i);
+          $scope.$emit("deleted", todo.key);
         };
 
         var error = function(data, status) {
@@ -129,7 +125,7 @@
         toast.info("Saving...");
         var req = $scope.todoDraft.save();
         var success = function(data) {
-          $scope.$emit("saved", data, $scope.todoDraft._index);
+          $scope.$emit("saved", data);
           $scope.cancelEdit($scope.todoDraft.key, true);
           toast.success("Saved");
           toggleTodo(data, "open");
@@ -146,7 +142,7 @@
 
     $scope.cancelEdit = function(todoKey, justDoIt) { // Nike.
       if (justDoIt || $window.confirm("Are you sure you want to cancel? You will lose all changes!")) {
-        $scope.$emit("exitEdit", $scope.todoDraft.key, $scope.todoDraft._index);
+        $scope.$emit("exitEdit", $scope.todoDraft.key);
         $scope.todoDraft = null;
       }
     };
