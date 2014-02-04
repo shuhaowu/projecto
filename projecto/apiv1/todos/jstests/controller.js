@@ -170,7 +170,7 @@
     });
 
   });
-/*
+
   describe("TodosController", function() {
     var $httpBackend, controller, scope, TodoItem, TodoList, $window, rootScope, newcontroller, new_todo_box;
 
@@ -227,6 +227,7 @@
         list[i].key = list[i].key + i;
       }
 
+      var key0 = list[0].key;
       var key1 = list[1].key;
       var key2 = list[2].key;
       scope.todolist.fetch();
@@ -238,17 +239,20 @@
       });
       $httpBackend.flush();
 
-      scope.$emit("deleted", list[0].key, 0);
+      scope.$emit("deleted", key0);
 
-      expect(scope.todolist.todos.length).toBe(2);
+      expect(scope.todolist.todos.length()).toBe(2);
       expect(scope.todolist.totalTodos).toBe(2);
-      expect(scope.todolist.todos[0].key).toBe(key1);
-      expect(scope.todolist.todos[1].key).toBe(key2);
+      var list = scope.todolist.todos.listify();
+      expect(list[0].key).toBe(key1);
+      expect(list[1].key).toBe(key2);
 
       scope.$emit("archived", key1, 0);
-      expect(scope.todolist.todos.length).toBe(1);
+      expect(scope.todolist.todos.length()).toBe(1);
       expect(scope.todolist.totalTodos).toBe(1);
-      expect(scope.todolist.todos[0].key).toBe(key2);
+
+      var list = scope.todolist.todos.listify();
+      expect(list[0].key).toBe(key2);
     });
 
     it("should update todo on save signal", function() {
@@ -267,8 +271,18 @@
       });
       $httpBackend.flush();
 
-      var todo1 = new TodoItem(angular.copy(returnedtododata));
+      var todo1 = angular.copy(returnedtododata);
+      todo1.key = todoKey + 1;
+      todo1.title = "Modified title!";
 
+      scope.$emit("saved", todo1);
+      expect(scope.todolist.todos.get(todoKey + 1).data.title).toBe("Modified title!");
+      expect(scope.todolist.todos.length()).toBe(3);
+
+      var list = scope.todolist.todos.listify();
+      expect(list.length).toBe(3);
+      expect(list[1].key).toBe(todoKey + 1);
+      expect(list[1].value.data.title).toBe("Modified title!");
     });
 
     it("should expand and close new todo box", function() {
@@ -296,8 +310,8 @@
       $httpBackend.expectPOST(baseUrl).respond(returnedtododata);
       $httpBackend.flush();
 
-      expect(scope.todolist.todos.length).toBe(1);
-      expect(scope.todolist.todos[0]).toBe(newtodo);
+      expect(scope.todolist.todos.length()).toBe(1);
+      expect(scope.todolist.todos.get(newtodo.key)).toBe(newtodo);
       expect(scope.newtodo).toEqual(null);
     });
 
@@ -326,7 +340,7 @@
       $httpBackend.expectDELETE(baseUrl + "done").respond({status: "okay"});
       $httpBackend.flush();
 
-      expect(scope.todolist.todos.length).toBe(6);
+      expect(scope.todolist.todos.length()).toBe(6);
     });
 
     it("should update", function() {
@@ -358,7 +372,7 @@
       });
       $httpBackend.flush();
 
-      expect(scope.todolist.todos.length).toBe(list.length);
+      expect(scope.todolist.todos.length()).toBe(list.length);
     });
 
     it("should toggle filter tags", function() {
@@ -490,13 +504,25 @@
     });
 
     it("should respond to save event by refreshing comments", function() {
-      var newtodo = {}
+      var newtodo = angular.copy(returnedtododata);
+
+      // Not a valid children... but
+      newtodo.children = [{title: null, content: "Test Content", author: {name: "Yay"}}];
       scope.$emit("saved", newtodo);
+
+      expect(scope.comments).toBe(newtodo.children);
+      expect(scope.commentsParent.key).toBe(newtodo.key);
+      expect(scope.commentsParent).toBe(scope.todo);
+      expect(scope.commentsParent.data).toBe(newtodo);
     });
 
     it("should update and initialize", function() {
+      scope.update();
+      $httpBackend.expectGET(baseUrl + todoKey + "?archived=0").respond(returnedtododata);
+      $httpBackend.flush();
 
+      expect(scope.todo.key).toBe(todoKey);
+      expect(scope.todo.data).toBe(returnedtododata);
     });
   });
-*/
 })();

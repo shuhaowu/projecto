@@ -118,6 +118,7 @@
       $httpBackend.expectPOST(baseUrl, item.serialize());
       $httpBackend.flush();
 
+      expect(item.key).toBe(returnedtodo.key);
       expect(item.data).toBe(returnedtodo);
     });
 

@@ -155,6 +155,7 @@
           // New item and should be saved.
           var req = TodosService.new(this.project, this.data);
           req.success(function(data) {
+            that.key = data.key;
             that.data = data;
             deferred.resolve(data);
           });

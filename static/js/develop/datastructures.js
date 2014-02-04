@@ -16,6 +16,22 @@ window.datastructures.LinkedMap = (function() {
     this.last = null;
   };
 
+  LinkedMap.prototype.prepend = function(k, v) {
+    if (this.map[k]) {
+      this.map[k].value = v;
+    } else {
+      this.map[k] = new Value(k, v);
+      var current_first;
+      if (current_first = this.first) {
+        this.map[k].next = current_first;
+        this.map[current_first].prev = k;
+      }
+      this.first = k;
+    }
+
+    return this;
+  };
+
   LinkedMap.prototype.put = function(k, v) {
     if (this.map[k]) {
       this.map[k].value = v;
@@ -31,9 +47,10 @@ window.datastructures.LinkedMap = (function() {
       }
     }
 
-
     return this;
   };
+
+  LinkedMap.prototype.append = LinkedMap.prototype.put;
 
   LinkedMap.prototype.remove = function(k) {
     if (this.map[k]) {

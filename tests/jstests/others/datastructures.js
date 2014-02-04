@@ -109,5 +109,29 @@
       expect(JSON.stringify(map.listify())).toBe(JSON.stringify([]));
       expect(map.length()).toBe(0);
     });
+
+    it("should prepend correctly", function() {
+      map.put("key1", "value1");
+      map.put("key2", "value2");
+      map.put("key3", "value3");
+
+      map.prepend("key0", "value0");
+      expect(map.length()).toBe(4);
+
+      var list = map.listify();
+      expect(list.length).toBe(4);
+      expect(list[0].key).toBe("key0");
+      expect(list[0].value).toBe("value0");
+
+      map = new datastructures.LinkedMap();
+      map.prepend("key0", "value0");
+      expect(map.length()).toBe(1);
+
+      var list = map.listify();
+      expect(list.length).toBe(1);
+      expect(list[0].key).toBe("key0");
+      expect(list[0].value).toBe("value0");
+    });
+
   });
 })();

@@ -155,39 +155,47 @@
 
     // Handling of events
     var currentlyEditing = [];
-    $scope.$on("enterEdit", function(e, todoKey, i) {
+    $scope.$on("enterEdit", function(e, todoKey) {
       if (currentlyEditing.indexOf(todoKey) === -1)
         currentlyEditing.push(todoKey);
     });
 
-    $scope.$on("exitEdit", function(e, todoKey, i) {
+    $scope.$on("exitEdit", function(e, todoKey) {
       var j = currentlyEditing.indexOf(todoKey);
       if (j >= 0)
         currentlyEditing.splice(j, 1);
     });
 
-    var removed = function(e, todoKey, i) {
-      $scope.todolist.todos.splice(i, 1);
+    var removed = function(e, todoKey) {
+      $scope.todolist.todos.remove(todoKey);
       $scope.todolist.totalTodos--;
     };
 
     $scope.$on("deleted", removed);
     $scope.$on("archived", removed);
 
-    $scope.$on("saved", function(e, newTodo, i) {
-      $scope.todolist.todos[i] = newTodo;
+    $scope.$on("saved", function(e, newTodo) {
+      var archived = false;
+      if (newTodo.archived) {
+        archived = newTodo.archived;
+        delete newTodo.archived;
+      }
+
+      $scope.todolist.todos.put(newTodo.key, new Todos.TodoItem(newTodo.key, $scope.currentProject, newTodo, archived));
     });
 
     $scope.expand_todos = function() {
-      for (var i=0, l=$scope.todolist.todos.length; i<l; i++) {
-        toggleTodo($scope.todolist.todos[i], "open");
+      var list = $scope.todolist.todos.listify();
+      for (var i=0, l=list.length; i<l; i++) {
+        toggleTodo(list[i], "open");
       }
       $scope.all_expanded = true;
     };
 
     $scope.collapse_todos = function() {
-      for (var i=0, l=$scope.todolist.todos.length; i<l; i++) {
-        toggleTodo($scope.todolist.todos[i], "close");
+      var list = $scope.todolist.todos.listify();
+      for (var i=0, l=list.length; i<l; i++) {
+        toggleTodo(list[i], "close");
       }
       $scope.all_expanded = false;
     };
@@ -213,7 +221,7 @@
 
         var req = $scope.newtodo.save();
         var success = function(data) {
-          $scope.todolist.todos.unshift($scope.newtodo);
+          $scope.todolist.todos.prepend($scope.newtodo.key, $scope.newtodo);
           $scope.cancel_new_todo(true);
         };
 
@@ -295,11 +303,18 @@
     $scope.$on("archived", removed);
 
     var refresh_comments = function() {
-      $scope.comments = $scope.todo.children;
+      $scope.comments = $scope.todo.data.children;
       $scope.commentsParent = $scope.todo;
     };
+
     $scope.$on("saved", function(e, new_todo) {
-      $scope.todo = new_todo;
+      var archived = false;
+      if (new_todo.archived) {
+        archived = new_todo.archived;
+        delete new_todo.archived;
+      }
+
+      $scope.todo = new Todos.TodoItem(new_todo.key, $scope.currentProject, new_todo, archived);
       refresh_comments();
     });
 
