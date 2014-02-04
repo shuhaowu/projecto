@@ -95,13 +95,12 @@
       scope.editTodo(todo, 0);
       expect(tododiv.css("display")).toBe("block");
       expect(scope.todoDraft.data.title).toBe("Test");
-      expect(scope.todoDraft._index).toBe(0);
-      expect(scope.$emit).toHaveBeenCalledWith("enterEdit", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("enterEdit", todo.key);
 
       scope.$emit.reset();
       // should cancel the edits
       scope.editTodo(todo, 0);
-      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key);
       expect(scope.todoDraft).toBe(null);
     });
 
@@ -113,7 +112,7 @@
       scope.archiveTodo(todo, 0);
       $httpBackend.expectDELETE(baseUrl + todoKey + "?archived=0&really=0").respond({status: "okay"});
       $httpBackend.flush();
-      expect(scope.$emit).toHaveBeenCalledWith("archived", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("archived", todo.key);
       expect(todo.archived).toBe(true);
     });
 
@@ -124,14 +123,14 @@
       scope.deleteTodo(todo, 0);
       $httpBackend.expectDELETE(baseUrl + todoKey + "?archived=0&really=1").respond({status: "okay"});
       $httpBackend.flush();
-      expect(scope.$emit).toHaveBeenCalledWith("deleted", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("deleted", todo.key);
 
       scope.$emit.reset();
       todo.archived = true;
       scope.deleteTodo(todo, 0);
       $httpBackend.expectDELETE(baseUrl + todoKey + "?archived=1&really=1").respond({status: "okay"});
       $httpBackend.flush();
-      expect(scope.$emit).toHaveBeenCalledWith("deleted", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("deleted", todo.key);
     });
 
     it("should save todos", function() {
@@ -142,8 +141,8 @@
       scope.saveTodo(todo);
       $httpBackend.expectPUT(baseUrl + todoKey).respond(returnedtododata);
       $httpBackend.flush();
-      expect(scope.$emit).toHaveBeenCalledWith("saved", returnedtododata, 0);
-      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("saved", returnedtododata);
+      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key);
       expect(scope.todoDraft).toBe(null);
     });
 
@@ -157,7 +156,7 @@
       scope.todoDraft = todo;
       scope.cancelEdit(todo.key);
       expect(scope.todoDraft).toBe(null);
-      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key);
       expect($window.confirm).toHaveBeenCalled();
 
       scope.$emit.reset();
@@ -167,11 +166,11 @@
       scope.cancelEdit(todo.key, true);
       expect($window.confirm).not.toHaveBeenCalled();
       expect(scope.todoDraft).toBe(null);
-      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key, 0);
+      expect(scope.$emit).toHaveBeenCalledWith("exitEdit", todo.key);
     });
 
   });
-
+/*
   describe("TodosController", function() {
     var $httpBackend, controller, scope, TodoItem, TodoList, $window, rootScope, newcontroller, new_todo_box;
 
@@ -499,4 +498,5 @@
 
     });
   });
-});
+*/
+})();
