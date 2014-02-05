@@ -133,7 +133,7 @@
         invalid: false
       };
 
-      invalids["title"] = !this.title;
+      invalids["title"] = !this.data.title;
       invalids["invalid"] = invalids["title"];
 
       if (human_messages) {

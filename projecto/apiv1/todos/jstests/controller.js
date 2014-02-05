@@ -299,8 +299,8 @@
 
     it("should create a todo", function() {
       scope.new_todo();
-      scope.newtodo.title = "Test";
-      scope.newtodo.content = "yay todos!";
+      scope.newtodo.data.title = "Test";
+      scope.newtodo.data.content = "yay todos!";
       spyOn(scope.newtodo, "save").andCallThrough();
 
       scope.create_todo();
