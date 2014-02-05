@@ -133,5 +133,21 @@
       expect(list[0].value).toBe("value0");
     });
 
+    it("should get keys() and values()", function() {
+      map.put("key1", "value1");
+      map.put("key2", "value2");
+      map.put("key3", "value3");
+
+      var keys = map.keys();
+      expect(keys[0]).toBe("key1");
+      expect(keys[1]).toBe("key2");
+      expect(keys[2]).toBe("key3");
+
+      var values = map.values();
+      expect(values[0]).toBe("value1");
+      expect(values[1]).toBe("value2");
+      expect(values[2]).toBe("value3");
+    });
+
   });
 })();

@@ -69,14 +69,13 @@
 
   <!-- Todo list -->
   <div class="large-9 columns">
-    <div ng-repeat="todo in todolist.todos.listify()">
+    <div ng-repeat="todo in todolist_for_template">
       <ng-include src="'/static/todos/partials/todoitem.html'"></ng-include>
     </div>
 
     <div class="panel" ng-show="todolist.todos.length() == 0">
       <p>No todo items. Hurray!</p>
     </div>
-
 
     <!-- Pagination -->
     <ul class="pagination right" ng-show="1 < todolist.totalPages && todolist.totalPages < 9">

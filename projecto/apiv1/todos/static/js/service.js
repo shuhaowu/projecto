@@ -88,7 +88,7 @@
     this.listTags = function(project, archived) {
       return $http({
         method: "GET",
-        url: apiUrl(project.key, "tags"),
+        url: apiUrl(project.key, "tags/"),
         params: {archived: archived ? "1" : "0"}
       });
     };

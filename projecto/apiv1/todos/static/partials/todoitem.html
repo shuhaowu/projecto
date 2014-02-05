@@ -13,7 +13,7 @@
       </span>
     </span>
     <div class="todos-todo-title">
-      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)">{[ todo.title ]}</a>
+      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)">{[ todo.data.title ]}</a>
     </div>
   </form>
 

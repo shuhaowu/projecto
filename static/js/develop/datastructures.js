@@ -98,6 +98,26 @@ window.datastructures.LinkedMap = (function() {
     return !!this.map[k];
   };
 
+  LinkedMap.prototype.keys = function() {
+    var l = [];
+    var current = this.map[this.first];
+    while (current) {
+      l.push(current.key);
+      current = this.map[current.next];
+    }
+    return l;
+  };
+
+  LinkedMap.prototype.values = function() {
+    var l = [];
+    var current = this.map[this.first];
+    while (current) {
+      l.push(current.value);
+      current = this.map[current.next];
+    }
+    return l;
+  };
+
   LinkedMap.prototype.listify = function() {
     var l = [];
     var current = this.map[this.first];

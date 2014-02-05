@@ -151,7 +151,12 @@
   module.controller("TodosController", ["$scope", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $window, toast, title, Todos, ProjectsService) {
     $scope.newtodo = null;
     $scope.todolist = null;
+    $scope.todolist_for_template = null;
     $scope.all_expanded = false;
+
+    var regenerate_list_for_template = function() {
+      $scope.todolist_for_template = $scope.todolist.todos.values();
+    };
 
     // Handling of events
     var currentlyEditing = [];
@@ -168,6 +173,7 @@
 
     var removed = function(e, todoKey) {
       $scope.todolist.todos.remove(todoKey);
+      regenerate_list_for_template();
       $scope.todolist.totalTodos--;
     };
 
@@ -182,10 +188,12 @@
       }
 
       $scope.todolist.todos.put(newTodo.key, new Todos.TodoItem(newTodo.key, $scope.currentProject, newTodo, archived));
+      regenerate_list_for_template();
     });
 
     $scope.expand_todos = function() {
-      var list = $scope.todolist.todos.listify();
+      regenerate_list_for_template();
+      var list = $scope.todolist_for_template;
       for (var i=0, l=list.length; i<l; i++) {
         toggleTodo(list[i], "open");
       }
@@ -193,7 +201,8 @@
     };
 
     $scope.collapse_todos = function() {
-      var list = $scope.todolist.todos.listify();
+      regenerate_list_for_template();
+      var list = $scope.todolist_for_template;
       for (var i=0, l=list.length; i<l; i++) {
         toggleTodo(list[i], "close");
       }
@@ -222,6 +231,7 @@
         var req = $scope.newtodo.save();
         var success = function(data) {
           $scope.todolist.todos.prepend($scope.newtodo.key, $scope.newtodo);
+          regenerate_list_for_template();
           $scope.cancel_new_todo(true);
         };
 
@@ -237,10 +247,13 @@
 
     $scope.clear_done = function(todo) {
       var req = $scope.todolist.clearDone();
+      var success = function() {
+        regenerate_list_for_template();
+      };
       var error = function(data, status) {
         toast.error("Failed to clear done", status);
       }
-      req.then(undefined, error);
+      req.then(success, error);
     };
 
     $scope.update = function(initial) {
@@ -249,6 +262,7 @@
 
       req.then(
         function(data) {
+          regenerate_list_for_template();
           toast.close();
         },
         function(data, status) {
@@ -282,7 +296,7 @@
         $scope.currentProject = currentProject;
         $scope.todolist = new Todos.TodoList($scope.currentProject);
         title("Todos", $scope.currentProject);
-        $scope.update();
+        $scope.update(true);
         $scope.$$phase || $scope.$apply();
       } else {
         window.notLoaded();

@@ -350,7 +350,7 @@
 
       expect(scope.todolist.fetch).toHaveBeenCalledWith(true);
 
-      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+      $httpBackend.expectGET(baseUrl + "tags/?archived=0").respond({
         tags: ["tag1", "tag2"]
       });
 
@@ -379,7 +379,7 @@
       scope.todolist = new TodoList(project);
       scope.todolist.fetch(true);
 
-      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+      $httpBackend.expectGET(baseUrl + "tags/?archived=0").respond({
         tags: ["tag1", "tag2"]
       });
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
@@ -423,7 +423,7 @@
       scope.todolist = new TodoList(project);
       scope.todolist.fetch(true);
 
-      $httpBackend.expectGET(baseUrl + "tags?archived=0").respond({
+      $httpBackend.expectGET(baseUrl + "tags/?archived=0").respond({
         tags: ["tag1", "tag2"]
       });
       $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({

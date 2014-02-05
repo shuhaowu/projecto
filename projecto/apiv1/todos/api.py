@@ -118,7 +118,7 @@ def filter(project):
   filtered = []
   for todo in todos:
     if (not todo.done and shownotdone) or (showdone and todo.done):
-      if len(todo.tags) == 0 and " " in tags:
+      if len(todo.tags) == 0 and (" " in tags or len(tags) == 0):
         filtered.append(todo.serialize_for_client(include_comments="keys"))
         continue
       else:
