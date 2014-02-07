@@ -8,7 +8,7 @@ Werkzeug==0.8.3
 argparse==1.2.1
 cssmin==0.1.4
 misaka==1.0.2
--e git+https://github.com/shuhaowu/kvkit.git@0916d71c3aefae6f362a28739f6881d0770926fa#egg=kvkit-master
+-e git+https://github.com/shuhaowu/kvkit.git@a6325e033491adc670cb114cf9f3b1b219e90290#egg=kvkit-master
 riak==2.0.2
 riak-pb==1.4.1.1
 protobuf==2.4.1
