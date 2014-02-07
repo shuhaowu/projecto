@@ -194,7 +194,7 @@
       list.fetch();
 
       var params = {
-        tags: [],
+        tags: [" "],
         showdone: "0",
         shownotdone: "1",
         page: 1
@@ -202,7 +202,7 @@
 
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: angular.copy(todolist),
         currentPage: 1,
         totalTodos: 20,
@@ -222,7 +222,7 @@
       list.fetch();
 
       var params = {
-        tags: [],
+        tags: [" "],
         showdone: "0",
         shownotdone: "1",
         page: 1
@@ -233,7 +233,7 @@
       var firstpage = todolist.slice(0, 10);
       var secondpage = todolist.slice(10, 20);
 
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: angular.copy(firstpage),
         currentPage: 1,
         totalTodos: 20,
@@ -251,7 +251,7 @@
       params.page = 2;
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
-      $httpBackend.expectGET(baseUrl + "filter?page=2&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=2&showdone=0&shownotdone=1&tags=+").respond({
         todos: angular.copy(secondpage),
         currentPage: 2,
         totalTodos: 20,
@@ -269,7 +269,7 @@
       params.page = 1;
       expect(service.filter).toHaveBeenCalledWith(project, params);
 
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: angular.copy(firstpage),
         currentPage: 1,
         totalTodos: 20,
@@ -294,7 +294,7 @@
       $httpBackend.expectGET(baseUrl + "tags/?archived=0").respond({
         tags: ["tag1", "tag2"]
       });
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2&tags=+").respond({
         todos: angular.copy(todolist),
         currentPage: 1,
         totalTodos: 20,
@@ -302,8 +302,8 @@
       });
       $httpBackend.flush();
 
-      expect(list.tags).toEqual(["tag1", "tag2"]);
-      expect(list.tagsFiltered).toEqual(["tag1", "tag2"]);
+      expect(list.tags).toEqual(["tag1", "tag2", " "]);
+      expect(list.tagsFiltered).toEqual(["tag1", "tag2", " "]);
       expect(list.todos).toBeTheSameTodoListAs(todolist);
       expect(list.currentPage).toBe(1);
       expect(list.totalPages).toBe(1);
@@ -314,9 +314,10 @@
       var list = new TodoList(project);
 
       list.toggleFilterTag("tag1");
-      expect(list.tagsFiltered).toEqual(["tag1"]);
+      expect(list.tagsFiltered).toEqual([" ", "tag1"]);
 
       list.toggleFilterTag("tag1");
+      list.toggleFilterTag(" ");
       expect(list.tagsFiltered.length).toBe(0);
 
       list.toggleFilterTag("tag1");
@@ -358,7 +359,7 @@
 
     it("should clear todos that are done", function() {
       spyOn(service, "clearDone").andCallThrough();
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: angular.copy(todolist),
         currentPage: 1,
         totalTodos: 20,

@@ -237,7 +237,7 @@
       this.project = project;
       this.archived = options.archived || false;
       this.currentPage = options.currentPage || 1;
-      this.tagsFiltered = options.tagsFiltered || [];
+      this.tagsFiltered = options.tagsFiltered || [" "];
       this.showdone = options.showdone || false;
       if (options.shownotdone !== undefined) {
         this.shownotdone = options.shownotdone;
@@ -246,7 +246,7 @@
       }
 
       this.todos = new datastructures.LinkedMap();
-      this.tags = [];
+      this.tags = [" "];
       this.todosPerPage = -1;
       this.totalTodos = -1;
       this.totalPages = -1;
@@ -317,6 +317,7 @@
           var tagsreq = TodosService.listTags(this.project);
           tagsreq.success(function(data) {
             self.tags = data.tags;
+            self.tags.push(" ");
             self.tagsFiltered = angular.copy(data.tags);
             dofilter();
           });

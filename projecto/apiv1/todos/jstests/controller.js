@@ -231,7 +231,7 @@
       var key1 = list[1].key;
       var key2 = list[2].key;
       scope.todolist.fetch();
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: list,
         currentPage: 1,
         totalTodos: list.length,
@@ -263,7 +263,7 @@
       }
 
       scope.todolist.fetch();
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: list,
         currentPage: 1,
         totalTodos: list.length,
@@ -328,7 +328,7 @@
       }
 
       scope.todolist.fetch();
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=+").respond({
         todos: list,
         currentPage: 1,
         totalTodos: 10,
@@ -364,7 +364,7 @@
         list[i].key = list[i].key + i;
       }
 
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2&tags=+").respond({
         todos: list,
         currentPage: 1,
         totalTodos: list.length,
@@ -382,7 +382,7 @@
       $httpBackend.expectGET(baseUrl + "tags/?archived=0").respond({
         tags: ["tag1", "tag2"]
       });
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2&tags=+").respond({
         todos: [],
         currentPage: 1,
         totalTodos: 0,
@@ -426,7 +426,7 @@
       $httpBackend.expectGET(baseUrl + "tags/?archived=0").respond({
         tags: ["tag1", "tag2"]
       });
-      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2").respond({
+      $httpBackend.expectGET(baseUrl + "filter?page=1&showdone=0&shownotdone=1&tags=tag1&tags=tag2&tags=+").respond({
         todos: [],
         currentPage: 1,
         totalTodos: 0,
