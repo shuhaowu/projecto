@@ -186,22 +186,44 @@
       }
     });
 
-    $scope.$on("exitEdit", function(e, todo_key) {
+    var remove_from_currently_editing = function(todo_key) {
       var j = $scope.currently_editing.indexOf(todo_key);
       if (j > -1) {
         $scope.currently_editing.splice(j, 1);
         delete $scope.current_draft_objects[todo_key];
       }
+    };
+
+    $scope.$on("exitEdit", function(e, todo_key) {
+      remove_from_currently_editing(todo_key);
     });
 
-    var removed = function(e, todoKey) {
-      $scope.todolist.todos.remove(todoKey);
+    var removed = function(e, todo_key) {
+      $scope.todolist.todos.remove(todo_key);
       regenerate_list_for_template();
       $scope.todolist.totalTodos--;
+      remove_from_currently_editing(todo_key);
     };
 
     $scope.$on("deleted", removed);
     $scope.$on("archived", removed);
+
+    var add_to_tags_on_save = function(tags) {
+      // WARNING: O(n^2) algorithm at least!
+      // TODO: sort it, and then insert. O(nlogn) instead. Or when the list
+      // is created it could be maintained in order O(nlogn) creation with
+      // O(logn) insertion here.
+      if (!tags)
+        return;
+
+      for (var i=0; i<tags.length; i++) {
+        if ($scope.todolist.tags.indexOf(tags[i]) === -1) {
+          // This line may push it to O(n^3)
+          $scope.todolist.tags.unshift(tags[i]);
+          $scope.todolist.toggleFilterTag(tags[i]);
+        }
+      }
+    };
 
     $scope.$on("saved", function(e, newTodo) {
       var archived = false;
@@ -212,6 +234,9 @@
 
       $scope.todolist.todos.put(newTodo.key, new Todos.TodoItem(newTodo.key, $scope.currentProject, newTodo, archived));
       regenerate_list_for_template();
+      remove_from_currently_editing(newTodo.key);
+
+      add_to_tags_on_save(newTodo.tags);
     });
 
     $scope.expand_todos = function() {
@@ -255,6 +280,7 @@
         var success = function(data) {
           $scope.todolist.todos.prepend($scope.newtodo.key, $scope.newtodo);
           regenerate_list_for_template();
+          add_to_tags_on_save($scope.newtodo.data.tags);
           $scope.cancel_new_todo(true);
         };
 
