@@ -18,15 +18,23 @@
 
   var module = angular.module("projecto");
 
-  var toggleTodo = function(todo, force) {
+  var toggleTodo = function(todo, force, noanimation) {
     // TODO: All of this needs to be moved into a directive.
     var bodyElement = $("#todo-" + todo.key);
     if (bodyElement.css("display") === "none") {
-      if (force != "close")
-        bodyElement.slideDown();
+      if (force != "close") {
+        if (noanimation)
+          bodyElement.show();
+        else
+          bodyElement.slideDown();
+      }
     } else {
-      if (force != "open")
-        bodyElement.slideUp();
+      if (force != "open") {
+        if (noanimation)
+          bodyElement.hide();
+        else
+          bodyElement.slideUp();
+      }
     }
   };
 
@@ -45,8 +53,9 @@
     return tags;
   };
 
-  module.controller("TodoItemController", ["$scope", "$window", "$filter", "$location", "toast", "Todos", function($scope, $window, $filter, $location, toast, Todos) {
+  module.controller("TodoItemController", ["$scope", "$window", "$timeout", "$filter", "$location", "toast", "Todos", function($scope, $window, $timeout, $filter, $location, toast, Todos) {
     $scope.todoDraft = null;
+    $scope.displayed = false;
 
     $scope.toggleTodo = function(todo, event) {
       event.preventDefault();
@@ -62,14 +71,15 @@
       req.then(undefined, error);
     };
 
-    $scope.editTodo = function(todo) {
+    $scope.editTodo = function(todo, noanimation) {
       if ($scope.todoDraft) {
         $scope.cancelEdit(todo.key);
       } else {
-        toggleTodo(todo, "open");
+        toggleTodo(todo, "open", noanimation);
         $scope.todoDraft = new Todos.TodoItem(todo.key, todo.project, angular.copy(todo.data), todo.archived);
-        $scope.todoDraft.data.due = $filter("absoluteTime")(todo.data.due);
-        $scope.$emit("enterEdit", todo.key);
+        if (todo.data.due)
+          $scope.todoDraft.data.due = $filter("absoluteTime")(todo.data.due);
+        $scope.$emit("enterEdit", todo.key, $scope.todoDraft);
       }
     };
 
@@ -146,6 +156,13 @@
         $scope.todoDraft = null;
       }
     };
+
+    // restores the todos that's currently being edited.
+    $timeout(function() {
+      if ($scope.currently_editing && $scope.currently_editing.indexOf($scope.todo.key) > -1) {
+        $scope.editTodo($scope.current_draft_objects[$scope.todo.key], true);
+      }
+    }, 0);
   }]);
 
   module.controller("TodosController", ["$scope", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $window, toast, title, Todos, ProjectsService) {
@@ -158,17 +175,23 @@
       $scope.todolist_for_template = $scope.todolist.todos.values();
     };
 
-    // Handling of events
-    var currentlyEditing = [];
-    $scope.$on("enterEdit", function(e, todoKey) {
-      if (currentlyEditing.indexOf(todoKey) === -1)
-        currentlyEditing.push(todoKey);
+    $scope.currently_editing = [];
+    // This stores a reference to the object for restoration of the draft
+    // when we do some sort of operations on page.
+    $scope.current_draft_objects = {};
+    $scope.$on("enterEdit", function(e, todo_key, todo_draft) {
+      if ($scope.currently_editing.indexOf(todo_key) === -1) {
+        $scope.currently_editing.push(todo_key);
+        $scope.current_draft_objects[todo_key] = todo_draft;
+      }
     });
 
-    $scope.$on("exitEdit", function(e, todoKey) {
-      var j = currentlyEditing.indexOf(todoKey);
-      if (j >= 0)
-        currentlyEditing.splice(j, 1);
+    $scope.$on("exitEdit", function(e, todo_key) {
+      var j = $scope.currently_editing.indexOf(todo_key);
+      if (j > -1) {
+        $scope.currently_editing.splice(j, 1);
+        delete $scope.current_draft_objects[todo_key];
+      }
     });
 
     var removed = function(e, todoKey) {

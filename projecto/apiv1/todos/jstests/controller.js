@@ -95,7 +95,7 @@
       scope.editTodo(todo, 0);
       expect(tododiv.css("display")).toBe("block");
       expect(scope.todoDraft.data.title).toBe("Test");
-      expect(scope.$emit).toHaveBeenCalledWith("enterEdit", todo.key);
+      expect(scope.$emit).toHaveBeenCalledWith("enterEdit", todo.key, todo);
 
       scope.$emit.reset();
       // should cancel the edits

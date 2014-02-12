@@ -8,8 +8,8 @@
       </a>
       <span ng-show="currentProject.owner || currentUser.key == todo.data.author.key">
         <span ng-hide="hideCommentLink">| </span>
-        <a href="" title="Edit" ng-click="editTodo(todo, $index)">Edit</a> |
-        <a href="" title="Archive" ng-click="archiveTodo(todo, $index)">Archive</a>
+        <a href="" title="Edit" ng-click="editTodo(todo)">Edit</a> |
+        <a href="" title="Archive" ng-click="archiveTodo(todo)">Archive</a>
       </span>
     </span>
     <div class="todos-todo-title">
