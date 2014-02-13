@@ -37,7 +37,7 @@
         <span class="right">
           <span class="radius label todos-todo-tag" ng-repeat="tag in todo.data.tags">{[ tag ]}</span>
         </span>
-        Filed by {[ todo.data.author.name ]} on {[ todo.data.date | absoluteTime ]} | Assigned to {[ ((todo.data.assigned) && todo.data.assigned.name || "no one") ]}
+        Filed by {[ todo.data.author.name ]} on {[ todo.data.date | absoluteTime ]} <!--| Assigned to {[ ((todo.data.assigned) && todo.data.assigned.name || "no one") ]} -->
       </div>
     </div>
 
@@ -48,12 +48,14 @@
         <textarea ng-model="todoDraft.data.content.markdown" rows="5" placeholder="Description">
         </textarea>
         <input type="text" ng-model="todoDraft.data.tags" placeholder="Tags (separate with ,)" />
+        <!--
         <div class="left" style="margin-right: 5px;">
           <input type="text" ng-model="todoDraft.data.assigned" placeholder="Assigned" />
         </div>
         <div class="left">
           <input type="text" ng-model="todoDraft.data.due" placeholder="Due (YYYY-MM-DD)" />
         </div>
+        -->
         <div class="right">
           <a class="small secondary button" ng-click="cancelEdit(todo.key)">Cancel</a>
           <button class="small success" type="submit">Save</button>
