@@ -88,6 +88,7 @@ class Content(EmDocument):
         serialized_comment = comment.serialize(restricted=("parent", "author"), include_key=True)
         serialized_comment["author"] = comment.author.serialize_for_client()
         children.append(serialized_comment)
+        children.sort(key=lambda x: x["date"])
     elif include_comments == "keys":
       item["children"] = list(Comment.index_keys_only("parent", self.key))
     return item

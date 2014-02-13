@@ -1,6 +1,10 @@
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
+
 from kvkit import NotFoundError
+
+from projecto.models import Comment
 
 from .utils import ProjectTestCase, new_comment, new_feeditem
 
@@ -32,6 +36,11 @@ class TestCommentsAPI(ProjectTestCase):
     self.assertStatus(200, response)
     key = data["key"]
 
+    # to fix issues where the datetime is the same and sort order gets weirded out.
+    comment = Comment.get(key)
+    comment.date = datetime.now() + timedelta(1)
+    comment.save()
+
     response, data = self.getJSON("/api/v1/projects/{}/feed/{}".format(self.project.key, feeditem.key))
     self.assertEquals(2, len(data["children"]))
     self.assertEquals(key, data["children"][1]["key"])
@@ -60,6 +69,20 @@ class TestCommentsAPI(ProjectTestCase):
 
     response, data = self.postJSON(self.base_url("nokey"), data={})
     self.assertStatus(400, response)
+
+  def test_list_comments_for_feed(self):
+    self.login()
+    keys = []
+    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
+    for i in xrange(10):
+      comment = new_comment(self.user, feeditem.key, content="content" + str(i), date=datetime.now() + timedelta(seconds=i), save=True)
+      keys.append(comment.key)
+
+    response, data = self.getJSON("/api/v1/projects/{}/feed/{}".format(self.project.key, feeditem.key))
+    self.assertStatus(200, response)
+    self.assertEquals(10, len(data["children"]))
+    # test if date ordering is done correctly
+    self.assertEquals(keys, [c["key"] for c in data["children"]])
 
   def test_delete_comment_for_feed(self):
     feeditem = new_feeditem(self.user, self.project, content="content", save=True)
