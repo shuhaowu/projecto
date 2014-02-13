@@ -326,7 +326,7 @@ class TestTodoAPI(ProjectTestCase):
 
   def test_archived_index(self):
     todo1 = new_todo(self.user, self.project, save=True)
-    todo2 = new_todo(self.user, self.project, save=True)
+    todo2 = new_todo(self.user, self.project, done=True, save=True)
     todo1.archive()
     todo2.archive()
 

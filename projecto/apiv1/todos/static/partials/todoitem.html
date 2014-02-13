@@ -3,17 +3,24 @@
     <span class="custom checkbox todos-todo-donebox" ng-class="{checked: todo.data.done}" ng-click="markDone(todo)"></span>
     <span class="todos-control">
       <span class="radius label" ng-show="todo.data.due">Due {[ todo.data.due | relativeTime ]}</span>
-      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-hide="hideCommentLink">
+
+      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-hide="hideCommentLink || is_archived">
+        <ng-pluralize count="todo.data.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
+      </a>
+
+      <a href="#/projects/{[ currentProject.key ]}/archived_todos/{[ todo.key ]}" ng-hide="hideCommentLink || !is_archived">
         <ng-pluralize count="todo.data.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
       </a>
       <span ng-show="currentProject.owner || currentUser.key == todo.data.author.key">
         <span ng-hide="hideCommentLink">| </span>
-        <a href="" title="Edit" ng-click="editTodo(todo)">Edit</a> |
-        <a href="" title="Archive" ng-click="archiveTodo(todo)">Archive</a>
+        <a href="" title="Edit" ng-click="editTodo(todo)" ng-hide="is_archived">Edit</a> <span ng-hide="is_archived">|</span>
+        <a href="" title="Archive" ng-click="archiveTodo(todo)" ng-hide="is_archived">Archive</a>
+        <a href="" title="Delete" ng-click="deleteTodo(todo)" ng-show="is_archived">Delete</a>
       </span>
     </span>
     <div class="todos-todo-title">
-      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)">{[ todo.data.title ]}</a>
+      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)" ng-hide="is_archived">{[ todo.data.title ]}</a>
+      <a href="#/projects/{[ currentProject.key ]}/archived_todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)" ng-show="is_archived">{[ todo.data.title ]}</a>
     </div>
   </form>
 

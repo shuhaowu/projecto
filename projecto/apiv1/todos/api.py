@@ -75,7 +75,7 @@ def put(project, id):
 @blueprint.route("/", methods=["GET"])
 @project_access_required
 def index(project):
-  archived = request.args.get("archived", 0) == "1"
+  archived = request.args.get("archived", "0") == "1"
   if archived:
     l = ArchivedTodo.index("parent", project.key)
     showdone = True
@@ -93,7 +93,7 @@ def index(project):
 
   # TODO: Lists through everything. Is very slow.
   for todo in l:
-    if showdone and todo.done:
+    if not showdone and todo.done:
       continue
 
     todos.append(todo.serialize_for_client(include_comments="keys"))
