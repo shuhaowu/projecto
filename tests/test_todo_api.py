@@ -3,10 +3,11 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 
 from kvkit import NotFoundError
-from projecto.models import Todo
+from projecto.models import Todo, ArchivedTodo
 
 import unittest
 from .utils import ProjectTestCase, new_todo
+
 
 class TestTodoAPI(ProjectTestCase):
   def base_url(self, postfix):
@@ -322,6 +323,96 @@ class TestTodoAPI(ProjectTestCase):
 
     response, data = self.getJSON(self.base_url("/tags/"))
     self.assertStatus(403, response)
+
+  def test_archived_index(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    todo2 = new_todo(self.user, self.project, done=True, save=True)
+    todo1.archive()
+    todo2.archive()
+
+    self.login()
+    response, data = self.getJSON(self.base_url("/"), query_string={"archived": "1"})
+    self.assertStatus(200, response)
+    self.assertTrue("todos" in data)
+    self.assertEquals(2, len(data["todos"]))
+    k = [t["key"] for t in data["todos"]]
+    self.assertTrue(todo1.key in k)
+    self.assertTrue(todo2.key in k)
+
+    response, data = self.getJSON(self.base_url("/"))
+    self.assertStatus(200, response)
+    self.assertEquals(0, len(data["todos"]))
+
+  def test_archived_delete(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    self.login()
+
+    response = self.delete(self.base_url("/" + todo1.key))
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      Todo.get(todo1.key)
+
+    todo1_again = ArchivedTodo.get(todo1.key)
+    self.assertEquals(todo1.key, todo1_again.key)
+
+  def test_really_delete(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    self.login()
+
+    response = self.delete(self.base_url("/" + todo1.key), query_string={"really": "1"})
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      ArchivedTodo.get(todo1.key)
+
+    with self.assertRaises(NotFoundError):
+      Todo.get(todo1.key)
+
+  def test_delete_archived(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    todo2 = new_todo(self.user, self.project, save=True)
+    todo1 = todo1.archive()
+    todo2 = todo2.archive()
+    self.login()
+
+    response = self.delete(self.base_url("/" + todo1.key), query_string={"really": "1", "archived": "1"})
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      todo1.reload()
+
+    # Should not have an effect.
+    response = self.delete(self.base_url("/" + todo2.key), query_string={"archived": "1"})
+    self.assertStatus(304, response)
+    todo2.reload()
+
+  def test_get_archived(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    todo1 = todo1.archive()
+    self.login()
+
+    response, data = self.getJSON(self.base_url("/" + todo1.key))
+    self.assertStatus(404, response)
+
+    response, data = self.getJSON(self.base_url("/" + todo1.key), query_string={"archived": "1"})
+    self.assertStatus(200, response)
+    self.assertEquals(todo1.key, data["key"])
+
+  def test_markdone_archived(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    todo1 = todo1.archive()
+    self.login()
+
+    response, data = self.postJSON(self.base_url("/" + todo1.key + "/markdone"), data={"done": True})
+    self.assertStatus(404, response)
+
+    response, data = self.postJSON(self.base_url("/" + todo1.key + "/markdone"), query_string={"archived": "1"}, data={"done": True})
+    self.assertStatus(200, response)
+
+    response, data = self.getJSON(self.base_url("/" + todo1.key), query_string={"archived": "1"})
+    self.assertStatus(200, response)
+    self.assertEquals(True, data["done"])
 
 
 if __name__ == "__main__":

@@ -33,11 +33,15 @@
     });
 
     $routeProvider.when("/projects/:id/todos", todosPage);
+    $routeProvider.when("/projects/:id/archived_todos", todosPage);
 
-    $routeProvider.when("/projects/:id/todos/:todoId", {
+    var singleTodoPage = {
       templateUrl: "/static/todos/partials/singletodo.html",
       controller: "SingleTodoController"
-    });
+    };
+    $routeProvider.when("/projects/:id/todos/:todoId", singleTodoPage);
+    $routeProvider.when("/projects/:id/archived_todos/:todoId", singleTodoPage);
+
 
     $routeProvider.when("/projects/:id/files/", filesTreePage);
     $routeProvider.when("/projects/:id/files/*path", filesTreePage);
@@ -98,5 +102,12 @@
 
   app.run(["$rootScope", function($rootScope) {
     $rootScope.currentUser = window.currentUser;
+    $rootScope.range = function(n) {
+      var a = new Array(n);
+      for (var i=0; i<n; i++) {
+        a[i] = i;
+      }
+      return a;
+    };
   }]);
 })();

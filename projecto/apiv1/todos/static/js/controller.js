@@ -18,15 +18,23 @@
 
   var module = angular.module("projecto");
 
-  var toggleTodo = function(todo, force) {
+  var toggleTodo = function(todo, force, noanimation) {
     // TODO: All of this needs to be moved into a directive.
     var bodyElement = $("#todo-" + todo.key);
     if (bodyElement.css("display") === "none") {
-      if (force != "close")
-        bodyElement.slideDown();
+      if (force != "close") {
+        if (noanimation)
+          bodyElement.show();
+        else
+          bodyElement.slideDown();
+      }
     } else {
-      if (force != "open")
-        bodyElement.slideUp();
+      if (force != "open") {
+        if (noanimation)
+          bodyElement.hide();
+        else
+          bodyElement.slideUp();
+      }
     }
   };
 
@@ -42,12 +50,13 @@
         i--;
       }
     }
-    console.log(tags);
     return tags;
   };
 
-  module.controller("TodoItemController", ["$scope", "$filter", "$location", "toast", "TodosService", function($scope, $filter, $location, toast, TodosService) {
+  module.controller("TodoItemController", ["$scope", "$window", "$timeout", "$filter", "$location", "toast", "Todos", function($scope, $window, $timeout, $filter, $location, toast, Todos) {
     $scope.todoDraft = null;
+    $scope.displayed = false;
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
 
     $scope.toggleTodo = function(todo, event) {
       event.preventDefault();
@@ -56,48 +65,59 @@
     };
 
     $scope.markDone = function(todo) {
-      var req = TodosService.markDone($scope.currentProject, todo);
-      req.success(function(data) {
-        todo.done = !todo.done;
-      });
-
-      req.error(function(data, status) {
+      var req = todo.done();
+      var error = function(data, status) {
         toast.error("Failed to mark done", status);
-      });
+      };
+      req.then(undefined, error);
     };
 
-    $scope.editTodo = function(todo, i) {
+    $scope.editTodo = function(todo, noanimation) {
       if ($scope.todoDraft) {
         $scope.cancelEdit(todo.key);
       } else {
-        toggleTodo(todo, "open");
-        $scope.todoDraft = angular.copy(todo);
-        $scope.todoDraft.due = $filter("absoluteTime")(todo["due"]);
-        // For restoring in the correct order later if we are on TodosController
-        $scope.todoDraft._index = i;
-
-        // In a truly concurrent program I would be concerned. However...
-        $scope.$emit("enterEdit", todo.key, i);
+        toggleTodo(todo, "open", noanimation);
+        $scope.todoDraft = new Todos.TodoItem(todo.key, todo.project, angular.copy(todo.data), todo.archived);
+        if (todo.data.due)
+          $scope.todoDraft.data.due = $filter("absoluteTime")(todo.data.due);
+        $scope.$emit("enterEdit", todo.key, $scope.todoDraft);
       }
     };
 
-    $scope.deleteTodo = function(todo, i) {
-      if (!confirm("Are you sure you want to delete this todo item?"))
+    $scope.archiveTodo = function(todo) {
+      if ($scope.currentProject) {
+        toast.info("Archiving...");
+        var req = todo.archive();
+        var success = function() {
+          toast.close();
+          $scope.$emit("archived", todo.key);
+        };
+
+        var error = function(data, status) {
+          toast.error("Failed to archive todo", status);
+        };
+        req.then(success, error);
+      } else {
+        window.notLoaded();
+      }
+    };
+
+    $scope.deleteTodo = function(todo) {
+      if (!$window.confirm("Are you sure you want to delete this todo?"))
         return;
 
       if ($scope.currentProject) {
         toast.info("Deleting...");
-        var req = TodosService.delete($scope.currentProject, todo);
-
-        req.success(function() {
+        var req = todo.delete();
+        var success = function() {
           toast.close();
-          $scope.$emit("deleted", todo.key, i);
-        });
+          $scope.$emit("deleted", todo.key);
+        };
 
-        req.error(function(data, status) {
+        var error = function(data, status) {
           toast.error("Failed to delete todo", status);
-        });
-
+        };
+        req.then(success, error);
       } else {
         window.notLoaded();
       }
@@ -110,307 +130,281 @@
       }
 
       if ($scope.currentProject) {
-        $scope.todoDraft.tags = extractTags($scope.todoDraft.tags);
+        if ($scope.todoDraft.data.tags)
+          $scope.todoDraft.data.tags = extractTags($scope.todoDraft.data.tags);
 
         toast.info("Saving...");
-        var req = TodosService.put($scope.currentProject, $scope.todoDraft);
-
-        req.success(function(data) {
-          $scope.$emit("saved", data, $scope.todoDraft._index)
+        var req = $scope.todoDraft.save();
+        var success = function(data) {
+          $scope.$emit("saved", data);
           $scope.cancelEdit($scope.todoDraft.key, true);
           toast.success("Saved");
           toggleTodo(data, "open");
-        });
+        };
 
-        req.error(function(data, status) {
+        var error = function(data, status) {
           toast.error("Failed to save", status);
-        });
+        };
+        req.then(success, error);
       } else {
         window.notLoaded();
       }
     };
 
     $scope.cancelEdit = function(todoKey, justDoIt) { // Nike.
-      if (justDoIt || confirm("Are you sure you want to cancel? You will lose all changes!")) {
-        $scope.$emit("exitEdit", $scope.todoDraft.key, $scope.todoDraft._index);
+      if (justDoIt || $window.confirm("Are you sure you want to cancel? You will lose all changes!")) {
+        $scope.$emit("exitEdit", $scope.todoDraft.key);
         $scope.todoDraft = null;
-        $scope.currentlyEditing--;
       }
     };
 
+    // restores the todos that's currently being edited.
+    $timeout(function() {
+      if ($scope.currently_editing && $scope.currently_editing.indexOf($scope.todo.key) > -1) {
+        $scope.editTodo($scope.current_draft_objects[$scope.todo.key], true);
+      }
+    }, 0);
   }]);
 
-  module.controller(
-    "TodosController", ["$scope", "$route", "toast", "title", "TodosService", "ProjectsService", function($scope, $route, toast, title, TodosService, ProjectsService){
-      $scope.newtodoitem = {};
-      $scope.todos = [];
-      $scope.tags = [];
-      $scope.tagsFiltered = {};
-      $scope.showdone = "0";
-      $scope.shownotdone = "1";
+  module.controller("TodosController", ["$scope", "$location", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $location, $window, toast, title, Todos, ProjectsService) {
+    $scope.newtodo = null;
+    $scope.todolist = null;
+    $scope.todolist_for_template = null;
+    $scope.all_expanded = false;
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
 
-      $scope.currentPage = null;
-      $scope.totalPages = null;
-      $scope.todosPerPage = null;
-      $scope.totalTodos = 0;
-      $scope.pages = [];
+    var regenerate_list_for_template = function() {
+      $scope.todolist_for_template = $scope.todolist.todos.values();
+    };
 
-      // Managed via the event enterEdit, exitEdit, new Todo's save success, and in Expand all.
-      var currentlyEditing = [];
+    $scope.currently_editing = [];
+    // This stores a reference to the object for restoration of the draft
+    // when we do some sort of operations on page.
+    $scope.current_draft_objects = {};
+    $scope.$on("enterEdit", function(e, todo_key, todo_draft) {
+      if ($scope.currently_editing.indexOf(todo_key) === -1) {
+        $scope.currently_editing.push(todo_key);
+        $scope.current_draft_objects[todo_key] = todo_draft;
+      }
+    });
 
-      $scope.$on("enterEdit", function(e, todoKey, i) {
-        if (currentlyEditing.indexOf(todoKey) === -1)
-          currentlyEditing.push(todoKey);
-      });
+    var remove_from_currently_editing = function(todo_key) {
+      var j = $scope.currently_editing.indexOf(todo_key);
+      if (j > -1) {
+        $scope.currently_editing.splice(j, 1);
+        delete $scope.current_draft_objects[todo_key];
+      }
+    };
 
-      $scope.$on("exitEdit", function(e, todoKey, i) {
-        var j = currentlyEditing.indexOf(todoKey);
-        if (j >= 0)
-          currentlyEditing.splice(j, 1);
-      });
+    $scope.$on("exitEdit", function(e, todo_key) {
+      remove_from_currently_editing(todo_key);
+    });
 
-      $scope.$on("deleted", function(e, todoKey, i) {
-        $scope.todos.splice(i, 1);
-        $scope.totalTodos--;
-      });
+    var removed = function(e, todo_key) {
+      $scope.todolist.todos.remove(todo_key);
+      regenerate_list_for_template();
+      $scope.todolist.totalTodos--;
+      remove_from_currently_editing(todo_key);
+    };
 
-      $scope.$on("saved", function(e, newTodo, i) {
-        $scope.todos[i] = newTodo;
-      });
+    $scope.$on("deleted", removed);
+    $scope.$on("archived", removed);
 
-      var recomputePages = function(totalTodos, todosPerPage) {
-        $scope.totalTodos = totalTodos;
-        $scope.totalPages = Math.ceil(totalTodos / todosPerPage);
+    var add_to_tags_on_save = function(tags) {
+      // WARNING: O(n^2) algorithm at least!
+      // TODO: sort it, and then insert. O(nlogn) instead. Or when the list
+      // is created it could be maintained in order O(nlogn) creation with
+      // O(logn) insertion here.
+      if (!tags)
+        return;
 
-        // NOTE: This array is used in the template, for pagination.
-        //       It will be eliminated when the pagination template
-        //       is made into a directive.
-        $scope.pages = [];
-        if ($scope.totalPages < 8) {
-          for (var i=1; i<=$scope.totalPages; i++)
-            $scope.pages.push(i);
+      for (var i=0; i<tags.length; i++) {
+        if ($scope.todolist.tags.indexOf(tags[i]) === -1) {
+          // This line may push it to O(n^3)
+          $scope.todolist.tags.unshift(tags[i]);
+          $scope.todolist.toggleFilterTag(tags[i]);
         }
-      };
+      }
+    };
 
-      var showTodosUpdate = function(data, msg) {
-        $scope.$apply(function(){
-          $scope.todos = data.todos;
-          $scope.todosPerPage = data.todosPerPage;
-          $scope.currentPage = data.currentPage;
-          recomputePages(data.totalTodos, data.todosPerPage);
-          if (msg) {
-            toast.success(msg);
-          }
-        });
-      };
+    $scope.$on("saved", function(e, newTodo) {
+      var archived = false;
+      if (newTodo.archived) {
+        archived = newTodo.archived;
+        delete newTodo.archived;
+      }
 
+      $scope.todolist.todos.put(newTodo.key, new Todos.TodoItem(newTodo.key, $scope.currentProject, newTodo, archived));
+      regenerate_list_for_template();
+      remove_from_currently_editing(newTodo.key);
 
-      $scope.expandTodos = function(e) {
-        if ($(e.target).text() === "Expand All") {
-          for (var i=0; i<$scope.todos.length; i++) {
-            toggleTodo($scope.todos[i], "open");
-          }
-          $(e.target).text("Close All");
-        } else {
-          for (var i=0; i<$scope.todos.length; i++) {
-            toggleTodo($scope.todos[i], "close");
-            currentlyEditing = [];
-          }
-          $(e.target).text("Expand All");
-        }
-      };
+      add_to_tags_on_save(newTodo.tags);
+    });
 
-      $scope.newTodo = function() {
-        // hack
-        if ($("#todos-new-todo-btn").text() === "New Todo"){
-          $("#todos-new-todo-btn").text("Cancel");
-          $("#todos-new-todo").slideDown();
-        } else if ($("#todos-new-todo-btn").text() === "Cancel") {
-          $("#todos-new-todo-btn").text("New Todo");
-          $("#todos-new-todo").slideUp();
-          $scope.newtodoitem = {};
-          $scope.$$phase || $scope.$apply; // needed because we call newTodo after an ajax in createTodo
-        }
-      };
+    $scope.expand_todos = function() {
+      regenerate_list_for_template();
+      var list = $scope.todolist_for_template;
+      for (var i=0, l=list.length; i<l; i++) {
+        toggleTodo(list[i], "open");
+      }
+      $scope.all_expanded = true;
+    };
 
-      var cancelAction = function(action) {
-        if (currentlyEditing.length > 0) {
-          var msg = action ? "You are about to " + action + ".\n" : "Warning!\n";
-          msg += "This action will reload the todo items, but you have items currently open for editing. ";
-          msg += "Any unsaved changes will be lost.\nDo you wish to proceed?";
-          if (!window.confirm(msg)) {
-            return true;
-          }
-          currentlyEditing = [];
-        }
-        return false;
-      };
+    $scope.collapse_todos = function() {
+      regenerate_list_for_template();
+      var list = $scope.todolist_for_template;
+      for (var i=0, l=list.length; i<l; i++) {
+        toggleTodo(list[i], "close");
+      }
+      $scope.all_expanded = false;
+    };
 
-      $scope.createTodo = function() {
-        if (cancelAction("create a new todo")) return;
+    $scope.new_todo = function() {
+      $scope.newtodo = new Todos.TodoItem(undefined, $scope.currentProject, undefined, $scope.is_archived);
+      $("#todos-new-todo").slideDown();
+    };
 
-        if ($scope.newtodoitem.title) {
-          if ($scope.newtodoitem.tags)
-            $scope.newtodoitem.tags = extractTags($scope.newtodoitem.tags);
+    $scope.cancel_new_todo = function(force) {
+      if ($.isEmptyObject($scope.newtodo.data) || force ||
+          $window.confirm("Are you sure you want to cancel?")) {
+        $scope.newtodo = null;
+        $("#todos-new-todo").slideUp();
+      }
+    };
 
-          TodosService.new($scope.currentProject, $scope.newtodoitem).done(function(data){
-            $scope.update("Created");
-            $scope.newTodo(); // hack. Closes the "New Todo" form.
-            currentlyEditing = [];
-          }).fail(function(xhr){
-            toast.error("Failed to post", xhr.status);
-          });
-        } else {
-          toast.warn("Todos must have a title.");
-        }
-      };
+    $scope.create_todo = function() {
+      var invalid_messages = $scope.newtodo.validate(true);
+      if (!invalid_messages["invalid"]) {
+        if ($scope.newtodo.data.tags)
+          $scope.newtodo.data.tags = extractTags($scope.newtodo.data.tags);
 
-      var updateTags = function(data) {
-        $scope.$apply(function() {
-          $scope.tags = data.tags;
-          $scope.tags.push(" ");
-
-          // if we've received a new tag, set it to "checked"
-          for (var i=0, l=data.tags.length; i < l; i++) {
-            if ($scope.tagsFiltered[data.tags[i]] === undefined) {
-              $scope.tagsFiltered[data.tags[i]] = true;
-            }
-          }
-        });
-      };
-
-      var getFilterTags = function() {
-        var tags = [];
-        for (var t in $scope.tagsFiltered) {
-          if ($scope.tagsFiltered[t])
-            tags.push(t);
-        }
-        return tags;
-      };
-
-      var updateTodos = function(msg) {
-        var params = {
-          tags: getFilterTags(),
-          showdone: $scope.showdone,
-          shownotdone: $scope.shownotdone,
-          page: ($scope.currentPage || 1)
+        var req = $scope.newtodo.save();
+        var success = function(data) {
+          $scope.todolist.todos.prepend($scope.newtodo.key, $scope.newtodo);
+          regenerate_list_for_template();
+          add_to_tags_on_save($scope.newtodo.data.tags);
+          $scope.cancel_new_todo(true);
         };
 
-        TodosService.filter($scope.currentProject, params)
-          .done(function(data) {
-            showTodosUpdate(data, msg);
-          })
-          .fail(function(xhr){
-            toast.error("Failed to list todo", xhr.status);
-          });
+        var error = function(data, status) {
+          toast.error("Failed to post", xhr.status);
+        };
+        req.then(success, error);
+      } else {
+        // TODO: Need a better way to display these messages in the future.
+        toast.warn(invalid_messages["title"]);
+      }
+    };
+
+    $scope.clear_done = function(todo) {
+      var req = $scope.todolist.clearDone();
+      var success = function() {
+        regenerate_list_for_template();
       };
+      var error = function(data, status) {
+        toast.error("Failed to clear done", status);
+      }
+      req.then(success, error);
+    };
 
-      $scope.update = function(msg) {
-        TodosService.listTags($scope.currentProject)
-          .done(function(data) {
-            updateTags(data);
-            updateTodos(msg);
-          })
-          .fail(function(xhr) {
-            toast.error("Failed to list tags", xhr.status);
-          });
-      };
+    $scope.update = function(initial) {
+      toast.info("Updating...");
+      var req = $scope.todolist.fetch(initial);
 
-      $scope.clearDone = function(todo) {
-        TodosService.clearDone($scope.currentProject).done(function(data) {
-          $scope.$apply(function() {
-            for (var i=0; i<$scope.todos.length; i++) {
-              if ($scope.todos[i].done) {
-                $scope.todos.splice(i, 1);
-                i--;
-              }
-            }
-          });
-        }).fail(function(xhr) {
-          toast.error("Failed to clear", xhr.status);
-        });
-      };
-
-      $scope.checkTagFilter = function(tag) {
-        if (cancelAction("change the filters")) return;
-        $scope.tagsFiltered[tag] = !$scope.tagsFiltered[tag];
-        $scope.update();
-      };
-
-      $scope.checkShowFilter = function(attr) {
-        if (cancelAction("change the filters")) return;
-        $scope[attr] = $scope[attr] === "1" ? "0" : "1";
-        $scope.update();
-      };
-
-      $scope.goToPage = function(pageNo) {
-        if (cancelAction("change the page")) return;
-        $scope.currentPage = pageNo;
-        $scope.update();
-      };
-
-      $scope.currentProject = null;
-
-      ProjectsService.getCurrentProject().done(function(currentProject){
-        if (currentProject){
-          $scope.currentProject = currentProject;
-          title("Todos", $scope.currentProject);
-          $scope.update();
-          $scope.$$phase || $scope.$apply();
-        } else {
-          window.notLoaded();
+      req.then(
+        function(data) {
+          regenerate_list_for_template();
+          toast.close();
+        },
+        function(data, status) {
+          toast.error("Failed to update todos", status);
         }
-      });
-    }]
-  );
+      );
+    };
 
-  module.controller(
-    "SingleTodoController", ["$scope", "$route", "$location", "$timeout", "toast", "title", "TodosService", "ProjectsService", function($scope, $route, $location, $timeout, toast, title, TodosService, ProjectsService) {
-      $scope.currentProject = null;
-      $scope.todo = {};
-      $scope.hideCommentLink = true;
+    $scope.toggle_filter_tag = function(tag) {
+      $scope.todolist.toggleFilterTag(tag);
+      $scope.update();
+    };
 
-      var setupCommentStuff = function() {
-        $scope.comments = $scope.todo.children;
-        $scope.commentsParent = $scope.todo;
-      };
+    $scope.toggle_show_done = function() {
+      $scope.todolist.showdone = !$scope.todolist.showdone;
+      $scope.update();
+    };
 
-      $scope.$on("deleted", function(e, todoKey) {
-        $location.path("/projects/" + $scope.currentProject.key + "/todos");
-        $location.replace();
-      });
+    $scope.toggle_show_notdone = function() {
+      $scope.todolist.shownotdone = !$scope.todolist.shownotdone;
+      $scope.update();
+    };
 
-      $scope.$on("saved", function(e, newTodo) {
-        $scope.todo = newTodo;
-        setupCommentStuff();
-      });
+    $scope.goto = function(page) {
+      $scope.todolist.gotopage(page);
+    };
 
-      $scope.update = function() {
-        var req = TodosService.get($scope.currentProject, $route.current.params.todoId);
-
-        req.success(function(data) {
-          toast.loaded();
-          $scope.todo = data;
-          setupCommentStuff();
-
-          // TODO: this is broken. It only sometimes works.
-          toggleTodo($scope.todo);
-        });
-
-        req.error(function(data, status) {
-          toast.error("Failed to load todo", status);
-        });
-      };
-
-      toast.loading();
-      ProjectsService.getCurrentProject().done(function(currentProject) {
+    $scope.currentProject = null;
+    ProjectsService.getCurrentProject().done(function(currentProject){
+      if (currentProject){
         $scope.currentProject = currentProject;
-        $scope.update();
+        $scope.todolist = new Todos.TodoList($scope.currentProject, {archived: $scope.is_archived});
+        title("Todos", $scope.currentProject);
+        $scope.update(true);
         $scope.$$phase || $scope.$apply();
-      }).fail(function(xhr) {
-        toast.error("Failed to get project info", xhr.status);
-      });
+      } else {
+        window.notLoaded();
+      }
+    });
+  }]);
 
-    }]
-  );
+  module.controller("SingleTodoController", ["$scope", "$route", "$location", "toast", "title", "Todos", "ProjectsService", function($scope, $route, $location, toast, title, Todos, ProjectsService) {
+    $scope.currentProject = null;
+    $scope.todo = null;
+    $scope.hideCommentLink = true;
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
+
+    var removed = function(e, todo_key) {
+      $location.path("/projects/" + $scope.currentProject.key + "/todos");
+      $location.replace();
+    };
+    $scope.$on("deleted", removed);
+    $scope.$on("archived", removed);
+
+    var refresh_comments = function() {
+      $scope.comments = $scope.todo.data.children;
+      $scope.commentsParent = $scope.todo;
+    };
+
+    $scope.$on("saved", function(e, new_todo) {
+      var archived = false;
+      if (new_todo.archived) {
+        archived = new_todo.archived;
+        delete new_todo.archived;
+      }
+
+      $scope.todo = new Todos.TodoItem(new_todo.key, $scope.currentProject, new_todo, archived);
+      refresh_comments();
+    });
+
+    $scope.update = function() {
+      $scope.todo = new Todos.TodoItem($route.current.params.todoId, $scope.currentProject, undefined, $scope.is_archived);
+      var req = $scope.todo.refresh();
+      var success = function() {
+        toast.loaded();
+        refresh_comments();
+        toggleTodo($scope.todo, "open", true);
+      };
+      var error = function(data, status) {
+        toast.error("Failed to load todos", status);
+      };
+
+      req.then(success, error);
+    };
+
+    ProjectsService.getCurrentProject().done(function(currentProject) {
+      $scope.currentProject = currentProject;
+      $scope.update();
+      $scope.$$phase || $scope.$apply();
+    }).fail(function(xhr) {
+      toast.error("Failed to get project info", xhr.status);
+    });
+  }]);
 })();

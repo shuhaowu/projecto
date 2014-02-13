@@ -21,15 +21,18 @@ import werkzeug.utils
 
 from settings import DATABASES, RIAK_NODES
 
+
 class BaseDocument(Document):
   _backend = riak_backend
 
 rc = riak.RiakClient(protocol="pbc", nodes=RIAK_NODES)
 
+
 class Signup(BaseDocument):
   _riak_options = {"bucket": rc.bucket(DATABASES["signups"])}
 
   date = DateTimeProperty()
+
 
 class User(BaseDocument, UserMixin):
   _riak_options = {"bucket": rc.bucket(DATABASES["users"])}
@@ -55,6 +58,7 @@ class User(BaseDocument, UserMixin):
   def get_id(self):
     return self.key
 
+
 class Project(BaseDocument):
   _riak_options = {"bucket": rc.bucket(DATABASES["projects"])}
 
@@ -66,10 +70,11 @@ class Project(BaseDocument):
   unregistered_owners = ListProperty(index=True)
   unregistered_collaborators = ListProperty(index=True) # These are users that have not registered onto projecto
 
+
 class Content(EmDocument):
   title = StringProperty()
   content = StringProperty()
-  author = ReferenceProperty(User, index=True)
+  author = ReferenceProperty(User, index=True, load_on_demand=True)
   date = DateTimeProperty()
   parent = StringProperty(index=True)
 
@@ -87,16 +92,18 @@ class Content(EmDocument):
       item["children"] = list(Comment.index_keys_only("parent", self.key))
     return item
 
+
 class ArchivedFeedItem(BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["archived_feed"])}
 
-  parent = ReferenceProperty(Project, index=True)
+  parent = ReferenceProperty(Project, index=True, load_on_demand=True)
   type = StringProperty()
+
 
 class FeedItem(BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["feed"])}
 
-  parent = ReferenceProperty(Project, index=True)
+  parent = ReferenceProperty(Project, index=True, load_on_demand=True)
   type = StringProperty()
 
   def archive(self):
@@ -112,6 +119,7 @@ class FeedItem(BaseDocument, Content):
 
     return Document.delete(self, *args, **kwargs)
 
+
 class Comment(BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["comments"])}
 
@@ -119,8 +127,8 @@ class Comment(BaseDocument, Content):
 class Todo(BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["todos"])}
 
-  parent = ReferenceProperty(Project, index=True)
-  assigned = ReferenceProperty(User, index=True)
+  parent = ReferenceProperty(Project, index=True, load_on_demand=True)
+  assigned = ReferenceProperty(User, index=True, load_on_demand=True)
   due = DateTimeProperty(default=lambda: None)
   tags = ListProperty(index=True)
   done = BooleanProperty(default=False)
@@ -129,7 +137,20 @@ class Todo(BaseDocument, Content):
   # For this, to avoid things like spaces in the name, we use the md5 of the name.
   milestone = StringProperty(index=True)
 
-class CannotMoveToDestination(IOError): pass
+  def archive(self):
+    archived_item = ArchivedTodo(key=self.key, data=self)
+    archived_item.save()
+    self.delete()
+    return archived_item
+
+
+class ArchivedTodo(Todo):
+  _riak_options = {"bucket": rc.bucket(DATABASES["archived_todos"])}
+
+
+class CannotMoveToDestination(IOError):
+  pass
+
 
 class File(BaseDocument):
   _riak_options = {"bucket": rc.bucket(DATABASES["files"])}
@@ -140,9 +161,9 @@ class File(BaseDocument):
   # This must be set by some initialization!
   FILES_FOLDER = None
 
-  author = ReferenceProperty(User)
+  author = ReferenceProperty(User, load_on_demand=True)
   date = DateTimeProperty(default=lambda: None)
-  project = ReferenceProperty(Project)
+  project = ReferenceProperty(Project, load_on_demand=True)
 
   def __init__(self, key=None, *args, **kwargs):
     if not key:
@@ -217,7 +238,7 @@ class File(BaseDocument):
   def _ensure_base_dir_exists(self, fspath):
     if not fspath.startswith("/"):
       raise ValueError("Ensuring base dir only works on absolute path!")
-    fspath = fspath.rstrip("/").rsplit("/", 1);
+    fspath = fspath.rstrip("/").rsplit("/", 1)
     fspath = fspath[0] + "/"
     return fspath.endswith(self.project.key + "/") or os.path.exists(fspath)
 

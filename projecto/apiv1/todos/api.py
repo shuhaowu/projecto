@@ -2,12 +2,12 @@ from __future__ import absolute_import
 
 import math
 
-from flask import request, abort
+from flask import request, abort, Response
 from flask.ext.login import current_user
 from kvkit import NotFoundError
 
 from ..hacks import Blueprint
-from ...models import Todo
+from ...models import Todo, ArchivedTodo
 from ...utils import ensure_good_request, project_access_required, jsonify, markdown_to_db
 
 blueprint = Blueprint("api_v1_todos", __name__,
@@ -23,6 +23,7 @@ meta = {
 @project_access_required
 @ensure_good_request({"title"}, {"title", "content", "assigned", "due", "tags"})
 def post(project):
+  # Post does not get archived..
   todo = Todo(data=request.json)
 
   if todo.content:
@@ -41,6 +42,7 @@ def post(project):
 @project_access_required
 @ensure_good_request(set(), {"title", "content", "assigned", "due", "tags"})
 def put(project, id):
+  # Cannot edit archived todos
   try:
     todo = Todo.get(id)
     if todo.parent.key != project.key:
@@ -69,9 +71,18 @@ def put(project, id):
   todo.save()
   return jsonify(**todo.serialize_for_client())
 
+
 @blueprint.route("/", methods=["GET"])
 @project_access_required
 def index(project):
+  archived = request.args.get("archived", "0") == "1"
+  if archived:
+    l = ArchivedTodo.index("parent", project.key)
+    showdone = True
+  else:
+    l = Todo.index("parent", project.key)
+    showdone = request.args.get("showdone", "0") == 1
+
   try:
     amount = min(int(request.args.get("amount", 20)), 100)
     page = int(request.args.get("page", 1)) - 1
@@ -79,11 +90,10 @@ def index(project):
     return abort(400)
 
   todos = []
-  showdone = request.args.get("showdone", "0")
 
   # TODO: Lists through everything. Is very slow.
-  for todo in Todo.index("parent", project.key):
-    if showdone == "0" and todo.done:
+  for todo in l:
+    if not showdone and todo.done:
       continue
 
     todos.append(todo.serialize_for_client(include_comments="keys"))
@@ -142,23 +152,34 @@ def filter(project):
 @blueprint.route("/<id>", methods=["DELETE"])
 @project_access_required
 def delete(project, id):
+  archived = request.args.get("archived") == "1"
+  todocls = ArchivedTodo if archived else Todo
   try:
-    todo = Todo.get(id)
+    todo = todocls.get(id)
     if todo.parent.key != project.key:
       raise NotFoundError
   except NotFoundError:
     return abort(404)
 
-  todo.delete()
+  if request.args.get("really", "0") == "1":
+    todo.delete()
+  else:
+    if archived:
+      return Response(status=304)
+    todo.archive()
+
   return jsonify(status="okay")
 
 
 @blueprint.route("/done", methods=["DELETE"])
 @project_access_required
 def clear_done(project):
+  # No option to get archived.
+  # is very slow.
+  # TODO: fix slowness.
   for todo in Todo.index("parent", project.key):
     if todo.done:
-      todo.delete()
+      todo.archive()
 
   return jsonify(status="okay")
 
@@ -166,8 +187,10 @@ def clear_done(project):
 @blueprint.route("/<id>", methods=["GET"])
 @project_access_required
 def get(project, id):
+  archived = request.args.get("archived", "0") == "1"
+  todocls = ArchivedTodo if archived else Todo
   try:
-    todo = Todo.get(id)
+    todo = todocls.get(id)
     if todo.parent.key != project.key:
       raise NotFoundError
   except NotFoundError:
@@ -180,8 +203,10 @@ def get(project, id):
 @project_access_required
 @ensure_good_request({"done"}, {"done"})
 def markdone(project, id):
+  archived = request.args.get("archived", "0") == "1"
+  todocls = ArchivedTodo if archived else Todo
   try:
-    todo = Todo.get(id)
+    todo = todocls.get(id)
     if todo.parent.key != project.key:
       raise NotFoundError
   except NotFoundError:
@@ -196,7 +221,10 @@ def markdone(project, id):
 @blueprint.route("/tags/", methods=["GET"])
 @project_access_required
 def list_tags(project):
-  todos = Todo.index("parent", project.key)
+  archived = request.args.get("archived", "0") == "1"
+  todocls = ArchivedTodo if archived else Todo
+
+  todos = todocls.index("parent", project.key)
   tags = set()
   for todo in todos:
     if todo.tags:

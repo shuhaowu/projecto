@@ -3,36 +3,39 @@
 
     <!-- Top buttons -->
     <div class="right">
-      <a href="" ng-click="clearDone()" class="small secondary button" ng-show="showdone">Clear Done</a>
-      <a href="" ng-click="expandTodos($event)" class="small secondary button">Expand All</a>
-      <a href="" ng-click="newTodo()" class="small success button" id="todos-new-todo-btn">New Todo</a>
+      <a href="" ng-click="clear_done()" class="small secondary button" ng-show="!is_archived && showdone">Archive Done</a>
+      <a href="" ng-click="expand_todos()" class="small secondary button" ng-hide="all_expanded">Expand All</a>
+      <a href="" ng-click="collapse_todos()" class="small secondary button" ng-show="all_expanded">Close All</a>
+      <a href="" ng-click="new_todo()" class="small success button" id="todos-new-todo-btn" ng-hide="newtodo || is_archived">New Todo</a>
+      <a href="" ng-click="cancel_new_todo()" class="small success button" ng-show="newtodo">Cancel</a>
     </div>
-    <a href="#/projects/{[ currentProject.key ]}/todos/" class="small secondary button">All Todos</a>
+    <a href="#/projects/{[ currentProject.key ]}/todos/" class="small button" ng-class="{secondary: is_archived}">Active Todos</a>
+    <a href="#/projects/{[ currentProject.key ]}/archived_todos/" class="small button" ng-class="{secondary: !is_archived}">Archived Todos</a>
     <!--
     <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a> -->
 
     <!-- "New Todo" form -->
     <div class="panel" id="todos-new-todo">
 
-      <form ng-submit="createTodo()">
+      <form ng-submit="create_todo()">
         <div class="row">
           <div class="large-12 columns">
             <label>Todo title</label>
-            <input type="text" ng-model="newtodoitem.title" placeholder="Title for the todo" />
+            <input type="text" ng-model="newtodo.data.title" placeholder="Title for the todo" />
           </div>
         </div>
 
         <div class="row">
           <div class="large-12 columns">
             <label>Description</label>
-            <textarea ng-model="newtodoitem.content" placeholder="A short description for the todo" ></textarea>
+            <textarea ng-model="newtodo.data.content" placeholder="A short description for the todo" ></textarea>
           </div>
         </div>
 
         <div class="row">
           <div class="large-12 columns">
             <label>Tags</label>
-            <input type="text" ng-model="newtodoitem.tags" placeholder="Tags (comma separated list)" />
+            <input type="text" ng-model="newtodo.data.tags" placeholder="Tags (comma separated list)" />
           </div>
         </div>
 
@@ -49,50 +52,76 @@
   <!-- Filter panel -->
   <div class="large-3 columns">
     <div class="panel">
-      <h6>Filter</h6>
-      <form class="custom" ng-repeat="tag in tags">
-        <span class="custom checkbox todos-filter-box" ng-class="{checked: tagsFiltered[tag]}" ng-click="checkTagFilter(tag)"></span> {[ tag ]} <span ng-show="tag == ' '">No tag</span>
-      </form>
-      <hr />
-      <form class="custom">
-        <span class="custom checkbox todos-filter-box" ng-class="{checked: showdone == '1'}" ng-click="checkShowFilter('showdone')"></span> Show Completed
-      </form>
-      <form class="custom">
-        <span class="custom checkbox todos-filter-box" ng-class="{checked: shownotdone == '1'}" ng-click="checkShowFilter('shownotdone')"></span> Show not Done
-      </form>
-      <hr />
-      <p>Number of Todos: {[ totalTodos ]}</p>
+      <div ng-hide="is_archived">
+        <h6>Filter</h6>
+        <form class="custom" ng-repeat="tag in todolist.tags">
+          <span class="custom checkbox todos-filter-box" ng-class="{checked: todolist.isTagFiltered(tag)}" ng-click="toggle_filter_tag(tag)"></span> {[ tag ]} <span ng-show="tag == ' '">No tag</span>
+        </form>
+        <hr />
+        <form class="custom">
+          <span class="custom checkbox todos-filter-box" ng-class="{checked: todolist.showdone}" ng-click="toggle_show_done()"></span> Show Completed
+        </form>
+        <form class="custom">
+          <span class="custom checkbox todos-filter-box" ng-class="{checked: todolist.shownotdone}" ng-click="toggle_show_notdone()"></span> Show not Done
+        </form>
+        <hr />
+      </div>
+      <p>Number of Todos: {[ todolist.totalTodos ]}</p>
     </div>
   </div>
 
   <!-- Todo list -->
   <div class="large-9 columns">
-    <div ng-repeat="todo in todos">
+    <div ng-repeat="todo in todolist_for_template">
       <ng-include src="'/static/todos/partials/todoitem.html'"></ng-include>
     </div>
 
-    <div class="panel" ng-show="todos.length == 0">
+    <div class="panel" ng-show="todolist.todos.length() == 0">
       <p>No todo items. Hurray!</p>
     </div>
 
-
     <!-- Pagination -->
-    <ul class="pagination right" ng-show="1 < totalPages && totalPages < 9">
-      <li ng-repeat="i in pages" ng-class="{current: i == currentPage}"><a href="" ng-click="goToPage({[i]})">{[ i ]}</a></li>
+    <ul class="pagination right" ng-show="1 < todolist.totalPages && todolist.totalPages < 9">
+      <li ng-repeat="i in range(9)" ng-class="{current: i == todolist.currentPage}">
+        <a href="" ng-click="goto(i)">{[ i ]}</a>
+      </li>
     </ul>
 
-    <ul class="pagination right" ng-show="totalPages >= 9">
-      <li ng-class="{current: currentPage == 1}"><a href="" ng-click="goToPage(1)">1</a></li>
-      <li ng-class="{current: currentPage == 2}"><a href="" ng-click="goToPage(2)">2</a></li>
-      <li ng-show="currentPage == 2"><a href="" ng-click="goToPage(3)">3</a></li>
-      <li class="unavailable" ng-hide="currentPage == 3 || currentPage == 4">&hellip;</li>
-      <li ng-show="3 < currentPage && currentPage < totalPages-1"><a href="" ng-click="goToPage({[ currentPage-1 ]})">{[ currentPage-1 ]}</a></li>
-      <li ng-show="2 < currentPage && currentPage < totalPages-1" class="current"><a href="" ng-click="goToPage({[ currentPage ]})">{[ currentPage ]}</a></li>
-      <li ng-show="2 < currentPage && currentPage < totalPages-2"><a href="" ng-click="goToPage({[ currentPage+1 ]})">{[ currentPage+1 ]}</a></li>
-      <li class="unavailable" ng-hide="currentPage >= totalPages-3 || currentPage <= 2">&hellip;</li>
-      <li ng-show="currentPage == totalPages-1"><a href="" ng-click="goToPage({[ totalPages-2 ]})">{[ totalPages-2 ]}</a></li>
-      <li ng-class="{current: currentPage == totalPages-1}"><a href="" ng-click="goToPage({[ totalPages-1 ]})">{[ totalPages-1 ]}</a></li>
-      <li ng-class="{current: currentPage == totalPages}"><a href="" ng-click="goToPage({[ totalPages ]})">{[ totalPages ]}</a></li>
+    <ul class="pagination right" ng-show="todolist.totalPage >= 9">
+      <li ng-class="{current: todolist.currentPage == 1}">
+        <a href="" ng-click="goto(1)">1</a>
+      </li>
+      <li ng-class="{current: todolist.currentPage == 2}">
+        <a href="" ng-click="goto(2)">2</a>
+      </li>
+
+      <li ng-show="todolist.currentPage == 2">
+        <a href="" ng-click="goto(3)">3</a>
+      </li>
+
+      <li class="unavailable" ng-hide="todolist.currentPage == 3 || todolist.currentPage == 4">&hellip;</li>
+
+      <li ng-show="3 < todolist.currentPage && todolist.currentPage < todolist.totalPages-1">
+        <a href="" ng-click="goto(todolist.currentPage-1)">{[ todolist.currentPage-1 ]}</a>
+      </li>
+
+      <li ng-show="2 < todolist.currentPage && todolist.currentPage < todolist.totalPages-1" class="current">
+        <a href="" ng-click="goto(todolist.currentPage)">{[ todolist.currentPage ]}</a>
+      </li>
+
+      <li ng-show="2 < todolist.currentPage && todolist.currentPage < todolist.totalPages-2">
+        <a href="" ng-click="goto(todolist.currentPage+1)">{[ todolist.currentPage+1 ]}</a>
+      </li>
+
+      <li class="unavailable" ng-hide="todolist.currentPage >= todolist.totalPages-3 || todolist.currentPage <= 2">&hellip;</li>
+
+      <li ng-show="todolist.currentPage == todolist.totalPages-1">
+        <a href="" ng-click="goto(todolist.totalPages-1)">{[ todolist.totalPages-1 ]}</a>
+      </li>
+
+      <li ng-class="{current: todolist.currentPage == todolist.totalPages}">
+        <a href="" ng-click="goto(todolist.totalPages)">{[ todolist.totalPages ]}</a>
+      </li>
     </ul>
   </div>
 </div>
