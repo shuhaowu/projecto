@@ -390,7 +390,7 @@
       var success = function() {
         toast.loaded();
         refresh_comments();
-        toggleTodo($scope.todo);
+        toggleTodo($scope.todo, "open", true);
       };
       var error = function(data, status) {
         toast.error("Failed to load todos", status);
