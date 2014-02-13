@@ -9,7 +9,8 @@
       <a href="" ng-click="new_todo()" class="small success button" id="todos-new-todo-btn" ng-hide="newtodo">New Todo</a>
       <a href="" ng-click="cancel_new_todo()" class="small success button" ng-show="newtodo">Cancel</a>
     </div>
-    <a href="#/projects/{[ currentProject.key ]}/todos/" class="small secondary button">All Todos</a>
+    <a href="#/projects/{[ currentProject.key ]}/todos/" class="small button" ng-class="{secondary: is_archived}">Active Todos</a>
+    <a href="#/projects/{[ currentProject.key ]}/archived_todos/" class="small button" ng-class="{secondary: !is_archived}">Archived Todos</a>
     <!--
     <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a> -->
 

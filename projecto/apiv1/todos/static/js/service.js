@@ -183,23 +183,21 @@
 
     TodoItem.prototype.done = function() {
       var deferred = $q.defer();
-      if (!this.archived) {
-        if (!this.key) {
-          throw "Cannot mark done items that are not saved.";
-        } else {
-          var todo = this.serialize();
-          var req = TodosService.markDone(this.project, todo, this.archived);
-          var that = this;
+      if (!this.key) {
+        throw "Cannot mark done items that are not saved.";
+      } else {
+        var todo = this.serialize();
+        var req = TodosService.markDone(this.project, todo, this.archived);
+        var that = this;
 
-          req.success(function(data) {
-            that.data.done = !that.data.done;
-            deferred.resolve(data);
-          });
+        req.success(function(data) {
+          that.data.done = !that.data.done;
+          deferred.resolve(data);
+        });
 
-          req.error(function(data, status) {
-            deferred.reject(data, status);
-          });
-        }
+        req.error(function(data, status) {
+          deferred.reject(data, status);
+        });
       }
       return deferred.promise;
     };

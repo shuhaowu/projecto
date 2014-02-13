@@ -56,6 +56,7 @@
   module.controller("TodoItemController", ["$scope", "$window", "$timeout", "$filter", "$location", "toast", "Todos", function($scope, $window, $timeout, $filter, $location, toast, Todos) {
     $scope.todoDraft = null;
     $scope.displayed = false;
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
 
     $scope.toggleTodo = function(todo, event) {
       event.preventDefault();
@@ -165,11 +166,12 @@
     }, 0);
   }]);
 
-  module.controller("TodosController", ["$scope", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $window, toast, title, Todos, ProjectsService) {
+  module.controller("TodosController", ["$scope", "$location", "$window", "toast", "title", "Todos", "ProjectsService", function($scope, $location, $window, toast, title, Todos, ProjectsService) {
     $scope.newtodo = null;
     $scope.todolist = null;
     $scope.todolist_for_template = null;
     $scope.all_expanded = false;
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
 
     var regenerate_list_for_template = function() {
       $scope.todolist_for_template = $scope.todolist.todos.values();
@@ -258,7 +260,7 @@
     };
 
     $scope.new_todo = function() {
-      $scope.newtodo = new Todos.TodoItem(undefined, $scope.currentProject);
+      $scope.newtodo = new Todos.TodoItem(undefined, $scope.currentProject, undefined, $scope.is_archived);
       $("#todos-new-todo").slideDown();
     };
 
@@ -343,7 +345,7 @@
     ProjectsService.getCurrentProject().done(function(currentProject){
       if (currentProject){
         $scope.currentProject = currentProject;
-        $scope.todolist = new Todos.TodoList($scope.currentProject);
+        $scope.todolist = new Todos.TodoList($scope.currentProject, {archived: $scope.is_archived});
         title("Todos", $scope.currentProject);
         $scope.update(true);
         $scope.$$phase || $scope.$apply();
@@ -357,6 +359,7 @@
     $scope.currentProject = null;
     $scope.todo = null;
     $scope.hideCommentLink = true;
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
 
     var removed = function(e, todo_key) {
       $location.path("/projects/" + $scope.currentProject.key + "/todos");
@@ -382,7 +385,7 @@
     });
 
     $scope.update = function() {
-      $scope.todo = new Todos.TodoItem($route.current.params.todoId, $scope.currentProject);
+      $scope.todo = new Todos.TodoItem($route.current.params.todoId, $scope.currentProject, undefined, $scope.is_archived);
       var req = $scope.todo.refresh();
       var success = function() {
         toast.loaded();
