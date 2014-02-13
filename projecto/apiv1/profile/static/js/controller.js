@@ -27,18 +27,19 @@
                 editLink.text("Saving...");
                 // Change name will take care of changing rootScope and window.currentUser
 
-                ProfileService.changeName(newName).done(function() {
-                  scope.$apply(function(){
-                    scope.user.name = newName;
-                    title(scope.user.name);
-                  });
+                var req = ProfileService.change_name(newName);
+                req.success(function() {
+                  scope.user.name = newName;
+                  title(scope.user.name);
 
-                  $("#profile-name", iElement).attr("content-editable", "false").off("keypress");
+                  $("#profile-name", iElement).attr("contenteditable", "false").off("keypress");
                   editLink.text("Change");
                   $("#profile-name-edit-cancel", iElement).hide();
                   $("#name-change-alert").remove();
-                }).fail(function(xhr) {
-                  toast.error("Failed to change name", xhr.status);
+                });
+
+                req.error(function(data, status) {
+                  toast.error("Failed to change name", status);
                   editLink.text("Save");
                 });
               }

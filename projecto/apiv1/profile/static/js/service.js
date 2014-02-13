@@ -1,22 +1,21 @@
 "use strict";
 
 (function(){
-  angular.module("projecto").service("ProfileService", ["$rootScope", function($rootScope){
-    var profileAPIPrefix = window.API_PREFIX + "/profile";
+  angular.module("projecto").service("ProfileService", ["$rootScope", "$http", function($rootScope, $http){
+    var apiUrl = window.API_PREFIX + "/profile";
 
-    this.changeName = function(newName) {
-      return $.ajax({
-        type: "POST",
-        url: profileAPIPrefix + "/changename",
-        dataType: "json",
-        contentType: "application/json",
-        data: JSON.stringify({name: newName})
-      }).done(function(data){
-        $rootScope.$apply(function(){
-          $rootScope.currentUser.name = newName;
-        });
-        window.currentUser.name = newName;
+    this.change_name = function(new_name) {
+      var req = $http({
+        method: "POST",
+        url: apiUrl + "/changename",
+        data: {name: new_name}
       });
+
+      req.success(function(data) {
+        $rootScope.currentUser.name = new_name;
+        window.currentUser.name = new_name;
+      });
+      return req;
     };
   }]
   );
