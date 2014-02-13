@@ -14,3 +14,5 @@ Documentation available [here][docs]
 [docs]: http://projecto.readthedocs.org/en/latest/
 
 There's is an **outdated** staging site available at http://getprojecto.ml. Once we figure out deployment this should be automated with a webhook from here
+
+[![Build Status](https://travis-ci.org/shuhaowu/projecto.png)](https://travis-ci.org/shuhaowu/projecto)
