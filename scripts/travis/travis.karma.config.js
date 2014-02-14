@@ -14,16 +14,16 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'static/js/vendor/jquery-1.9.1.min.js',
-      'static/js/foundation.min.js',
-      'static/js/vendor/statusmsg.js',
-      'tests/jstests/testinit.js', // initialize the statusmsg stuff.
-      'static/js/vendor/angular.min.js',
-      'tests/jstests/angular-mocks.js',
-      'static/js/develop/**/*.js',
-      'projecto/apiv1/**/static/js/*.js',
-      'projecto/apiv1/**/jstests/*.js',
-      'tests/jstests/others/**/*.js'
+      '../../static/js/vendor/jquery-1.9.1.min.js',
+      '../../static/js/foundation.min.js',
+      '../../static/js/vendor/statusmsg.js',
+      '../../tests/jstests/testinit.js', // initialize the statusmsg stuff.
+      '../../static/js/vendor/angular.min.js',
+      '../../tests/jstests/angular-mocks.js',
+      '../../static/js/develop/**/*.js',
+      '../../projecto/apiv1/**/static/js/*.js',
+      '../../projecto/apiv1/**/jstests/*.js',
+      '../../tests/jstests/others/**/*.js'
     ],
 
 

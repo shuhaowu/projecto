@@ -5,6 +5,6 @@ env:
   - TESTING=1
 
 install:
-  - "bash ./travis/setup.sh"
+  - "bash ./scripts/travis/setup.sh"
 
-script: "./travis/test.sh"
+script: "./scripts/travis/test.sh"
