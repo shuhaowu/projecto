@@ -19,7 +19,7 @@ apt-get install -y nodejs git subversion
 # Getting convenient packages
 apt-get install -y nginx
 
-cp /projecto/vagrant/app.config /etc/riak/app.config
+cp /projecto/scripts/vagrant/app.config /etc/riak/app.config
 riak start
 
 # Install pip

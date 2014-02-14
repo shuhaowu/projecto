@@ -3,7 +3,7 @@
 sudo add-apt-repository -y ppa:chris-lea/node.js
 sudo apt-get update
 sudo apt-get install -y riak nodejs
-sudo cp vagrant/app.config /etc/riak/app.config
+sudo cp scripts/vagrant/app.config /etc/riak/app.config
 sudo service riak start
 
 mkdir -p userfiles
