@@ -47,7 +47,7 @@ def licenses():
   return render_template("licenses.html")
 
 
-@app.route("/app")
+@app.route("/app/")
 def mainapp():
   if not current_user.is_authenticated():
     return redirect(url_for("main"))

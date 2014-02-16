@@ -49,7 +49,7 @@ $(function () {
         data: {assertion: assertion},
         success: function (res, status, xhr) {
           var l = window.location.pathname.length;
-          window.location.href = "/app";
+          window.location.href = "/app/";
         },
         error: function (xhr, status, err) {
           navigator.id.logout();
