@@ -9,7 +9,7 @@ sudo service riak start
 mkdir -p userfiles
 
 pip install -r requirements.txt
-sudo npm install -g karma karma-cli
+sudo npm install -g karma karma-cli karma-jasmine
 
 cat >settings_local.py <<EOL
 DEBUG = True
