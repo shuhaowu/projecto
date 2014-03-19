@@ -82,12 +82,12 @@
 
     <!-- Pagination -->
     <ul class="pagination right" ng-show="1 < todolist.totalPages && todolist.totalPages < 9">
-      <li ng-repeat="i in range(9)" ng-class="{current: i == todolist.currentPage}">
-        <a href="" ng-click="goto(i)">{[ i ]}</a>
+      <li ng-hide="todolist.totalPages <= 1" ng-repeat="i in range(todolist.totalPages)" ng-class="{current: i + 1 == todolist.currentPage}">
+        <a href="" ng-click="goto(i+1)">{[ i + 1 ]}</a>
       </li>
     </ul>
 
-    <ul class="pagination right" ng-show="todolist.totalPage >= 9">
+    <ul class="pagination right" ng-show="todolist.totalPages >= 9">
       <li ng-class="{current: todolist.currentPage == 1}">
         <a href="" ng-click="goto(1)">1</a>
       </li>

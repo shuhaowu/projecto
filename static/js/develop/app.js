@@ -103,6 +103,11 @@
   app.run(["$rootScope", function($rootScope) {
     $rootScope.currentUser = window.currentUser;
     $rootScope.range = function(n) {
+      // To deal with -1 total pages in the beginning.
+      if (n < 0) {
+        return [];
+      }
+
       var a = new Array(n);
       for (var i=0; i<n; i++) {
         a[i] = i;

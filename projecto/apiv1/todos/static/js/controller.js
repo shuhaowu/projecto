@@ -338,7 +338,10 @@
     };
 
     $scope.goto = function(page) {
-      $scope.todolist.gotopage(page);
+      var req = $scope.todolist.gotopage(page);
+      req.then(function() {
+        regenerate_list_for_template();
+      });
     };
 
     $scope.currentProject = null;

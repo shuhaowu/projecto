@@ -343,7 +343,7 @@
 
     TodoList.prototype.gotopage = function(page) {
       this.checkFetched();
-      if (0 <= page && page <= this.totalPages) {
+      if (1 <= page && page <= this.totalPages) {
         this.currentPage = page;
         return this.fetch();
       } else {
