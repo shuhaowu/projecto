@@ -6,7 +6,7 @@ from kvkit import NotFoundError
 
 from .models import User
 from .utils import jsonify
-from settings import STATIC_FOLDER, APP_FOLDER, LOADED_MODULES
+from settings import STATIC_FOLDER, APP_FOLDER, LOADED_MODULES, UGLIFYJS_BIN
 
 login_manager = LoginManager()
 
@@ -79,6 +79,7 @@ def register_assets(app):
   assets.app = app
   assets.auto_build = app.debug
   assets.debug = app.debug
+  assets.config["uglifyjs_bin"] = UGLIFYJS_BIN
   assets.register("js_all", js_all)
   assets.register("css_all", css_all)
   if not app.debug:

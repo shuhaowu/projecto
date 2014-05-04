@@ -52,6 +52,9 @@ LOADED_MODULES = [
   "todos",
 ]
 
+# For production
+UGLIFYJS_BIN = "/usr/local/bin/uglifyjs"
+
 try:
   from settings_local import *
 except ImportError:
