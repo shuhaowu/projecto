@@ -4,7 +4,8 @@ import shutil
 from unittest import TestCase
 import os
 
-from flask.ext.login import test_login_user, test_logout_user
+from flask import request
+from flask.ext.login import login_user, logout_user
 from werkzeug.datastructures import FileStorage
 import riak
 
@@ -22,6 +23,19 @@ import settings
 
 CSRF_SET = False
 
+# For login during testing
+@app.route("/test-login", methods=["POST"])
+def test_login():
+  email = request.form.get("email")
+  user = User.register_or_login(email)
+  login_user(user)
+  return "ok"
+
+@app.route("/test-logout", methods=["POST"])
+def test_logout():
+  logout_user()
+  return "ok"
+
 class FlaskTestCase(TestCase):
   def setUp(self):
     global CSRF_SET
@@ -29,19 +43,18 @@ class FlaskTestCase(TestCase):
     self.app = app
     # Setting this will allow us to stop validating CSRF.
     self.app.config["CSRF_DISABLE"] = True
+    self.app.config["LOGIN_DISABLED"] = False
     if not CSRF_SET:
       csrf.init_app(self.app)
       CSRF_SET = True
     self.client = app.test_client()
     # Sets up a context so the request don't get destroyed during the request
     # for things such as login.
-    self.client.__enter__()
     self.user = self.create_user("test@test.com")
 
   def tearDown(self):
     # We try to logout the user and then end the request context.
     self.logout()
-    self.client.__exit__(None, None, None)
 
   def assertStatus(self, status_code, response):
     self.assertEquals(status_code, response.status_code)
@@ -56,14 +69,13 @@ class FlaskTestCase(TestCase):
 
   def login(self, user=None):
     """Logs in user. If user is none it uses self.user"""
-    test_login_user(self.client, user if user else self.user)
-    self.loggedin = True
+    # Only includes the first email for now
+    user = user if user else self.user
+    self.client.post("/test-login", data={"email": user.emails[0]}, follow_redirects=True)
 
   def logout(self):
     """Logs out currently logged in user"""
-    if self.loggedin:
-      test_logout_user(self.client)
-      self.loggedin = False
+    self.client.post("/test-logout", follow_redirects=True)
 
   def _setup_request(self, kwargs):
     if "content_type" not in kwargs:

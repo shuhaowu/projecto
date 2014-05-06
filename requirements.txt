@@ -1,6 +1,6 @@
 Flask==0.9
 Flask-Assets==0.8
--e git+https://github.com/shuhaowu/flask-login.git@4cd0fb4e5e84146bc967d79cc982660e664ea362#egg=Flask_Login-dev
+Flask-Login==0.2.10
 Flask-SeaSurf==0.1.22
 Jinja2==2.7
 MarkupSafe==0.18
