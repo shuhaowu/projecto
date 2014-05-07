@@ -1,5 +1,5 @@
 Flask==0.10.1
-Flask-Assets==0.9
+-e git+https://github.com/miracle2k/flask-assets.git@5ea49d3bab5dbb8a9ca84069642fda6505423576#egg=flask-assets-dev
 Flask-Login==0.2.10
 Flask-SeaSurf==0.1.22
 Jinja2==2.7.2
@@ -14,5 +14,5 @@ requests==1.2.3
 riak==2.0.2
 riak-pb==1.4.1.1
 ujson==1.33
-webassets==0.9
+-e git+https://github.com/miracle2k/webassets.git@5d7381c797810a6f38efe5ab2fd88bd4d59f75e8#egg=webassets-dev
 wsgiref==0.1.2
