@@ -87,7 +87,7 @@
       if (!project)
         $window.document.title = title + " - Projecto";
       else
-        $window.document.title = title + " · " + project.name + " - Projecto";
+        $window.document.title = title + " \xb7 " + project.name + " - Projecto";
     };
   }]);
 
