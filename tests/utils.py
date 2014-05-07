@@ -44,6 +44,10 @@ class FlaskTestCase(TestCase):
     # Setting this will allow us to stop validating CSRF.
     self.app.config["CSRF_DISABLE"] = True
     self.app.config["LOGIN_DISABLED"] = False
+
+    # See https://github.com/maxcountryman/flask-login/issues/157
+    # Remove when ready.
+    self.app.login_manager._login_disabled = False
     if not CSRF_SET:
       csrf.init_app(self.app)
       CSRF_SET = True

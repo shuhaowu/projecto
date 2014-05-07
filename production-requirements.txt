@@ -1,21 +1,21 @@
 Cython==0.19.1
-Flask==0.9
-Flask-Assets==0.8
+Flask==0.10.1
+Flask-Assets==0.9
 Flask-Login==0.2.10
-Flask-SeaSurf==0.1.16
-Jinja2==2.7
-MarkupSafe==0.18
-Werkzeug==0.8.3
-argparse==1.2.1
+Flask-SeaSurf==0.1.22
+Jinja2==2.7.2
+MarkupSafe==0.21
+Werkzeug==0.9.4
+itsdangerous==0.24
 cssmin==0.1.4
 gevent==1.0.1
 greenlet==0.4.2
--e git+https://github.com/shuhaowu/kvkit.git@0916d71c3aefae6f362a28739f6881d0770926fa#egg=kvkit-master
+-e git+https://github.com/shuhaowu/kvkit.git@4ff5dc98af58e0aaa47d515a4d043f4fc5af629d#egg=kvkit-master
 riak==2.0.2
 riak-pb==1.4.1.1
 protobuf==2.4.1
 misaka==1.0.2
 requests==1.2.3
 ujson==1.33
-webassets==0.8
+webassets==0.9
 wsgiref==0.1.2
