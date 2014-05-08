@@ -4,17 +4,22 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FeedItemController", ["$scope", "$window", "toast", "FeedService", function($scope, $window, toast, FeedService) {
+  module.controller("FeedItemController", ["$scope", "$window", "$location", "toast", "FeedService", function($scope, $window, $location, toast, FeedService) {
     $scope.deletePost = function(post) {
       if ($scope.currentProject) {
         if ($window.confirm("Are you sure you want to delete this post?")) {
           var req = FeedService.delete($scope.currentProject, post);
           req.success(function() {
-            for (var i=0; i<$scope.posts.length; i++) {
-              if ($scope.posts[i].key === post.key) {
-                $scope.posts.splice(i, 1);
-                break;
+            if ($scope.posts) {
+              for (var i=0; i<$scope.posts.length; i++) {
+                if ($scope.posts[i].key === post.key) {
+                  $scope.posts.splice(i, 1);
+                  break;
+                }
               }
+            } else {
+              $location.path("/projects/" + $scope.currentProject.key + "/feed");
+              $location.replace();
             }
           });
           req.error(function(data, status) {

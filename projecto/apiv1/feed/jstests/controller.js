@@ -65,24 +65,26 @@
   });
 
   describe("FeedItemController", function() {
-    var controller, scope, $httpBackend;
+    var controller, scope, $httpBackend, $location;
 
     beforeEach(angular.mock.module("projecto"));
     beforeEach(angular.mock.inject(function($rootScope, $controller, _$httpBackend_) {
       $httpBackend = _$httpBackend_;
 
+      $location = {};
       scope = $rootScope.$new();
       controller = $controller("FeedItemController", {
         $scope: scope,
         $window: commonMocked.$window,
+        $location: $location,
         ProjectsService: commonMocked.ProjectsService
       });
 
       scope.currentProject = {key: projectKey};
-      scope.posts = [postItem];
     }));
 
-    it("should delete feed item", function() {
+    it("should delete feed item in context of a feed", function() {
+      scope.posts = [postItem];
       $httpBackend.when("DELETE", deleteUrl).respond({status: "okay"});
       scope.deletePost(postItem);
 
@@ -90,6 +92,19 @@
       $httpBackend.flush();
 
       expect(scope.posts.length).toBe(0);
+    });
+
+    it("should delete feed item in context of single view", function() {
+      $location.path = jasmine.createSpy();
+      $location.replace = jasmine.createSpy();
+      delete scope.posts;
+
+      $httpBackend.expectDELETE(deleteUrl).respond({status: "okay"});
+      scope.deletePost(postItem);
+
+      $httpBackend.flush();
+      expect($location.path).toHaveBeenCalledWith("/projects/" + projectKey + "/feed");
+      expect($location.replace).toHaveBeenCalled();
     });
   });
 
