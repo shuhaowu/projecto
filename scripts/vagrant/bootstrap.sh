@@ -47,6 +47,7 @@ server {
     access_log  off;
     error_log off;
 
+
     location / {
         proxy_pass         http://127.0.0.1:8800/;
         proxy_redirect     off;
@@ -56,8 +57,8 @@ server {
         proxy_set_header   X-Forwarded-For  \$proxy_add_x_forwarded_for;
         proxy_max_temp_file_size 0;
 
-        client_max_body_size       10m;
         client_body_buffer_size    128k;
+        client_max_body_size       20m;
 
         proxy_connect_timeout      150;
         proxy_send_timeout         150;

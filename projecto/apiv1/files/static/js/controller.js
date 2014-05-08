@@ -64,6 +64,9 @@
             message = data.error;
           } else {
             message = status;
+            if (message === 413) {
+              message = "file is too large";
+            }
           }
           toast.error("Failed to upload file", message)
           resetFileUploads();
