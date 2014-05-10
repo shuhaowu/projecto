@@ -29,6 +29,8 @@ File.FILES_FOLDER = app.config["FILES_FOLDER"]
 def before_request():
   app.jinja_env.globals["partials"] = partials()
   app.jinja_env.globals["SERVER_MODE"] = app.config["SERVER_MODE"]
+  app.jinja_env.globals["GOOGLE_ANALYTICS_DOMAIN"] = app.config["GOOGLE_ANALYTICS_DOMAIN"]
+  app.jinja_env.globals["GOOGLE_ANALYTICS_ID"] = app.config["GOOGLE_ANALYTICS_ID"]
 
 
 # Here are just the pages.

@@ -52,8 +52,11 @@ LOADED_MODULES = [
   "todos",
 ]
 
+GOOGLE_ANALYTICS_ID = ""
+GOOGLE_ANALYTICS_DOMAIN = ""
+
 # For production
-UGLIFYJS_BIN = "/usr/local/bin/uglifyjs"
+UGLIFYJS_BIN = "uglifyjs"
 
 try:
   from settings_local import *
