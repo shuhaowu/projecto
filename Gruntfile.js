@@ -63,6 +63,17 @@ module.exports = function(grunt) {
       unit: {
         configFile: "karma.config.js",
         background: true
+      },
+      produnit: {
+        configFile: "ci-karma.config.js"
+      }
+    },
+    uglify: {
+      prod: {
+        files: {
+          "prod_static/js/app.min.js": JS_SOURCES,
+          "prod_static/js/login.min.js": LOGIN_JS
+        }
       }
     },
     watch: {
@@ -70,12 +81,14 @@ module.exports = function(grunt) {
         files: ALL_JS_SOURCES,
         tasks: ["karma:unit:run", "jshint"]
       }
-    }
+    },
   });
 
   grunt.loadNpmTasks("grunt-contrib-jshint");
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
 
   grunt.registerTask("default", ["jshint", "karma:unit:start", "watch"]);
+  grunt.registerTask("prod", ["uglify:prod", "karma:produnit"])
 };
