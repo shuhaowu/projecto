@@ -8,4 +8,5 @@ static/.webassets-cache/
 docs/_build
 test_userfiles
 userfiles/
+deploy/
 
