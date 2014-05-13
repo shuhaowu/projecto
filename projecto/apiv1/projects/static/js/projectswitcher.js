@@ -2,7 +2,7 @@
 
 (function() {
   angular.module("projecto").controller(
-    "ProjectSwitcher", ["$scope", "$location", "toast", "title", "ProjectsService", function($scope, $location, toast, title, ProjectsService) {
+    "ProjectSwitcher", ["$scope", "$location", "$window", "toast", "title", "ProjectsService", function($scope, $location, $window, toast, title, ProjectsService) {
       $scope.projectsOwned = [];
 
       $scope.projectsParticipating = [];
@@ -26,7 +26,7 @@
 
 
       $scope.newProject = function() {
-        var projectName = prompt("Project name");
+        var projectName = $window.prompt("Project name");
         if (!projectName) return;
 
         toast.info("Creating...");

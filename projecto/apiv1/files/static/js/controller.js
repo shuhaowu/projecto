@@ -68,7 +68,7 @@
               message = "file is too large";
             }
           }
-          toast.error("Failed to upload file", message)
+          toast.error("Failed to upload file", message);
           resetFileUploads();
         });
       }
@@ -246,7 +246,7 @@
         });
 
         req.error(function(data, status) {
-          toast.error("Failed to delete file", status)
+          toast.error("Failed to delete file", status);
         });
       }
     };

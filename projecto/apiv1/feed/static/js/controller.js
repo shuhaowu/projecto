@@ -27,7 +27,7 @@
           });
         }
       } else {
-        notLoaded();
+        window.notLoaded();
       }
     };
   }]);
@@ -58,7 +58,7 @@
           if (!$scope.newpost) {
             toast.warn("You cannot post an empty message.");
           } else {
-            notLoaded();
+            window.notLoaded();
           }
         }
       };
@@ -86,7 +86,7 @@
             toast.error("Failed to update feed", status);
           });
         } else {
-          notLoaded();
+          window.notLoaded();
         }
       };
 

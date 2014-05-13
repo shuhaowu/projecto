@@ -8,7 +8,7 @@
   delete author.emails;
 
   var file1 = {author: author, path: "/file1.txt", date: 1388189244.0};
-  var file1url = baseUrl + "?path=%2Ffile1.txt"
+  var file1url = baseUrl + "?path=%2Ffile1.txt";
 
   var dir1 = {author: author, path: "/dir1/", date: 1388189244.0};
   var dir1url = baseUrl + "?path=%2Fdir1%2F";
@@ -93,7 +93,7 @@
       $httpBackend.expectPUT(file1url);
       $httpBackend.flush();
 
-      var blob = testutils.createBlob("file3.txt");
+      blob = testutils.createBlob("file3.txt");
       service.updateFile(project, nested_file.path, blob);
       $httpBackend.expectPUT(nested_file_url);
       $httpBackend.flush();

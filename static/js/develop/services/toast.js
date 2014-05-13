@@ -50,7 +50,7 @@
     // Event should be something like: Posting update failed
     // Reason should be some sort of reason
     this.error = function(event, reason) {
-      if (reason != undefined)
+      if (reason !== undefined)
         $("body").statusmsg("open", event + ": " + reason, {type: "error", closable: true});
       else
         $("body").statusmsg("open", event, {type: "error", closable: true});

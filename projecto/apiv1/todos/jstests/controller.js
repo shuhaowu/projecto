@@ -157,9 +157,6 @@
 
         expect(tododiv.css("display")).toBe("block");
 
-        if (archived)
-          debugger;
-
         scope.toggleTodo(todo, event);
         expect(tododiv.css("display")).toBe("none");
 
@@ -372,7 +369,7 @@
         var key1 = list[1].key;
         var key2 = list[2].key;
         scope.todolist.fetch();
-        var urlpostfix = archived ? "?archived=1" : "filter?page=1&showdone=0&shownotdone=1&tags=+"
+        var urlpostfix = archived ? "?archived=1" : "filter?page=1&showdone=0&shownotdone=1&tags=+";
         $httpBackend.expectGET(baseUrl + urlpostfix).respond({
           todos: list,
           currentPage: 1,
@@ -385,7 +382,7 @@
 
         expect(scope.todolist.todos.length()).toBe(2);
         expect(scope.todolist.totalTodos).toBe(2);
-        var list = scope.todolist.todos.listify();
+        list = scope.todolist.todos.listify();
         expect(list[0].key).toBe(key1);
         expect(list[1].key).toBe(key2);
 
@@ -393,7 +390,7 @@
         expect(scope.todolist.todos.length()).toBe(1);
         expect(scope.todolist.totalTodos).toBe(1);
 
-        var list = scope.todolist.todos.listify();
+        list = scope.todolist.todos.listify();
         expect(list[0].key).toBe(key2);
       });
 
@@ -405,7 +402,7 @@
         }
 
         scope.todolist.fetch();
-        var urlpostfix = archived ? "?archived=1" : "filter?page=1&showdone=0&shownotdone=1&tags=+"
+        var urlpostfix = archived ? "?archived=1" : "filter?page=1&showdone=0&shownotdone=1&tags=+";
         $httpBackend.expectGET(baseUrl + urlpostfix).respond({
           todos: list,
           currentPage: 1,
@@ -422,7 +419,7 @@
         expect(scope.todolist.todos.get(todoKey + 1).data.title).toBe("Modified title!");
         expect(scope.todolist.todos.length()).toBe(3);
 
-        var list = scope.todolist.todos.listify();
+        list = scope.todolist.todos.listify();
         expect(list.length).toBe(3);
         expect(list[1].key).toBe(todoKey + 1);
         expect(list[1].value.data.title).toBe("Modified title!");
@@ -445,8 +442,9 @@
         for (var i=0; i<10; i++) {
           list.push(angular.copy(returnedtododata));
           list[i].tags = ["tag1"];
-          if (i % 3 == 0)
+          if (i % 3 === 0) {
             list[i].tags = ["tag2"];
+          }
 
           list[i].key = list[i].key + i;
         }

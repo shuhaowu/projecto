@@ -61,7 +61,7 @@
           }
           return true;
         }
-      })
+      });
     }));
 
     it("should initialize TodoItem", function() {
@@ -221,7 +221,7 @@
       list = new TodoList(project);
       list.fetch();
 
-      var params = {
+      params = {
         tags: [" "],
         showdone: "0",
         shownotdone: "1",

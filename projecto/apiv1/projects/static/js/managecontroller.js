@@ -5,15 +5,14 @@
     $(document).foundation("section", "reflow");
   }]);
 
-  var promptForAdd = function() {
-    return prompt("Enter an email address:");
-  };
+  angular.module("projecto").controller("ProjectMembershipController", ["$scope", "$window", "title", "toast", "ManageService", "ProjectsService", function($scope, $window, title, toast, ManageService, ProjectsService) {
+    var promptForAdd = function() {
+      return $window.prompt("Enter an email address:");
+    };
 
-  var confirmForDelete = function() {
-    return confirm("Are you sure you want to delete this user?");
-  };
-
-  angular.module("projecto").controller("ProjectMembershipController", ["$scope", "title", "toast", "ManageService", "ProjectsService", function($scope, title, toast, ManageService, ProjectsService) {
+    var confirmForDelete = function() {
+      return $window.confirm("Are you sure you want to delete this user?");
+    };
     $scope.owners = [];
     $scope.collaborators = [];
     $scope.unregisteredOwners = [];

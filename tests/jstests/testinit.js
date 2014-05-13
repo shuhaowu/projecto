@@ -1,3 +1,5 @@
+"use strict";
+
 window.API_PREFIX = "/api/v1";
 window.currentUser = {
     "key": "testuser",
@@ -13,13 +15,13 @@ window.notLoaded = function() {
 };
 
 // Mocked services/factories/whatnot
-var commonMocked = {};
-commonMocked.$window = {
+window.commonMocked = {};
+window.commonMocked.$window = {
   confirm: function(msg) { return true; }
 };
 
 // Fuck yeah. l33thax.
-commonMocked.ProjectsService = {
+window.commonMocked.ProjectsService = {
   getCurrentProject: function() {
     var o = {
       done: function(args) { return o; },
@@ -29,7 +31,7 @@ commonMocked.ProjectsService = {
   }
 };
 
-var testutils = {
+window.testutils = {
   // Get around PhantomJS bug 11013:
   // https://github.com/ariya/phantomjs/issues/11013
   createBlob: function(name) {

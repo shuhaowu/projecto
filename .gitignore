@@ -9,3 +9,5 @@ docs/_build
 test_userfiles
 userfiles/
 
+node_modules/
+prod_static/
