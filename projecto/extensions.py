@@ -6,7 +6,7 @@ from kvkit import NotFoundError
 
 from .models import User
 from .utils import jsonify
-from settings import STATIC_FOLDER, APP_FOLDER, LOADED_MODULES, UGLIFYJS_BIN
+from settings import STATIC_FOLDER, APP_FOLDER, LOADED_MODULES
 
 login_manager = LoginManager()
 
@@ -29,8 +29,9 @@ csrf = SeaSurf()
 
 
 # Assets
-from flask.ext.assets import Environment, Bundle
-assets = Environment()
+# The code here is mainly to automatically discover files.
+# Actual production file building is done via Grunt.
+# Partials, however, is built here.
 
 
 def get_files_from_module(module, type, ext=None, excludes=tuple()):
@@ -48,53 +49,41 @@ def get_files_in_directory(path, ext=None, excludes=[], fname_only=False):
   for root, subdir, filenames in os.walk(os.path.join(STATIC_FOLDER, path)):
     for fname in filenames:
       if (ext is None or fname.endswith(ext)) and fname not in excludes:
-        yield fname if fname_only else root[prefix_length:] + "/" + fname
+        yield fname if fname_only else "/static/" + root[prefix_length:] + "/" + fname
 
 
-_partials = None
-partials = lambda: _partials
-
-
-def register_assets(app):
-  _css_files = ["css/base.css", "css/app.css"]
+def build_css_files(app):
+  css_files = ["/static/css/base.css", "/static/css/app.css"]
   for module in LOADED_MODULES:
     for fname in get_files_from_module(module, "css", "css"):
-      _css_files.append("api_v1_" + module + "/css/" + fname)
+      with app.test_request_context():
+        css_files.append(url_for("api_v1_" + module + ".static", filename="css/" + fname))
 
-  css_all = Bundle(
-      *_css_files,
-      filters="cssmin",
-      output="css/app.min.css"
-  )
+  return css_files
 
-  _js_files = list(get_files_in_directory("js/develop", ".js", excludes=["app.min.js", "app.js"]))
+
+def build_js_files(app):
+  js_files = list(get_files_in_directory("js/develop", ".js", excludes=["app.min.js", "app.js"]))
+  js_files.insert(0, "/static/js/develop/app.js")
   for module in LOADED_MODULES:
     for fname in get_files_from_module(module, "js", "js"):
-      _js_files.append("api_v1_" + module + "/js/" + fname)
+      with app.test_request_context():
+        js_files.append(url_for("api_v1_" + module + ".static", filename="js/" + fname))
 
-  js_all = Bundle("js/develop/app.js", *_js_files, filters="uglifyjs", output="js/app.min.js")
+  return js_files
 
-  assets.init_app(app)
-  # work around bug https://github.com/miracle2k/flask-assets/issues/54
-  assets.app = app
-  assets.auto_build = app.debug
-  assets.debug = app.debug
-  assets.config["uglifyjs_bin"] = UGLIFYJS_BIN
-  assets.register("js_all", js_all)
-  assets.register("css_all", css_all)
-  if not app.debug:
-    partials_template = '<script id="{path}" type="text/ng-template">{content}</script>'
-    global _partials
-    _partials = ""
-    for module in LOADED_MODULES:
-      for fname in get_files_from_module(module, "partials", "html"):
-        # TODO: look at this hack.
-        with app.test_request_context():
-          path = url_for("api_v1_" + module + ".static", filename="partials/" + fname)
 
-        with open(os.path.join(APP_FOLDER, "projecto", "apiv1", module, "static", "partials", fname)) as g:
-          content = g.read()
-        _partials += partials_template.format(path=path, content=content)
+def build_partials(app):
+  partials_template = '<script id="{path}" type="text/ng-template">{content}</script>'
+  partials = ""
+  for module in LOADED_MODULES:
+    for fname in get_files_from_module(module, "partials", "html"):
+      # TODO: look at this hack.
+      with app.test_request_context():
+        path = url_for("api_v1_" + module + ".static", filename="partials/" + fname)
 
-    css_all.build()
-    js_all.build()
+      with open(os.path.join(APP_FOLDER, "projecto", "apiv1", module, "static", "partials", fname)) as g:
+        content = g.read()
+      partials += partials_template.format(path=path, content=content)
+
+  return partials

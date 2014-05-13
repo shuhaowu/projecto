@@ -55,9 +55,6 @@ LOADED_MODULES = [
 GOOGLE_ANALYTICS_ID = ""
 GOOGLE_ANALYTICS_DOMAIN = ""
 
-# For production
-UGLIFYJS_BIN = "uglifyjs"
-
 try:
   from settings_local import *
 except ImportError:
