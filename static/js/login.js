@@ -1,3 +1,4 @@
+"use strict";
 // Persona login script.. and some other bootstrap
 
 window.notLoaded = function() {
@@ -54,7 +55,8 @@ $(function () {
         error: function (xhr, status, err) {
           navigator.id.logout();
           $("#login-persona").text(LOGIN_TEXT);
-          alert("Error: Login failed with status " + xhr.status);
+          window.alert("Error: Login failed with status " + xhr.status);
+
         }
       });
     },

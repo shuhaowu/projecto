@@ -13,12 +13,22 @@ module.exports = function(grunt) {
     "tests/jstests/others/**/*.js"
   ];
 
+  var LOGIN_JS = ["static/js/login.js"];
+
   var ALL_OUR_JS_SOURCES = JS_SOURCES.concat(JS_TEST_SOURCES);
+
+  var VENDOR_JS_SOURCES = [
+    "static/js/vendor/**/*.js",
+    "static/js/foundation.min.js",
+    "tests/jstests/angular-mocks.js"
+  ];
+
+  var ALL_JS_SOURCES = ALL_OUR_JS_SOURCES.concat(LOGIN_JS).concat(VENDOR_JS_SOURCES);
 
   grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
     jshint: {
-      files: ALL_OUR_JS_SOURCES.concat(["Gruntfile.js"]),
+      files: ALL_OUR_JS_SOURCES.concat(["Gruntfile.js"]).concat(LOGIN_JS),
       options: {
         browser: true,
         globalstrict: true,
@@ -48,10 +58,24 @@ module.exports = function(grunt) {
           WebKitBlobBuilder: false
         }
       }
+    },
+    karma: {
+      unit: {
+        configFile: "karma.config.js",
+        background: true
+      }
+    },
+    watch: {
+      jswatch: {
+        files: ALL_JS_SOURCES,
+        tasks: ["karma:unit:run", "jshint"]
+      }
     }
   });
 
   grunt.loadNpmTasks("grunt-contrib-jshint");
+  grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask("default", ["jshint"]);
+  grunt.registerTask("default", ["jshint", "karma:unit:start", "watch"]);
 };
