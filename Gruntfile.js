@@ -25,6 +25,12 @@ module.exports = function(grunt) {
 
   var ALL_JS_SOURCES = ALL_OUR_JS_SOURCES.concat(LOGIN_JS).concat(VENDOR_JS_SOURCES);
 
+  var ALL_CSS_SOURCES = [
+    "static/css/base.css",
+    "static/css/app.css",
+    "projecto/apiv1/**/static/css/*.js"
+  ];
+
   grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
     jshint: {
@@ -76,6 +82,13 @@ module.exports = function(grunt) {
         }
       }
     },
+    cssmin: {
+      prod: {
+        files: {
+          "prod_static/css/app.min.css": ALL_CSS_SOURCES
+        }
+      }
+    },
     watch: {
       jswatch: {
         files: ALL_JS_SOURCES,
@@ -88,7 +101,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
 
   grunt.registerTask("default", ["jshint", "karma:unit:start", "watch"]);
-  grunt.registerTask("prod", ["uglify:prod", "karma:produnit"])
+  grunt.registerTask("prod", ["uglify:prod", "cssmin:prod", "karma:produnit"])
 };
