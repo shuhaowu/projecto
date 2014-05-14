@@ -68,10 +68,6 @@
   </footer>
   <script src="/static/js/vendor/jquery-1.9.1.min.js"></script>
   <script src="/static/js/foundation.min.js"></script>
-  <script>
-    $(document).foundation();
-    $(document).foundation("forms", "off");
-  </script>
   <script src="/static/js/vendor/statusmsg.js"></script>
   <script src="https://login.persona.org/include.js"></script>
   {% if DEBUG %}
@@ -81,6 +77,10 @@
   {% endif %}
   {% block end %}
   {% endblock %}
+  <script>
+    $(document).foundation();
+    $(document).foundation("forms", "off");
+  </script>
 
   {% if GOOGLE_ANALYTICS_ID %}
   <script>

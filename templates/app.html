@@ -69,9 +69,9 @@
 <script src="/static/js/vendor/angular.min.js"></script>
 {% if DEBUG %}
 {% for url in js_files %}
-<script type="text/javascript" src="{{ url }}"></script>
+<script src="{{ url }}"></script>
 {% endfor %}
 {% else %}
-<script type="type/javascript" src="/static/js/app.min.js" />
+<script src="/static/js/app.min.js"></script>
 {% endif %}
 {% endblock %}

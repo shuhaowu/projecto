@@ -11,3 +11,4 @@ userfiles/
 
 node_modules/
 prod_static/
+.DS_Store
