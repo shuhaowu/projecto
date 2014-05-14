@@ -31,6 +31,18 @@ module.exports = function(grunt) {
     "projecto/apiv1/**/static/css/*.css"
   ];
 
+  var PRODSTATIC_PATH = grunt.option("prodstatic_path") || "prod_static";
+  var APP_MIN_JS_PATH = PRODSTATIC_PATH + "/js/app.min.js";
+  var LOGIN_MIN_JS_PATH = PRODSTATIC_PATH + "/js/login.min.js";
+  var APP_MIN_CSS_PATH = PRODSTATIC_PATH + "/css/app.min.css";
+
+  var uglify_files = {};
+  uglify_files[APP_MIN_JS_PATH] = JS_SOURCES
+  uglify_files[LOGIN_MIN_JS_PATH] = LOGIN_JS
+
+  var cssmin_files = {};
+  cssmin_files[APP_MIN_CSS_PATH] = ALL_CSS_SOURCES
+
   grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
     jshint: {
@@ -76,17 +88,12 @@ module.exports = function(grunt) {
     },
     uglify: {
       prod: {
-        files: {
-          "prod_static/js/app.min.js": JS_SOURCES,
-          "prod_static/js/login.min.js": LOGIN_JS
-        }
+        files: uglify_files
       }
     },
     cssmin: {
       prod: {
-        files: {
-          "prod_static/css/app.min.css": ALL_CSS_SOURCES
-        }
+        files: cssmin_files
       }
     },
     copy: {
@@ -95,28 +102,28 @@ module.exports = function(grunt) {
           {
             cwd: "static/fonts/",
             src: "**",
-            dest: "prod_static/fonts/",
+            dest: PRODSTATIC_PATH + "/fonts/",
             flatten: true,
             expand: true
           },
           {
             cwd: "static/img/",
             src: "**",
-            dest: "prod_static/img/",
+            dest: PRODSTATIC_PATH + "/img/",
             flatten: true,
             expand: true
           },
           {
             cwd: "static/js/vendor/",
             src: "**",
-            dest: "prod_static/js/vendor/",
+            dest: PRODSTATIC_PATH + "/js/vendor/",
             flatten: true,
             expand: true
           },
           {
             cwd: "static/js/",
             src: "foundation.min.js",
-            dest: "prod_static/js/",
+            dest: PRODSTATIC_PATH + "/js/",
             flatten: true,
             expand: true
           }
