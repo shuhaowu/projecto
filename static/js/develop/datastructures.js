@@ -8,13 +8,13 @@ window.datastructures.LinkedMap = (function() {
     this.value = value;
     this.next = next;
     this.prev = prev;
-  };
+  }
 
   function LinkedMap() {
     this.map = {};
     this.first = null;
     this.last = null;
-  };
+  }
 
   LinkedMap.prototype.prepend = function(k, v) {
     if (this.map[k]) {

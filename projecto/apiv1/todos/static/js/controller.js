@@ -56,7 +56,7 @@
   module.controller("TodoItemController", ["$scope", "$window", "$timeout", "$filter", "$location", "toast", "Todos", function($scope, $window, $timeout, $filter, $location, toast, Todos) {
     $scope.todoDraft = null;
     $scope.displayed = false;
-    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1);
 
     $scope.toggleTodo = function(todo, event) {
       event.preventDefault();
@@ -171,7 +171,7 @@
     $scope.todolist = null;
     $scope.todolist_for_template = null;
     $scope.all_expanded = false;
-    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1);
 
     var regenerate_list_for_template = function() {
       $scope.todolist_for_template = $scope.todolist.todos.values();
@@ -287,7 +287,7 @@
         };
 
         var error = function(data, status) {
-          toast.error("Failed to post", xhr.status);
+          toast.error("Failed to post", status);
         };
         req.then(success, error);
       } else {
@@ -303,7 +303,7 @@
       };
       var error = function(data, status) {
         toast.error("Failed to clear done", status);
-      }
+      };
       req.then(success, error);
     };
 
@@ -362,7 +362,7 @@
     $scope.currentProject = null;
     $scope.todo = null;
     $scope.hideCommentLink = true;
-    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1)
+    $scope.is_archived = ($location.path().indexOf("archived_todos") !== -1);
 
     var removed = function(e, todo_key) {
       $location.path("/projects/" + $scope.currentProject.key + "/todos");

@@ -127,7 +127,7 @@
       map.prepend("key0", "value0");
       expect(map.length()).toBe(1);
 
-      var list = map.listify();
+      list = map.listify();
       expect(list.length).toBe(1);
       expect(list[0].key).toBe("key0");
       expect(list[0].value).toBe("value0");

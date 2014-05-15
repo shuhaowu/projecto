@@ -71,6 +71,39 @@ server {
     }
 }
 
+server {
+    listen 80;
+    server_name projecto.prod;
+    access_log off;
+    error_log off;
+
+    location / {
+        proxy_pass         http://127.0.0.1:8800/;
+        proxy_redirect     off;
+
+        proxy_set_header   Host             \$host;
+        proxy_set_header   X-Real-IP        \$remote_addr;
+        proxy_set_header   X-Forwarded-For  \$proxy_add_x_forwarded_for;
+        proxy_max_temp_file_size 0;
+
+        client_body_buffer_size    128k;
+        client_max_body_size       20m;
+
+        proxy_connect_timeout      150;
+        proxy_send_timeout         150;
+        proxy_read_timeout         150;
+
+        proxy_buffer_size          4k;
+        proxy_buffers              4 32k;
+        proxy_busy_buffers_size    64k;
+        proxy_temp_file_write_size 64k;
+    }
+
+    location /static {
+        alias /projecto/prod_static;
+    }
+}
+
 EOL
 
 # Get nginx ready.

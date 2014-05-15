@@ -5,7 +5,7 @@ from flask import Flask, render_template, redirect, url_for
 from flask.ext.login import current_user
 
 from .blueprints import blueprints
-from .extensions import login_manager, register_assets, partials
+from .extensions import login_manager, build_partials, build_js_files, build_css_files
 from .models import File
 from settings import APP_FOLDER, STATIC_FOLDER, TEMPLATES_FOLDER, API, LOADED_MODULES
 
@@ -27,7 +27,10 @@ File.FILES_FOLDER = app.config["FILES_FOLDER"]
 # App stuff
 @app.before_request
 def before_request():
-  app.jinja_env.globals["partials"] = partials()
+  app.jinja_env.globals["DEBUG"] = app.debug
+  app.jinja_env.globals["partials"] = partials
+  app.jinja_env.globals["css_files"] = css_files
+  app.jinja_env.globals["js_files"] = js_files
   app.jinja_env.globals["SERVER_MODE"] = app.config["SERVER_MODE"]
   app.jinja_env.globals["GOOGLE_ANALYTICS_DOMAIN"] = app.config["GOOGLE_ANALYTICS_DOMAIN"]
   app.jinja_env.globals["GOOGLE_ANALYTICS_ID"] = app.config["GOOGLE_ANALYTICS_ID"]
@@ -70,6 +73,12 @@ for module in LOADED_MODULES:
   meta["url_prefix"] = api_route_base + meta["url_prefix"]
   app.register_blueprint(api_module.blueprint, **meta)
 
-# asset stuffs
-# needs to be after all the blueprints are registered.
-register_assets(app)
+# This needs to happen after registering blueprint
+if not app.debug:
+  partials = build_partials(app)
+  css_files = None
+  js_files = None
+else:
+  partials = None
+  css_files = build_css_files(app)
+  js_files = build_js_files(app)

@@ -10,3 +10,6 @@ test_userfiles
 userfiles/
 deploy/
 
+node_modules/
+prod_static/
+.DS_Store

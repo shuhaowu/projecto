@@ -150,10 +150,11 @@
       var deferred = $q.defer();
       if (!this.archived) {
         var that = this;
+        var req;
 
         if (!this.key) {
           // New item and should be saved.
-          var req = TodosService.new(this.project, this.data);
+          req = TodosService.new(this.project, this.data);
           req.success(function(data) {
             that.key = data.key;
             that.data = data;
@@ -165,7 +166,7 @@
           });
         } else {
           // Editted item should be saved.
-          var req = TodosService.put(this.project, this.serialize());
+          req = TodosService.put(this.project, this.serialize());
           req.success(function(data) {
             that.data = data;
             deferred.resolve(data);
@@ -347,9 +348,9 @@
         this.currentPage = page;
         return this.fetch();
       } else {
-        throw "page outside of range."
+        throw "page outside of range.";
       }
-    }
+    };
 
     TodoList.prototype.clearDone = function() {
       this.checkFetched();

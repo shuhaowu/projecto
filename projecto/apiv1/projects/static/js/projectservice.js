@@ -48,21 +48,21 @@
       return self.listMine().done(function(data) {
         self._projectIdsToProjects = {};
 
-        var l;
+        var l, i;
         l = data.owned.length;
-        for (var i=0; i<l; i++) {
+        for (i=0; i<l; i++) {
           data.owned[i].owner = true;
           self._projectIdsToProjects[data.owned[i].key] = data.owned[i];
         }
 
         l = data.participating.length;
-        for (var i=0; i<l; i++) {
+        for (i=0; i<l; i++) {
           data.participating[i].owner = false;
           self._projectIdsToProjects[data.participating[i].key] = data.participating[i];
         }
 
       });
-    }
+    };
 
     this.getCurrentProject = function() {
       if ($location.path().slice(0, 9) != "/projects" || !$route.current || !$route.current.params.id) {

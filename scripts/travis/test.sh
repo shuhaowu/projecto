@@ -7,7 +7,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Running client side tests..."
-karma start scripts/travis/travis.karma.config.js
+grunt prod
 if [ $? -ne 0 ]; then
   exit 1;
 fi

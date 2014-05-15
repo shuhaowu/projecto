@@ -6,9 +6,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
   <title>{% block title %}Projecto{% endblock %}</title>
-  {% assets "css_all" %}
-  <link rel="stylesheet" href="{{ ASSET_URL }}" />
-  {% endassets %}
+  {% if DEBUG %}
+  {% for url in css_files %}
+  <link rel="stylesheet" href="{{ url }}" />
+  {% endfor %}
+  {% else %}
+  <link rel="stylesheet" href="/static/css/app.min.css" />
+  {% endif %}
   <script type="application/x-javascript">
     {% if current_user.is_authenticated() %}
     {% autoescape off %}
@@ -64,15 +68,19 @@
   </footer>
   <script src="/static/js/vendor/jquery-1.9.1.min.js"></script>
   <script src="/static/js/foundation.min.js"></script>
+  <script src="/static/js/vendor/statusmsg.js"></script>
+  <script src="https://login.persona.org/include.js"></script>
+  {% if DEBUG %}
+  <script src="/static/js/login.js"></script>
+  {% else %}
+  <script src="/static/js/login.min.js"></script>
+  {% endif %}
+  {% block end %}
+  {% endblock %}
   <script>
     $(document).foundation();
     $(document).foundation("forms", "off");
   </script>
-  <script src="/static/js/vendor/statusmsg.js"></script>
-  <script src="https://login.persona.org/include.js"></script>
-  <script src="/static/js/login.js"></script>
-  {% block end %}
-  {% endblock %}
 
   {% if GOOGLE_ANALYTICS_ID %}
   <script>

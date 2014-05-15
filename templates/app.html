@@ -67,7 +67,11 @@
 {% endautoescape %}
 
 <script src="/static/js/vendor/angular.min.js"></script>
-{% assets "js_all" %}
-    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-{% endassets %}
+{% if DEBUG %}
+{% for url in js_files %}
+<script src="{{ url }}"></script>
+{% endfor %}
+{% else %}
+<script src="/static/js/app.min.js"></script>
+{% endif %}
 {% endblock %}

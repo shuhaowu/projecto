@@ -59,13 +59,13 @@
 
 
   angular.module("projecto").controller(
-    "ProfileController", ["$scope", "title", "ProfileService", function($scope, title, ProfileService){
+    "ProfileController", ["$scope", "$window", "title", "ProfileService", function($scope, $window, title, ProfileService){
       $scope.user = angular.copy($scope.currentUser); // This can be changed later to view others.
 
       title($scope.user.name);
 
       $scope.addEmail = $scope.removeEmail = $scope.updateEmail = function() {
-        alert("This feature is not available yet :(");
+        $window.alert("This feature is not available yet :(");
       };
     }]
   );

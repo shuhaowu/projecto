@@ -31,7 +31,7 @@
 
     beforeEach(angular.mock.module("projecto"));
     beforeEach(angular.mock.inject(function($rootScope, $controller, $location, _$httpBackend_, FilesService) {
-      location = $location
+      location = $location;
       $httpBackend = _$httpBackend_;
       service = FilesService;
 
@@ -74,10 +74,10 @@
       document.body.appendChild(elem);
 
       var blob = testutils.createBlob("file1.txt");
-      scope.$broadcast("files-added", undefined, [blob])
+      scope.$broadcast("files-added", undefined, [blob]);
       scope.newFile();
 
-      expect(service.newFile).toHaveBeenCalledWith(project, "/", blob)
+      expect(service.newFile).toHaveBeenCalledWith(project, "/", blob);
       $httpBackend.expectPOST(baseUrl + "?path=%2Ffile1.txt");
       $httpBackend.flush();
     });

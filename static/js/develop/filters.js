@@ -60,7 +60,7 @@
       var hours = lessthan10(timestamp.getHours());
       var minutes = lessthan10(timestamp.getMinutes());
       return year + "-" + month + "-" + date + " " + hours + ":" + minutes;
-    }
+    };
   });
 
 })();
