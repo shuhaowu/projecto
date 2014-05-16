@@ -16,4 +16,5 @@ protobuf==2.4.1
 misaka==1.0.2
 requests==1.2.3
 ujson==1.33
+fs==0.5.0
 wsgiref==0.1.2
