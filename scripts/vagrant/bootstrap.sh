@@ -35,6 +35,8 @@ mkdir -p userfiles
 # Install additional requirements
 cd /home/vagrant # weird pip src directory is interfering if we are in /projecto
 pip install -r /projecto/requirements.txt
+
+cd /projecto
 npm install
 
 # Configuration for nginx. You can set the "projecto" to point to 192.168.33.10
@@ -112,6 +114,7 @@ service nginx restart
 
 # shortcuts
 echo "cd /projecto" >> /home/vagrant/.bashrc
+echo "export PATH=node_modules/.bin:\$PATH" >> /home/vagrant/.bashrc
 echo "alias t='cd /projecto; TESTING=1 python -m unittest discover'" >> /home/vagrant/.bashrc
 echo "alias s='cd /projecto; python server.py'" >> /home/vagrant/.bashrc
 
