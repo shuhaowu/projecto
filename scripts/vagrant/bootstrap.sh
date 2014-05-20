@@ -44,7 +44,7 @@ npm install
 cat >/etc/nginx/sites-available/projecto <<EOL
 server {
     listen       80;
-    server_name  projecto;
+    server_name  dev.getprojecto.ml;
 
     access_log  off;
     error_log off;
@@ -75,7 +75,7 @@ server {
 
 server {
     listen 80;
-    server_name projecto.prod;
+    server_name dev-prod.getprojecto.ml;
     access_log off;
     error_log off;
 

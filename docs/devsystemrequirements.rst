@@ -5,12 +5,11 @@ Dev System Requirements
 =======================
 
 For development, it is recommended that you use Linux. The maintainer(s) of the
-project uses Linux as their primary development platform. With Linux, you have
-the option to setup the system manually, although that is *not recommended*.
+project uses Linux as their primary development platform.
 
 It is also possible to setup vagrant on Mac and Windows. On Mac it should be
-fairly straight forward. Windows does not have NFS and therefore will take some
-more work.
+fairly straight forward (confirmed on Mavericks). Windows does not have NFS and
+therefore will take some more work.
 
 Again, it is recommended that you use the :ref:`vagrantsetup`. This cuts down the
 number of dependencies and should be much easier to work with.
@@ -40,9 +39,3 @@ Instructions for those are available online. So follow them.
 
 Continue to :ref:`vagrantsetup`.
 
-Manual setup
-------------
-
-The manual requirements are quite complicated. Refer to vagrant/bootstrap.sh to
-see what's going on. The manual setup docs probably will not be as maintained
-as the bootstrap.sh

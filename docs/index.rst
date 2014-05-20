@@ -24,7 +24,6 @@ Part II: New Developer Guide
 
    devsystemrequirements
    vagrantsetup
-   manualsetup
    merging
 
 

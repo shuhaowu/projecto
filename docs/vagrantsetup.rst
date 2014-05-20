@@ -10,7 +10,7 @@ the following content::
 
     DEBUG = True
     SECRET_KEY = "<some random string here>"
-    SITE_URL = "http://192.168.33.10:8800"
+    SITE_URL = "http://dev.getprojecto.ml"
 
 Save the file. In the project directory, type::
 
@@ -29,20 +29,9 @@ server and ``t`` to server side unittest.
 Note that unittests will fail if ``DEBUG = False``. This is an issue currently
 under investigation.
 
-The ip of the box is set to 192.168.33.10. Going to http://192.168.33.10:8800
-on your machine should get to projecto.
-
-Another convenience thing that was added is an nginx reverse proxy. You can add
-the entry::
-
-    192.168.33.10 projecto
-
-into your /etc/hosts (or whereever the host file of your OS is) file and
-go to http://projecto to get to the projecto dev server (after it is
-running, of course).
-
-If you opt to do this, you must change the ``SITE_URL`` in your
-settings_local.py file to "http://projecto"
+The ip of the box is set to 192.168.33.10. ``dev.getprojecto.ml`` has an A 
+record pointing to it. Going to http://dev.getproject.ml after you start the
+server should allow you to access your local instance of projecto.
 
 Windows Notes
 -------------
