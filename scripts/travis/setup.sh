@@ -13,7 +13,7 @@ npm install
 export PATH=node_modules/.bin:$PATH
 
 cat >settings_local.py <<EOL
-DEBUG = True
+DEBUG = False
 SECRET_KEY = "abcedfg"
 SITE_URL = "http://localhost:8800"
 
