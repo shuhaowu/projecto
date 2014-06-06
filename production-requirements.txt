@@ -4,7 +4,7 @@ Flask-Login==0.2.10
 Flask-SeaSurf==0.1.22
 Jinja2==2.7.2
 MarkupSafe==0.21
--e git+https://github.com/shuhaowu/werkzeug.git@e500edf8894e96f9529745d786ca9d1ec8674c07#egg=Werkzeug-dev
+Werkzeug==0.9.5
 itsdangerous==0.24
 cssmin==0.1.4
 gevent==1.0.1

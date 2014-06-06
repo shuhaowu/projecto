@@ -3,7 +3,7 @@ Flask-Login==0.2.10
 Flask-SeaSurf==0.1.22
 Jinja2==2.7.2
 MarkupSafe==0.21
--e git+https://github.com/shuhaowu/werkzeug.git@e500edf8894e96f9529745d786ca9d1ec8674c07#egg=Werkzeug-dev
+Werkzeug==0.9.5
 cssmin==0.1.4
 itsdangerous==0.24
 -e git+https://github.com/shuhaowu/kvkit.git@4ff5dc98af58e0aaa47d515a4d043f4fc5af629d#egg=kvkit-dev
