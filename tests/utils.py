@@ -17,11 +17,12 @@ from projecto.models import (
     FeedItem,
     Todo,
     Comment,
-    File
 )
+from projecto.apiv1.files.models import File
 import settings
 
 CSRF_SET = False
+
 
 # For login during testing
 @app.route("/test-login", methods=["POST"])
@@ -31,10 +32,12 @@ def test_login():
   login_user(user)
   return "ok"
 
+
 @app.route("/test-logout", methods=["POST"])
 def test_logout():
   logout_user()
   return "ok"
+
 
 class FlaskTestCase(TestCase):
   def setUp(self):
@@ -166,6 +169,7 @@ class ProjectTestCase(FlaskTestCase):
     FlaskTestCase.setUp(self)
     self.setup_project()
 
+
 def new_project(user, **kwargs):
   save = kwargs.pop("save", False)
   key = kwargs.pop("key", None)
@@ -178,6 +182,7 @@ def new_project(user, **kwargs):
   if save:
     proj.save()
   return proj
+
 
 def new_feeditem(user, project, **kwargs):
   save = kwargs.pop("save", False)
@@ -194,6 +199,7 @@ def new_feeditem(user, project, **kwargs):
     feeditem.save()
   return feeditem
 
+
 def new_comment(user, parent, **kwargs):
   save = kwargs.pop("save", False)
   key = kwargs.pop("key", None)
@@ -207,6 +213,7 @@ def new_comment(user, parent, **kwargs):
   if save:
     comment.save()
   return comment
+
 
 def new_todo(user, project, **kwargs):
   save = kwargs.pop("save", False)
@@ -223,6 +230,7 @@ def new_todo(user, project, **kwargs):
     t.save()
   return t
 
+
 def new_file(user, project, **kwargs):
   save = kwargs.pop("save", False)
   kwargs["author"] = user
@@ -234,6 +242,7 @@ def new_file(user, project, **kwargs):
   if save:
     f.save()
   return f
+
 
 def new_directory(user, project, **kwargs):
   save = kwargs.pop("save", False)
