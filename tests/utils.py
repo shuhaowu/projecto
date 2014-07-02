@@ -14,10 +14,10 @@ from projecto.extensions import csrf
 from projecto.models import (
     User,
     Project,
-    FeedItem,
     Todo,
     Comment,
 )
+from projecto.apiv1.feed.models import FeedItem
 from projecto.apiv1.files.models import File
 import settings
 
