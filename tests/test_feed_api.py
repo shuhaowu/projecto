@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 import time
 
-from projecto.models import ArchivedFeedItem, FeedItem
+from projecto.apiv1.feed.models import ArchivedFeedItem, FeedItem
 
 import unittest
 from .utils import ProjectTestCase, new_feeditem

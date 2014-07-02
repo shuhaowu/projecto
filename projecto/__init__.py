@@ -6,7 +6,7 @@ from flask.ext.login import current_user
 
 from .blueprints import blueprints
 from .extensions import login_manager, build_partials, build_js_files, build_css_files
-from .models import File
+from .apiv1.files.models import File
 from settings import APP_FOLDER, STATIC_FOLDER, TEMPLATES_FOLDER, API, LOADED_MODULES
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATES_FOLDER)
@@ -36,7 +36,7 @@ def before_request():
   app.jinja_env.globals["GOOGLE_ANALYTICS_ID"] = app.config["GOOGLE_ANALYTICS_ID"]
 
 
-# Here are just the pages.
+# Here are just the pages
 @app.route("/")
 def main():
   return render_template("main.html")

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 
 from kvkit import NotFoundError
-from projecto.models import Todo, ArchivedTodo
+from projecto.apiv1.todos.models import Todo, ArchivedTodo
 
 import unittest
 from .utils import ProjectTestCase, new_todo

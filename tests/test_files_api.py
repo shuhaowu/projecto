@@ -7,7 +7,7 @@ from kvkit import NotFoundError
 import ujson as json
 from werkzeug.datastructures import FileStorage
 
-from projecto.models import File
+from projecto.apiv1.files.models import File
 from .utils import ProjectTestCase, new_file, new_directory
 
 test_file = lambda filename: (StringIO("hello world"), filename)
