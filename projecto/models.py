@@ -79,6 +79,12 @@ class Content(EmDocument):
   date = DateTimeProperty()
   parent = StringProperty(index=True)
 
+
+class Comment(BaseDocument, Content):
+  _riak_options = {"bucket": rc.bucket(DATABASES["comments"])}
+
+
+class CommentParentMixin(object):
   def serialize_for_client(self, include_comments="expand"):
     item = self.serialize(restricted=("parent", "author"), include_key=True)
     item["author"] = self.author.serialize_for_client()
@@ -94,6 +100,8 @@ class Content(EmDocument):
       item["children"] = list(Comment.index_keys_only("parent", self.key))
     return item
 
+  def delete(self, *args, **kwargs):
+    for comment in Comment.index("parent", self.key):
+      comment.delete()
 
-class Comment(BaseDocument, Content):
-  _riak_options = {"bucket": rc.bucket(DATABASES["comments"])}
+    return Document.delete(self, *args, **kwargs)

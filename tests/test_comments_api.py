@@ -8,6 +8,7 @@ from projecto.models import Comment
 
 from .utils import ProjectTestCase, new_comment, new_feeditem
 
+
 class TestCommentsAPI(ProjectTestCase):
   def base_url(self, parent_id, postfix=""):
     return "/api/v1/projects/{}/comments/{}/{}".format(self.project.key, parent_id, postfix)
@@ -161,17 +162,3 @@ class TestCommentsAPI(ProjectTestCase):
 
     # Should not fail
     comment.reload()
-
-  def test_delete_feeditem_deletes_comments(self):
-    feeditem = new_feeditem(self.user, self.project, content="content", save=True)
-    comment = new_comment(self.user, feeditem.key, content="content", save=True)
-
-    self.login()
-    response, data = self.deleteJSON("/api/v1/projects/{}/feed/{}".format(self.project.key, feeditem.key))
-    self.assertStatus(200, response)
-
-    with self.assertRaises(NotFoundError):
-      feeditem.reload()
-
-    with self.assertRaises(NotFoundError):
-      comment.reload()

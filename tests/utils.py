@@ -7,6 +7,7 @@ import os
 from flask import request
 from flask.ext.login import login_user, logout_user
 from werkzeug.datastructures import FileStorage
+from kvkit import Document
 import riak
 
 from projecto import app
@@ -203,6 +204,9 @@ def new_feeditem(user, project, **kwargs):
 def new_comment(user, parent, **kwargs):
   save = kwargs.pop("save", False)
   key = kwargs.pop("key", None)
+  if isinstance(parent, Document):
+    parent = parent.key
+
   kwargs["parent"] = parent
   if key:
     comment = Comment(key=key, data=kwargs)

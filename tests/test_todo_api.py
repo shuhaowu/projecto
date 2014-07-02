@@ -3,10 +3,11 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 
 from kvkit import NotFoundError
+from projecto.models import Comment
 from projecto.apiv1.todos.models import Todo, ArchivedTodo
 
 import unittest
-from .utils import ProjectTestCase, new_todo
+from .utils import ProjectTestCase, new_todo, new_comment
 
 
 class TestTodoAPI(ProjectTestCase):
@@ -368,6 +369,23 @@ class TestTodoAPI(ProjectTestCase):
 
     with self.assertRaises(NotFoundError):
       Todo.get(todo1.key)
+
+  def test_delete_todo_with_comments(self):
+    todo1 = new_todo(self.user, self.project, save=True)
+    comment = new_comment(self.user, todo1.key, save=True)
+
+    self.login()
+    response = self.delete(self.base_url("/" + todo1.key), query_string={"really": "1"})
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      Todo.get(todo1.key)
+
+    with self.assertRaises(NotFoundError):
+      ArchivedTodo.get(todo1.key)
+
+    with self.assertRaises(NotFoundError):
+      Comment.get(comment.key)
 
   def test_delete_archived(self):
     todo1 = new_todo(self.user, self.project, save=True)

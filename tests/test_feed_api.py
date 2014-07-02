@@ -2,11 +2,15 @@ from __future__ import absolute_import
 
 from datetime import datetime, timedelta
 import time
+import unittest
 
+from kvkit import NotFoundError
+
+from projecto.models import Comment
 from projecto.apiv1.feed.models import ArchivedFeedItem, FeedItem
 
-import unittest
-from .utils import ProjectTestCase, new_feeditem
+from .utils import ProjectTestCase, new_feeditem, new_comment
+
 
 class TestFeedAPI(ProjectTestCase):
   def base_url(self, postfix):
@@ -96,6 +100,20 @@ class TestFeedAPI(ProjectTestCase):
     self.login(user2)
     response, _ = self.deleteJSON(self.base_url("/" + feeditem.key))
     self.assertStatus(403, response)
+
+  def test_delete_feeditem_with_comments(self):
+    feeditem = new_feeditem(self.user, project=self.project, content="content", save=True)
+    comment = new_comment(self.user, feeditem.key, save=True)
+
+    self.login()
+    response = self.delete(self.base_url("/" + feeditem.key))
+    self.assertStatus(200, response)
+
+    with self.assertRaises(NotFoundError):
+      FeedItem.get(feeditem.key)
+
+    with self.assertRaises(NotFoundError):
+      Comment.get(comment.key)
 
   def test_index_feeditems(self):
     self.reset_database()

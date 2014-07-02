@@ -1,24 +1,26 @@
 from __future__ import absolute_import
 
 from kvkit import (
-  Document,
   ReferenceProperty,
   StringProperty
 )
 
-from ...models import BaseDocument, Content, rc, Project, Comment
+from ...models import BaseDocument, Content, rc, Project, Comment, CommentParentMixin
 
 from settings import DATABASES
 
-class ArchivedFeedItem(BaseDocument, Content):
+
+class ArchivedFeedItem(CommentParentMixin, BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["archived_feed"])}
+  _child_class = Comment
 
   parent = ReferenceProperty(Project, index=True, load_on_demand=True)
   type = StringProperty()
 
 
-class FeedItem(BaseDocument, Content):
+class FeedItem(CommentParentMixin, BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["feed"])}
+  _child_class = Comment
 
   parent = ReferenceProperty(Project, index=True, load_on_demand=True)
   type = StringProperty()
@@ -28,10 +30,3 @@ class FeedItem(BaseDocument, Content):
     archived_item.save()
     self.delete()
     return archived_item
-
-  def delete(self, *args, **kwargs):
-    """Overriden as we need to delete the children"""
-    for comment in Comment.index("parent", self.key):
-      comment.delete()
-
-    return Document.delete(self, *args, **kwargs)

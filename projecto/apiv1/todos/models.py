@@ -9,12 +9,14 @@ from kvkit import (
   StringProperty
 )
 
-from ...models import BaseDocument, Content, Project, User, rc
+from ...models import BaseDocument, Content, Comment, CommentParentMixin, Project, User, rc
 
 from settings import DATABASES
 
-class Todo(BaseDocument, Content):
+
+class Todo(CommentParentMixin, BaseDocument, Content):
   _riak_options = {"bucket": rc.bucket(DATABASES["todos"])}
+  _child_class = Comment
 
   parent = ReferenceProperty(Project, index=True, load_on_demand=True)
   assigned = ReferenceProperty(User, index=True, load_on_demand=True)
