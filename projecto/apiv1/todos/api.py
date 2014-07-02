@@ -7,7 +7,7 @@ from flask.ext.login import current_user
 from kvkit import NotFoundError
 
 from ..hacks import Blueprint
-from ...models import Todo, ArchivedTodo
+from .models import Todo, ArchivedTodo
 from ...utils import ensure_good_request, project_access_required, jsonify, markdown_to_db
 
 blueprint = Blueprint("api_v1_todos", __name__,

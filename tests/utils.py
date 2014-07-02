@@ -14,11 +14,11 @@ from projecto.extensions import csrf
 from projecto.models import (
     User,
     Project,
-    Todo,
     Comment,
 )
 from projecto.apiv1.feed.models import FeedItem
 from projecto.apiv1.files.models import File
+from projecto.apiv1.todos.models import Todo
 import settings
 
 CSRF_SET = False
