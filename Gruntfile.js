@@ -37,11 +37,11 @@ module.exports = function(grunt) {
   var APP_MIN_CSS_PATH = PRODSTATIC_PATH + "/css/app.min.css";
 
   var uglify_files = {};
-  uglify_files[APP_MIN_JS_PATH] = JS_SOURCES
-  uglify_files[LOGIN_MIN_JS_PATH] = LOGIN_JS
+  uglify_files[APP_MIN_JS_PATH] = JS_SOURCES;
+  uglify_files[LOGIN_MIN_JS_PATH] = LOGIN_JS;
 
   var cssmin_files = {};
-  cssmin_files[APP_MIN_CSS_PATH] = ALL_CSS_SOURCES
+  cssmin_files[APP_MIN_CSS_PATH] = ALL_CSS_SOURCES;
 
   grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
