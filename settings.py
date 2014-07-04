@@ -37,7 +37,7 @@ DATABASE_PREFIX = "test_" if TESTING else ""
 
 MAX_CONTENT_LENGTH = 20 * 1024 * 1024
 SECRET_KEY = None
-SITE_URL = None
+SITE_URL = "http://dev.getprojecto.ml"
 
 # To be removed when we are ready.
 DISABLE_SIGNUP = False

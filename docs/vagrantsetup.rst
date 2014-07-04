@@ -10,7 +10,6 @@ the following content::
 
     DEBUG = True
     SECRET_KEY = "<some random string here>"
-    SITE_URL = "http://dev.getprojecto.ml"
 
 Save the file. In the project directory, type::
 
@@ -29,7 +28,7 @@ server and ``t`` to server side unittest.
 Note that unittests will fail if ``DEBUG = False``. This is an issue currently
 under investigation.
 
-The ip of the box is set to 192.168.33.10. ``dev.getprojecto.ml`` has an A 
+The ip of the box is set to 192.168.33.10. ``dev.getprojecto.ml`` has an A
 record pointing to it. Going to http://dev.getproject.ml after you start the
 server should allow you to access your local instance of projecto.
 
