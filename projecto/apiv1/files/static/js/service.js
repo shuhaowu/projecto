@@ -36,7 +36,7 @@
         method: "POST",
         url: apiUrl(project.key),
         params: {path: path},
-        headers: {"Content-Type": false},
+        headers: {"Content-Type": undefined},
         data: fd,
         transformRequest: function(data) { return data; }
       });
@@ -63,7 +63,7 @@
         method: "PUT",
         url: apiUrl(project.key),
         params: {path: path},
-        headers: {"Content-Type": false},
+        headers: {"Content-Type": undefined},
         data: fd,
         transformRequest: function(data) { return data; }
       });

@@ -2,9 +2,9 @@ Cython==0.19.1
 Flask==0.10.1
 Flask-Login==0.2.10
 Flask-SeaSurf==0.1.22
-Jinja2==2.7.2
+Jinja2==2.7.3
 MarkupSafe==0.21
-Werkzeug==0.9.5
+Werkzeug==0.9.6
 itsdangerous==0.24
 cssmin==0.1.4
 gevent==1.0.1
