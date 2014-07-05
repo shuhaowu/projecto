@@ -135,9 +135,9 @@
       $httpBackend.expectGET(getSpecificUrl);
       $httpBackend.flush();
 
-      expect(scope.post).toBe(specificPostItem);
+      expect(scope.post).toEqual(specificPostItem);
       expect(scope.commentsParent).toBe(scope.post);
-      expect(scope.comments).toBe(specificPostItem.children);
+      expect(scope.comments).toEqual(specificPostItem.children);
     });
   });
 })();

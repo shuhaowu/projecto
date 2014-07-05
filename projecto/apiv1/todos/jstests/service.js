@@ -101,7 +101,7 @@
       $httpBackend.expectGET(baseUrl + todoKey + "?archived=0").respond(returnedtodo);
       $httpBackend.flush();
 
-      expect(item.data).toBe(returnedtodo);
+      expect(item.data).toEqual(returnedtodo);
     });
 
     it("should create new todos", function() {
@@ -119,7 +119,7 @@
       $httpBackend.flush();
 
       expect(item.key).toBe(returnedtodo.key);
-      expect(item.data).toBe(returnedtodo);
+      expect(item.data).toEqual(returnedtodo);
     });
 
     it("should update existing todos", function() {
@@ -140,7 +140,7 @@
       $httpBackend.expectPUT(baseUrl + todoKey, putitem);
       $httpBackend.flush();
 
-      expect(item.data).toBe(returnedtodo);
+      expect(item.data).toEqual(returnedtodo);
     });
 
     it("should mark todos as done", function() {

@@ -198,7 +198,7 @@
 
       $httpBackend.flush();
       $httpBackend.expectGET(baseUrl + "?path=%2Ffile1.txt");
-      expect(scope.author).toBe(author);
+      expect(scope.author).toEqual(author);
       expect(scope.updated).toBe(file1.date);
       expect(scope.notFound).toBe(false);
     });

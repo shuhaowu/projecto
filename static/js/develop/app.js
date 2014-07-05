@@ -63,7 +63,7 @@
     $routeProvider.when("/profile/", profilePage);
   };
 
-  var app = angular.module("projecto", []);
+  var app = angular.module("projecto", ["ngRoute"]);
 
   app.factory("absoluteTimeToJsDate", function(){
     return function(absoluteTime) {

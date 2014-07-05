@@ -579,7 +579,7 @@
         $httpBackend.flush();
 
         expect(scope.todo.key).toBe(todoKey);
-        expect(scope.todo.data).toBe(returnedtododata);
+        expect(scope.todo.data).toEqual(returnedtododata);
       });
     });
   };
