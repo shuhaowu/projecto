@@ -1,12 +1,11 @@
 *.pyc
-*.komodoproject
 /settings_local.py
 static/js/app.min.js
 static/css/app.min.css
 static/.webassets-cache/
-.vagrant
+.vagrant/
 docs/_build
-test_userfiles
+test_userfiles/
 userfiles/
 deploy/
 
