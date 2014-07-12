@@ -2,7 +2,8 @@ from __future__ import absolute_import
 
 import math
 
-from flask import request, abort, Response
+from flask import Response, request, abort
+
 from flask.ext.login import current_user
 from kvkit import NotFoundError
 
@@ -17,6 +18,66 @@ blueprint = Blueprint("api_v1_todos", __name__,
 meta = {
   "url_prefix": "/projects/<project_id>/todos"
 }
+
+
+@blueprint.route("/", methods=["GET"])
+@project_access_required
+def index(project):
+  tags = set(request.args.getlist("tags"))
+  showdone = request.args.get("showdone", "0") == "1"
+  shownotdone = request.args.get("shownotdone", "1") == "1"
+  archived = request.args.get("archived", "0") == "1"
+
+  try:
+    amount = min(int(request.args.get("amount", 20)), 100)
+    page = int(request.args.get("page", 1)) - 1
+  except (TypeError, ValueError):
+    return abort(400)
+
+  if archived:
+    l = ArchivedTodo.index("parent", project.key)
+    showdone = True
+  else:
+    l = Todo.index("parent", project.key)
+    showdone = request.args.get("showdone", "0") == 1
+
+  todos = []
+  for todo in l:
+    if (not todo.done and shownotdone) or (showdone and todo.done):
+      if len(todo.tags) == 0:
+        todos.append(todo.serialize_for_client(include_comments="keys"))
+        continue
+      else:
+        for tag in todo.tags:
+          if tag in tags:
+            todos.append(todo.serialize_for_client(include_comments="keys"))
+            break
+
+  todos.sort(key=lambda x: x["date"], reverse=True)
+  totalTodos = len(todos)
+  if (totalTodos < (page * amount + 1)):
+    page = int(math.ceil(totalTodos / amount)) - 1
+    if (page < 0):
+      page = 0
+
+  return jsonify(todos=todos[page*amount:page*amount+amount],
+                 currentPage=page+1,
+                 totalTodos=totalTodos, todosPerPage=amount)
+
+
+@blueprint.route("/<id>", methods=["GET"])
+@project_access_required
+def get(project, id):
+  archived = request.args.get("archived", "0") == "1"
+  todocls = ArchivedTodo if archived else Todo
+  try:
+    todo = todocls.get(id)
+    if todo.parent.key != project.key:
+      raise NotFoundError
+  except NotFoundError:
+    return abort(404)
+
+  return jsonify(**todo.serialize_for_client())
 
 
 @blueprint.route("/", methods=["POST"])
@@ -72,83 +133,6 @@ def put(project, id):
   return jsonify(**todo.serialize_for_client())
 
 
-@blueprint.route("/", methods=["GET"])
-@project_access_required
-def index(project):
-  archived = request.args.get("archived", "0") == "1"
-  if archived:
-    l = ArchivedTodo.index("parent", project.key)
-    showdone = True
-  else:
-    l = Todo.index("parent", project.key)
-    showdone = request.args.get("showdone", "0") == 1
-
-  try:
-    amount = min(int(request.args.get("amount", 20)), 100)
-    page = int(request.args.get("page", 1)) - 1
-  except (TypeError, ValueError):
-    return abort(400)
-
-  todos = []
-
-  # TODO: Lists through everything. Is very slow.
-  for todo in l:
-    if not showdone and todo.done:
-      continue
-
-    todos.append(todo.serialize_for_client(include_comments="keys"))
-
-  todos.sort(key=lambda x: x["date"], reverse=True)
-  totalTodos = len(todos)
-
-  return jsonify(todos=todos[page*amount:page*amount+amount],
-                 currentPage=page+1,
-                 totalTodos=totalTodos,
-                 todosPerPage=amount)  # 10 todos perpage?
-
-
-# also needs caching
-@blueprint.route("/filter", methods=["GET"])
-@project_access_required
-def filter(project):
-  tags = set(request.args.getlist("tags"))
-  showdone = request.args.get("showdone", "0") == "1"
-  shownotdone = request.args.get("shownotdone", "1") == "1"
-
-  try:
-    amount = min(int(request.args.get("amount", 20)), 100)
-    page = int(request.args.get("page", 1)) - 1
-  except (TypeError, ValueError):
-    return abort(400)
-
-  # TODO: milestone based filters
-  # TODO: time based filters
-
-  todos = Todo.index("parent", project.key)
-  filtered = []
-  for todo in todos:
-    if (not todo.done and shownotdone) or (showdone and todo.done):
-      if len(todo.tags) == 0 and " " in tags:
-        filtered.append(todo.serialize_for_client(include_comments="keys"))
-        continue
-      else:
-        for tag in todo.tags:
-          if tag in tags:
-            filtered.append(todo.serialize_for_client(include_comments="keys"))
-            break
-
-  filtered.sort(key=lambda x: x["date"], reverse=True)
-  totalTodos = len(filtered)
-  if (totalTodos < (page * amount + 1)):
-    page = int(math.ceil(totalTodos / amount)) - 1
-    if (page < 0):
-      page = 0
-
-  return jsonify(todos=filtered[page*amount:page*amount+amount],
-                 currentPage=page+1,
-                 totalTodos=totalTodos, todosPerPage=amount)
-
-
 @blueprint.route("/<id>", methods=["DELETE"])
 @project_access_required
 def delete(project, id):
@@ -182,21 +166,6 @@ def clear_done(project):
       todo.archive()
 
   return jsonify(status="okay")
-
-
-@blueprint.route("/<id>", methods=["GET"])
-@project_access_required
-def get(project, id):
-  archived = request.args.get("archived", "0") == "1"
-  todocls = ArchivedTodo if archived else Todo
-  try:
-    todo = todocls.get(id)
-    if todo.parent.key != project.key:
-      raise NotFoundError
-  except NotFoundError:
-    return abort(404)
-
-  return jsonify(**todo.serialize_for_client())
 
 
 @blueprint.route("/<id>/markdone", methods=["POST"])

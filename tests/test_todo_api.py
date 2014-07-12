@@ -178,7 +178,7 @@ class TestTodoAPI(ProjectTestCase):
     response, data = self.postJSON(self.base_url("/" + todo.key + "/markdone"), data={"done": True})
     self.assertStatus(403, response)
 
-  def test_index_todos(self):
+  def test_index_todos_simple(self):
     self.login()
 
     keys = set()
@@ -216,17 +216,7 @@ class TestTodoAPI(ProjectTestCase):
 
     self.assertEquals(keys, k)
 
-  def test_index_todos_reject_permission(self):
-    response, data = self.getJSON(self.base_url("/"))
-    self.assertStatus(403, response)
-
-    user2 = self.create_user("test2@test.com")
-    self.login(user2)
-
-    response, data = self.getJSON(self.base_url("/"))
-    self.assertStatus(403, response)
-
-  def test_filter_todos(self):
+  def test_index_todos_filtered(self):
     self.login()
 
     keys = []
@@ -241,7 +231,7 @@ class TestTodoAPI(ProjectTestCase):
     for i in xrange(50, 57):
       new_todo(self.user, self.project, date=datetime.now() + timedelta(seconds=i*10), title=str(i), tags=["tag3"], save=True)
 
-    response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=1"))
+    response, data = self.getJSON(self.base_url("/?tags=tag1&tags=tag2&page=1"))
     self.assertStatus(200, response)
     self.assertEquals(4, len(data))
     self.assertTrue("todos" in data)
@@ -251,14 +241,14 @@ class TestTodoAPI(ProjectTestCase):
     self.assertEquals(20, len(data["todos"]))
     k = [t["key"] for t in data["todos"]]
 
-    response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=2"))
+    response, data = self.getJSON(self.base_url("/?tags=tag1&tags=tag2&page=2"))
     self.assertEquals(2, data["currentPage"])
     self.assertEquals(50, data["totalTodos"])
     self.assertEquals(20, data["todosPerPage"])
     self.assertEquals(20, len(data["todos"]))
     k.extend([t["key"] for t in data["todos"]])
 
-    response, data = self.getJSON(self.base_url("/filter?tags=tag1&tags=tag2&page=3"))
+    response, data = self.getJSON(self.base_url("/?tags=tag1&tags=tag2&page=3"))
     self.assertEquals(3, data["currentPage"])
     self.assertEquals(50, data["totalTodos"])
     self.assertEquals(20, data["todosPerPage"])
@@ -267,14 +257,17 @@ class TestTodoAPI(ProjectTestCase):
 
     self.assertEquals(set(keys), set(k))
 
-  def test_filter_todos_reject_permission(self):
-    response, data = self.getJSON(self.base_url("/filter"))
+  def test_index_todos_filter_no_tags(self):
+    pass
+
+  def test_index_todos_reject_permission(self):
+    response, data = self.getJSON(self.base_url("/"))
     self.assertStatus(403, response)
 
     user2 = self.create_user("test2@test.com")
     self.login(user2)
 
-    response, data = self.getJSON(self.base_url("/filter"))
+    response, data = self.getJSON(self.base_url("/"))
     self.assertStatus(403, response)
 
   def test_markdone(self):
