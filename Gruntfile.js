@@ -67,6 +67,7 @@ module.exports = function(grunt) {
           jQuery: false,
           angular: false,
           datastructures: false,
+          helpers: false,
           module: false,
           // Include order issue?
           commonMocked: false,

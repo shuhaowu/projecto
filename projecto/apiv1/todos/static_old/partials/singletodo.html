@@ -1,0 +1,16 @@
+<div class="row">
+  <div class="large-12 columns">
+    <a href="#/projects/{[ currentProject.key ]}/todos/" class="small button" ng-class="{secondary: is_archived}">Active Todos</a>
+    <a href="#/projects/{[ currentProject.key ]}/archived_todos/" class="small button" ng-class="{secondary: !is_archived}">Archived Todos</a>
+    <!-- <a href="#/projects/{[ currentProject.key ]}/milestones/" class="small secondary button">Milestones</a> -->
+    <hr />
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-12 columns">
+    <ng-include src="'/static/todos/partials/todoitem.html'"></ng-include>
+  </div>
+</div>
+
+<ng-include src="'/static/comments/partials/standardcomments.html'"></ng-include>

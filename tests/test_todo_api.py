@@ -257,8 +257,48 @@ class TestTodoAPI(ProjectTestCase):
 
     self.assertEquals(set(keys), set(k))
 
-  def test_index_todos_filter_no_tags(self):
-    pass
+  def test_index_todos_filter_tags_should_return_some_none_should_return_all(self):
+    """If no tags are filtered, all todos are returned. If some are filtered, only
+       those that are filtered are filtered.
+    """
+    self.login()
+
+    todo1 = new_todo(self.user, self.project, title="todo1", tags=["tag1"], save=True)
+    todo2 = new_todo(self.user, self.project, title="todo2", tags=["tag2"], save=True)
+    todo3 = new_todo(self.user, self.project, title="todo3", tags=["tag2", "tag3"], save=True)
+    todo4 = new_todo(self.user, self.project, title="todo4", save=True)
+    response, data = self.getJSON(self.base_url("/"))
+    self.assertStatus(200, response)
+    self.assertEquals(4, data["totalTodos"])
+    self.assertEquals(4, len(data["todos"]))
+
+    keys = {t["key"] for t in data["todos"]}
+    self.assertTrue(todo1.key in keys)
+    self.assertTrue(todo2.key in keys)
+    self.assertTrue(todo3.key in keys)
+    self.assertTrue(todo4.key in keys)
+
+    response, data = self.getJSON(self.base_url("/?tags=tag1"))
+    self.assertStatus(200, response)
+    self.assertEquals(1, data["totalTodos"])
+    self.assertEquals(1, len(data["todos"]))
+    self.assertEquals(todo1.key, data["todos"][0]["key"])
+
+    response, data = self.getJSON(self.base_url("/?tags=tag2&tags=tag1"))
+    self.assertStatus(200, response)
+    self.assertEquals(3, data["totalTodos"])
+    self.assertEquals(3, len(data["todos"]))
+
+    keys = {t["key"] for t in data["todos"]}
+    self.assertTrue(todo1.key in keys)
+    self.assertTrue(todo2.key in keys)
+    self.assertTrue(todo3.key in keys)
+
+    response, data = self.getJSON(self.base_url("/?tags=%20"))
+    self.assertStatus(200, response)
+    self.assertEquals(1, data["totalTodos"])
+    self.assertEquals(1, len(data["todos"]))
+    self.assertEquals(todo4.key, data["todos"][0]["key"])
 
   def test_index_todos_reject_permission(self):
     response, data = self.getJSON(self.base_url("/"))

@@ -4,7 +4,7 @@
 
   var module = angular.module("projecto");
 
-  module.controller("FeedItemController", ["$scope", "$window", "$location", "toast", "FeedService", function($scope, $window, $location, toast, FeedService) {
+  module.controller("FeedItemController", ["$scope", "$window", "$location", "toast", "FeedService", function($scope, $window, $location, $routeParams, toast, FeedService) {
     $scope.deletePost = function(post) {
       if ($scope.currentProject) {
         if ($window.confirm("Are you sure you want to delete this post?")) {

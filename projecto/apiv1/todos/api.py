@@ -44,7 +44,7 @@ def index(project):
   todos = []
   for todo in l:
     if (not todo.done and shownotdone) or (showdone and todo.done):
-      if len(todo.tags) == 0:
+      if len(tags) == 0 or (len(todo.tags) == 0 and " " in tags):
         todos.append(todo.serialize_for_client(include_comments="keys"))
         continue
       else:

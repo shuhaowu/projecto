@@ -9,7 +9,8 @@
 
     var todosPage = {
       templateUrl: "/static/todos/partials/todos.html",
-      controller: "TodosController"
+      controller: "TodosController",
+      reloadOnSearch: false,
     };
 
     var filesTreePage = {
@@ -100,7 +101,7 @@
     $httpProvider.defaults.headers.common["X-CSRFToken"] = window.csrfToken;
   }]);
 
-  app.run(["$rootScope", function($rootScope) {
+  app.run(["$rootScope", "$sce", function($rootScope, $sce) {
     $rootScope.currentUser = window.currentUser;
     $rootScope.range = function(n) {
       // To deal with -1 total pages in the beginning.
@@ -113,6 +114,12 @@
         a[i] = i;
       }
       return a;
+    };
+  }]);
+
+  app.filter("trusted", ["$sce", function($sce) {
+    return function(val) {
+      return $sce.trustAsHtml(val);
     };
   }]);
 })();

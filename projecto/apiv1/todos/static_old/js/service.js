@@ -1,19 +1,12 @@
 "use strict";
 
-(function() {
+(function(){
   var module = angular.module("projecto");
 
-  module.service("TodosService", ["$http", function($http) {
+
+  module.service("TodosService", ["$http", function($http){
     var apiUrl = function(project_id, postfix) {
       return window.API_PREFIX + "/projects/" + project_id + "/todos/" + (postfix ? postfix : "");
-    };
-
-    var convertBooleanToParamString = function(b) {
-      if (b === undefined || b === "1" || b === "0") {
-        return b;
-      }
-
-      return b ? "1" : "0";
     };
 
     this.new = function(project, todo) {
@@ -24,24 +17,28 @@
       });
     };
 
-    this.index = function(project, params) {
-      params["shownotdone"] = convertBooleanToParamString(params["shownotdone"]);
-      params["showdone"] = convertBooleanToParamString(params["showdone"]);
-      params["archived"] = convertBooleanToParamString(params["archived"]);
+    this.index = function(project, page, archived) {
       return $http({
         method: "GET",
         url: apiUrl(project.key),
+        data: {page: page},
+        params: {archived: archived ? "1" : "0"}
+      });
+    };
+
+    this.filter = function(project, params) {
+      return $http({
+        method: "GET",
+        url: apiUrl(project.key, "filter"),
         params: params
       });
     };
 
     this.delete = function(project, todo, really, archived) {
-      really = convertBooleanToParamString(really);
-      archived = convertBooleanToParamString(archived);
       return $http({
         method: "DELETE",
         url: apiUrl(project.key, todo.key),
-        params: {really: really, archived: archived}
+        params: {really: really ? "1" : "0", archived: archived ? "1" : "0"}
       });
     };
 
@@ -49,7 +46,7 @@
       return $http({
         method: "GET",
         url: apiUrl(project.key, todoId),
-        params: {archived: convertBooleanToParamString(archived)}
+        params: {archived: archived ? "1" : "0"}
       });
     };
 
@@ -59,9 +56,8 @@
       j["title"] = todo["title"];
       j["content"] = {markdown: $.type(todo["content"]) === "string" ? todo["content"] : (todo["content"]["markdown"] || "")};
       j["assigned"] = todo["assigned"];
-      if (todo["due"]) {
+      if (todo["due"])
         j["due"] = new Date(todo["due"]).getTime() / 1000;
-      }
 
       j["tags"] = todo["tags"];
 
@@ -72,27 +68,28 @@
       });
     };
 
-    this.mark_done = function(project, todo, archived) {
+    this.markDone = function(project, todo, archived) {
       return $http({
         method: "POST",
         url: apiUrl(project.key, todo.key + "/markdone"),
         data: {done: !todo.done},
-        params: {archived: convertBooleanToParamString(archived)}
+        params: {archived: archived ? "1" : "0"}
       });
     };
 
-    this.clear_done = function(project) {
+    this.clearDone = function(project) {
+
       return $http({
         method: "DELETE",
         url: apiUrl(project.key, "done")
       });
     };
 
-    this.list_tags = function(project, archived) {
+    this.listTags = function(project, archived) {
       return $http({
         method: "GET",
         url: apiUrl(project.key, "tags/"),
-        params: {archived: convertBooleanToParamString(archived)}
+        params: {archived: archived ? "1" : "0"}
       });
     };
   }]);
@@ -191,7 +188,7 @@
         throw "Cannot mark done items that are not saved.";
       } else {
         var todo = this.serialize();
-        var req = TodosService.mark_done(this.project, todo, this.archived);
+        var req = TodosService.markDone(this.project, todo, this.archived);
         var that = this;
 
         req.success(function(data) {
@@ -234,86 +231,143 @@
       return this.archive(true);
     };
 
-    TodoItem.prototype.duplicate = function() {
-      return new TodoItem(this.key, this.project, angular.copy(this.data), this.archived);
-    };
-
-    function TodoList(project) {
+    function TodoList(project, options) {
+      options = options || {};
       this.project = project;
-      this.loading = true;
-      this.archived = false;
-
-      this.todos = new datastructures.LinkedMap();
-      this.todos_per_page = 0;
-      this.total_todos = 0;
-      this.total_pages = 0;
-    }
-
-    TodoList.prototype.refresh = function(route_params) {
-      this.loading = true;
-      var params = {};
-      params["page"] = route_params["page"];
-      params["amount"] = route_params["amount"];
-      params["showdone"] = route_params["showdone"];
-      params["shownotdone"] = route_params["shownotdone"];
-      params["archived"] = route_params["archived"];
-      params["tags"] = route_params["tags"];
-
-      // TODO: verify that no tags are working
-      if ($.type(params["tags"]) === "string") {
-        params["tags"] = [params["tags"]];
+      this.archived = options.archived || false;
+      this.currentPage = options.currentPage || 1;
+      this.tagsFiltered = options.tagsFiltered || [" "];
+      this.showdone = options.showdone || false;
+      if (options.shownotdone !== undefined) {
+        this.shownotdone = options.shownotdone;
+      } else {
+        this.shownotdone = true;
       }
 
-      this.archived = params["archived"];
+      this.todos = new datastructures.LinkedMap();
+      this.tags = [" "];
+      this.todosPerPage = -1;
+      this.totalTodos = -1;
+      this.totalPages = -1;
+    }
 
+    TodoList.prototype.checkFetched = function() {
+      if (this.totalPages == -1)
+        throw "TodoList has not been fetched.";
+    };
+
+    TodoList.prototype.fetch = function(initialize) {
+      // Depending on archived state, we use filter or whatever.
       var deferred = $q.defer();
 
-      var req = TodosService.index(this.project, params);
-      var self = this;
-      req.success(function(data) {
-        self.todos = new datastructures.LinkedMap();
+      // Refactored.
+      var recomputeTodos = function(data, archived) {
+        this.todos = new datastructures.LinkedMap();
+        var tododata, todokey;
         for (var i=0, l=data.todos.length; i<l; i++) {
-          var tododata = data.todos[i];
-          var todokey = tododata.key;
+          tododata = data.todos[i];
+          todokey = tododata.key;
           delete tododata.key;
-          self.todos.put(todokey, new TodoItem(todokey, self.project, tododata, params["archived"] == "1"));
+          this.todos.put(todokey, new TodoItem(todokey, this.project, tododata, archived));
         }
 
-        self.current_page = data.currentPage;
-        self.total_todos = data.totalTodos;
-        self.todos_per_page = data.todosPerPage;
-        self.total_pages = Math.ceil(self.total_todos / self.todos_per_page);
-        self.loading = false;
-        deferred.resolve(data);
-      });
+        this.currentPage = data.currentPage;
+        this.totalTodos = data.totalTodos;
+        this.todosPerPage = data.todosPerPage;
+        this.totalPages = Math.ceil(this.totalTodos / this.todosPerPage);
+      };
 
-      req.error(function(data, status) {
-        self.loading = false;
-        deferred.reject(data, status);
-      });
+      recomputeTodos = recomputeTodos.bind(this);
 
+      var self = this;
+      if (this.archived) {
+        var req = TodosService.index(this.project, this.currentPage, this.archived);
+        req.success(function(data) {
+          recomputeTodos(data, true);
+          deferred.resolve(self);
+        });
+
+        req.error(function(data, status) {
+          deferred.reject(data, status);
+        });
+      } else {
+        var dofilter = function() {
+          var params = {
+            tags: this.tagsFiltered,
+            showdone: this.showdone ? "1" : "0",
+            shownotdone: this.shownotdone ? "1" : "0",
+            page: this.currentPage
+          };
+          var req = TodosService.filter(this.project, params);
+          req.success(function(data) {
+            recomputeTodos(data, false);
+            deferred.resolve(self);
+          });
+
+          req.error(function(data, status) {
+            deferred.reject(data, status);
+          });
+        };
+
+        dofilter = dofilter.bind(this);
+        if (!initialize) {
+          dofilter();
+        } else {
+          var tagsreq = TodosService.listTags(this.project);
+          tagsreq.success(function(data) {
+            self.tags = data.tags;
+            self.tags.push(" ");
+            self.tagsFiltered = angular.copy(data.tags);
+            dofilter();
+          });
+
+          tagsreq.error(function(data, status) {
+            deferred.reject(data, status);
+          });
+        }
+      }
       return deferred.promise;
     };
 
-    TodoList.prototype.clear_done = function() {
-      if (this.archived) {
-        throw "Cannot clear done of an archived TodoList";
+    TodoList.prototype.toggleFilterTag = function(tag) {
+      var i = this.tagsFiltered.indexOf(tag);
+      if (i === -1) {
+        this.tagsFiltered.push(tag);
+      } else {
+        this.tagsFiltered.splice(i, 1);
       }
+    };
 
-      if (this.loading) {
-        throw "Cannot clear done of a todo list that hasn't been loaded";
+    TodoList.prototype.isTagFiltered = function(tag) {
+      return this.tagsFiltered.indexOf(tag) !== -1;
+    };
+
+    TodoList.prototype.gotopage = function(page) {
+      this.checkFetched();
+      if (1 <= page && page <= this.totalPages) {
+        this.currentPage = page;
+        return this.fetch();
+      } else {
+        throw "page outside of range.";
       }
+    };
+
+    TodoList.prototype.clearDone = function() {
+      this.checkFetched();
+      if (this.archived)
+        throw "Cannot clear done of an archived TodoList";
 
       var deferred = $q.defer();
-      var req = TodosService.clear_done(this.project);
-      var self = this;
+      var req = TodosService.clearDone(this.project);
+      var that = this;
 
       req.success(function(data) {
-        // TODO: add an iterator into LinkedMap
-        var rawlist = self.todos.listify();
-        for (var i=0; i<rawlist.length; i++) {
-          if (rawlist[i].value.data.done) {
-            self.todos.remove(rawlist[i].key);
+        if (!that.showdone) {
+          var rawlist = that.todos.listify();
+          for (var i=0; i<rawlist.length; i++) {
+            if (rawlist[i].value.data.done) {
+              that.todos.remove(rawlist[i].key);
+            }
           }
         }
         deferred.resolve(data);
@@ -322,18 +376,14 @@
       req.error(function(data, status) {
         deferred.reject(data, status);
       });
-
       return deferred.promise;
-    };
-
-    TodoList.prototype.listify = function() {
-      return this.todos.values();
     };
 
     return {
       TodoItem: TodoItem,
-      TodoList: TodoList,
-      list_tags: TodosService.list_tags,
+      TodoList: TodoList
     };
+
   }]);
+
 })();

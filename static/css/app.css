@@ -57,3 +57,7 @@ div#signup button { display: block; margin: 0 auto; height: 2.5rem;}
 footer.row { text-align: center; font-size: 11px; color: #AAA; margin-top: 1em; height: 2em; line-height: 2em; }
 footer a:hover { text-decoration: underline; }
 
+/* AngularJS */
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}

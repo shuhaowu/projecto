@@ -1,67 +1,58 @@
-<div class="panel" ng-controller="TodoItemController">
+<div class="panel">
   <form class="custom">
-    <span class="custom checkbox todos-todo-donebox" ng-class="{checked: todo.data.done}" ng-click="markDone(todo)"></span>
+    <span class="custom checkbox todos-todo-donebox" ng-class="{checked: todo.data.done}" ng-click="done()"></span>
     <span class="todos-control">
-      <span class="radius label" ng-show="todo.data.due">Due {[ todo.data.due | relativeTime ]}</span>
+      <span class="radius label" ng-show="todo.data.due" ng-bind-template="Due {[ todo.data.due | relativeTime ]}"></span>
 
-      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-hide="hideCommentLink || is_archived">
+      <a ng-href="#/projects/{[ project.key ]}/todos/{[ todo.key ]}" ng-hide="hide_comment_link">
         <ng-pluralize count="todo.data.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
       </a>
 
-      <a href="#/projects/{[ currentProject.key ]}/archived_todos/{[ todo.key ]}" ng-hide="hideCommentLink || !is_archived">
-        <ng-pluralize count="todo.data.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
-      </a>
-      <span ng-show="currentProject.owner || currentUser.key == todo.data.author.key">
+      <span ng-show="project.owner || currentUser.key == todo.data.author.key">
         <span ng-hide="hideCommentLink">| </span>
-        <a href="" title="Edit" ng-click="editTodo(todo)" ng-hide="is_archived">Edit</a> <span ng-hide="is_archived">|</span>
-        <a href="" title="Archive" ng-click="archiveTodo(todo)" ng-hide="is_archived">Archive</a>
-        <a href="" title="Delete" ng-click="deleteTodo(todo)" ng-show="is_archived">Delete</a>
+        <a href="" title="Edit" ng-click="edit()" ng-hide="todo.archived">Edit</a> <span ng-hide="todo.archived">|</span>
+        <a href="" title="Archive" ng-click="archive()" ng-hide="todo.archived">Archive</a>
+        <a href="" title="Delete" ng-click="delete()" ng-show="todo.archived">Delete</a>
       </span>
     </span>
+
     <div class="todos-todo-title">
-      <a href="#/projects/{[ currentProject.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)" ng-hide="is_archived">{[ todo.data.title ]}</a>
-      <a href="#/projects/{[ currentProject.key ]}/archived_todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggleTodo(todo, $event)" ng-show="is_archived">{[ todo.data.title ]}</a>
+      <a ng-href="#/projectos/{[ project.key ]}/todos/{[ todo.key ]}" ng-class="{strikeout: todo.data.done}" ng-click="toggle($event)" ng-bind="todo.data.title"></a>
+    </div>
+
+    <div class="todos-todo-body" id="todo-{[ todo.key ]}">
+      <!-- view mode -->
+      <div ng-hide="draft">
+        <div ng-show="todo.data.content.markdown" class="todos-todo-content" ng-bind-html="todo.data.content.html | trusted"></div>
+
+        <div ng-hide="todo.data.content.markdown" class="todos-todo-content">
+          <p>No descriptions provided.</p>
+        </div>
+
+        <div class="todos-todo-info">
+          <span class="right">
+            <span class="radius label todos-todo-tag" ng-repeat="tag in todo.data.tags">{[ tag ]}</span>
+          </span>
+          <span ng-bind-template="Filed by {[ todo.data.author.name ]} on {[ todo.data.date | absoluteTime ]}">
+          </span>
+        </div>
+      </div>
+
+      <!-- edit mode -->
+      <div ng-show="draft">
+        <form>
+          <input type="text" ng-model="draft.data.title" placeholder="Title" />
+          <textarea ng-model="draft.data.content.markdown" rows="5" placeholder="Description">
+          </textarea>
+          <input type="text" ng-model="draft.data.tags" placeholder="Tags (separated with ,)" />
+          <div class="right">
+            <a class="small secondary button" ng-click="cancel_edit()">Cancel</a>
+            <button class="small success" type="button" ng-click="save()">Save</button>
+          </div>
+          <br class="clear" />
+        </form>
+      </div>
+
     </div>
   </form>
-
-
-  <div class="todos-todo-body" id="todo-{[ todo.key ]}">
-    <!-- view mode -->
-    <div ng-hide="todoDraft">
-      <div ng-show="todo.data.content.markdown" class="todos-todo-content" ng-bind-html-unsafe="todo.data.content.html">
-      </div>
-      <div ng-hide="todo.data.content.markdown" class="todos-todo-content" >
-        <p>No description provided.</p>
-      </div>
-      <div class="todos-todo-info">
-        <span class="right">
-          <span class="radius label todos-todo-tag" ng-repeat="tag in todo.data.tags">{[ tag ]}</span>
-        </span>
-        Filed by {[ todo.data.author.name ]} on {[ todo.data.date | absoluteTime ]} <!--| Assigned to {[ ((todo.data.assigned) && todo.data.assigned.name || "no one") ]} -->
-      </div>
-    </div>
-
-    <!-- edit mode -->
-    <div ng-show="todoDraft">
-      <form ng-submit="saveTodo(todo.key)">
-        <input type="text" ng-model="todoDraft.data.title" placeholder="Title" />
-        <textarea ng-model="todoDraft.data.content.markdown" rows="5" placeholder="Description">
-        </textarea>
-        <input type="text" ng-model="todoDraft.data.tags" placeholder="Tags (separate with ,)" />
-        <!--
-        <div class="left" style="margin-right: 5px;">
-          <input type="text" ng-model="todoDraft.data.assigned" placeholder="Assigned" />
-        </div>
-        <div class="left">
-          <input type="text" ng-model="todoDraft.data.due" placeholder="Due (YYYY-MM-DD)" />
-        </div>
-        -->
-        <div class="right">
-          <a class="small secondary button" ng-click="cancelEdit(todo.key)">Cancel</a>
-          <button class="small success" type="submit">Save</button>
-        </div>
-        <br class="clear" />
-      </form>
-    </div>
-  </div>
 </div>
