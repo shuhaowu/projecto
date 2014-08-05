@@ -1,6 +1,3 @@
-// Karma configuration
-// Generated on Fri Dec 27 2013 18:51:50 GMT-0500 (EST)
-
 module.exports = function(config) {
   config.set({
 
@@ -23,9 +20,22 @@ module.exports = function(config) {
       'static/js/develop/**/*.js',
       'projecto/apiv1/**/static/js/*.js',
       'projecto/apiv1/**/jstests/*.js',
-      'tests/jstests/others/**/*.js'
+      'tests/jstests/others/**/*.js',
+      "projecto/apiv1/**/static/partials/*.html",
     ],
 
+    preprocessors: {
+      "projecto/apiv1/**/static/partials/*.html": ["ng-html2js"]
+    },
+
+    ngHtml2JsPreprocessor: {
+      cacheIdFromPath: function(filepath) {
+        filepath = filepath.replace("projecto/apiv1/", "/static/");
+        filepath = filepath.replace("/static/partials/", "/partials/");
+        return filepath;
+      },
+      moduleName: "projecto"
+    },
 
     // list of files to exclude
     exclude: [
