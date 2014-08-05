@@ -1,20 +1,6 @@
 "use strict";
 
 (function() {
-  /*
-   * So the structure is designed as follows:
-   *
-   * TodoItemController
-   *   Controls a single item for the todo item. Handles the edit mode for
-   *   a single todo. Handles showing and hiding the todo.
-   * TodosController
-   *   Controls a bunch of a TodoItemControllers. Has pagination, filtering,
-   *   and creating new todos.
-   * SingleTodoController
-   *   Controls a single TodoItemController. Has commenting. Otherwise does
-   *   not do much.
-   */
-
   var module = angular.module("projecto");
 
   module.controller("TodosController", ["$scope", "$routeParams", "$location", "$window", "toast", "ProjectsService", "Todos", function($scope, $routeParams, $location, $window, toast, ProjectsService, Todos) {
