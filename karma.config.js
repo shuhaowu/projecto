@@ -22,6 +22,7 @@ module.exports = function(config) {
       'projecto/apiv1/**/jstests/*.js',
       'tests/jstests/others/**/*.js',
       "projecto/apiv1/**/static/partials/*.html",
+      "projecto/apiv1/**/static/css/*.css",
     ],
 
     preprocessors: {
