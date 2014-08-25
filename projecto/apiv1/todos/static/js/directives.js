@@ -15,6 +15,7 @@
       templateUrl: "/static/todos/partials/todoitem.html",
       link: function(scope, elem, attrs) {
         scope.draft = null;
+        scope.currentUser = window.currentUser;
 
         scope.done = function() {
           var req = scope.todo.done();

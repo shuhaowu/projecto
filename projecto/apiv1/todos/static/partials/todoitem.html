@@ -4,11 +4,11 @@
     <span class="todos-control">
       <span class="radius label" ng-show="todo.data.due" ng-bind-template="Due {[ todo.data.due | relativeTime ]}"></span>
 
-      <a ng-href="#/projects/{[ project.key ]}/todos/{[ todo.key ]}" ng-hide="hide_comment_link">
+      <a ng-href="#/projects/{[ project.key ]}/todos/{[ todo.key ]}" ng-hide="hide_comment_link" class="todos-todo-comment-link">
         <ng-pluralize count="todo.data.children.length" when="{'0': 'Comment', '1': '1 comment', 'other': '{} comments'}"></ng-pluralize>
       </a>
 
-      <span ng-show="project.owner || currentUser.key == todo.data.author.key">
+      <span ng-show="project.owner || currentUser.key == todo.data.author.key" class="todos-todo-controls">
         <span ng-hide="hideCommentLink">| </span>
         <a href="" title="Edit" ng-click="edit()" ng-hide="todo.archived">Edit</a> <span ng-hide="todo.archived">|</span>
         <a href="" title="Archive" ng-click="archive()" ng-hide="todo.archived">Archive</a>
@@ -22,7 +22,7 @@
 
     <div class="todos-todo-body" id="todo-{[ todo.key ]}">
       <!-- view mode -->
-      <div ng-hide="draft">
+      <div ng-hide="draft" class="todos-todo-body-view">
         <div ng-show="todo.data.content.markdown" class="todos-todo-content" ng-bind-html="todo.data.content.html | trusted"></div>
 
         <div ng-hide="todo.data.content.markdown" class="todos-todo-content">
@@ -39,7 +39,7 @@
       </div>
 
       <!-- edit mode -->
-      <div ng-show="draft">
+      <div ng-show="draft" class="todos-todo-body-edit">
         <form>
           <input type="text" ng-model="draft.data.title" placeholder="Title" />
           <textarea ng-model="draft.data.content.markdown" rows="5" placeholder="Description">
