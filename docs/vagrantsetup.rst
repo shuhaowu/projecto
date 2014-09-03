@@ -32,6 +32,10 @@ The ip of the box is set to 192.168.33.10. ``dev.getprojecto.ml`` has an A
 record pointing to it. Going to http://dev.getproject.ml after you start the
 server should allow you to access your local instance of projecto.
 
+It is best if you add the following to your host file:
+
+  192.168.33.10 dev.getprojecto.ml
+
 Windows Notes
 -------------
 
