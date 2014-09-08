@@ -10,4 +10,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder ".", "/projecto", :nfs => true
   config.vm.synced_folder ".", "/vagrant", :disabled => true
   config.vm.provision :shell, :path => "scripts/vagrant/bootstrap.sh"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
+  end
 end
